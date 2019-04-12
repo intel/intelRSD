@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ StorageController::StorageController(const std::string& parent_uuid, enums::Comp
 StorageController::~StorageController() {}
 
 json::Json StorageController::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::StorageController::STATUS] = get_status().to_json();
     result[literals::StorageController::FRU_INFO] = get_fru_info().to_json();
     result[literals::StorageController::PHYSICAL_ID] = get_physical_id();

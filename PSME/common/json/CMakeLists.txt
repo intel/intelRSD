@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 #
 # </license_header>
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.4)
 project("JSON" CXX)
 
+# TODO: remove old-style flags when all usages are removed
 set(JSON_LIBRARIES
         json
         CACHE PATH "JSON libraries"
@@ -30,23 +31,12 @@ set(JSON_INCLUDE_DIRS
         CACHE PATH "JSON include directory"
         )
 
-include_directories(
-        include
-        )
-
-include_directories(SYSTEM
-        ${NLOHMANNJSON_INCLUDE_DIRS}
-        include
-        )
-
 add_library(json STATIC
         src/json-wrapper.cpp
         )
 
-install(TARGETS json
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        )
-
-#add_subdirectory(tests)
+target_include_directories(json
+    PUBLIC
+    include
+    ${NLOHMANNJSON_INCLUDE_DIRS}
+)

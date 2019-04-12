@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,17 +26,17 @@ using namespace psme::rest::constants;
 
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchMetric.EthernetSwitchMetric";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EthernetSwitchMetrics.v1_0_0.EthernetSwitchMetrics";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Ethernet Switch Metrics";
     r[Common::DESCRIPTION] = "Ethernet Switch Metrics";
 
-    r[Common::HEALTH] = json::Value::Type::NIL;
+    r[Common::HEALTH] = json::Json::value_t::null;
 
     return r;
 }
@@ -50,10 +50,11 @@ void endpoint::EthernetSwitchMetrics::get(const server::Request& req, server::Re
     auto r = ::make_prototype();
 
     r[Common::ODATA_ID] = PathBuilder(req).build();
-    r[Common::ID] = "Switch " + req.params[PathParam::ETHERNET_SWITCH_ID] + " Metrics";
+    r[Common::ID] = constants::Common::METRICS;
+    r[Common::NAME] = "Switch " + req.params[PathParam::ETHERNET_SWITCH_ID] + " Metrics";
 
     // check if switch exists
-    model::Find<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID]).get_uuid();
+    model::find<agent_framework::model::EthernetSwitch>(req.params).get_uuid();
 
     set_response(res, r);
 }

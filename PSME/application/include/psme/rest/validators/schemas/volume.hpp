@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,6 +45,7 @@ class VolumePostSchema {
     public:
         static const jsonrpc::ProcedureValidator& get_procedure();
     };
+
     class ReplicaInfoSchema {
     public:
         static const jsonrpc::ProcedureValidator& get_procedure();
@@ -54,6 +55,14 @@ public:
 };
 
 class VolumePatchSchema {
+    class CapacitySchema {
+        class DataSchema {
+        public:
+            static const jsonrpc::ProcedureValidator& get_procedure();
+        };
+    public:
+        static const jsonrpc::ProcedureValidator& get_procedure();
+    };
     class OemSchema {
         class RackScaleSchema {
         public:

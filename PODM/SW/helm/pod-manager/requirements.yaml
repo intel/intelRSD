@@ -1,0 +1,25 @@
+dependencies:
+  - name: shared
+    version: 0.1.0
+    repository: file://../shared
+  - name: podm-gateway
+    version: 0.1.0
+    repository: file://../podm-gateway
+  - name: resource-manager
+    version: 0.1.0
+    repository: file://../resource-manager
+  - name: service-registry
+    version: 0.1.0
+    repository: file://../service-registry
+  - name: service-detector
+    version: 0.1.0
+    repository: file://../service-detector
+  - name: node-composer
+    version: 0.1.0
+    repository: file://../node-composer
+  - name: event-service
+    version: 0.1.0
+    repository: file://../event-service
+  - name: aaa-service
+    version: 0.1.0
+    repository: file://../aaa-service

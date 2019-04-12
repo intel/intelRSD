@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ using namespace agent_framework::model::literals;
 ResultStatus::~ResultStatus() { }
 
 json::Json ResultStatus::to_json() const {
-    json::Json json{};
+    json::Json json = json::Json();
     json[Component::ATTRIBUTE] = get_attribute();
     json[Component::CODE] = static_cast<std::int32_t>(get_status_code());
     json[Component::MESSAGE] = get_message();

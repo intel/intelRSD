@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,15 +26,15 @@
  * */
 #include <ipmb/command/get_drawer_power.hpp>
 
-#include "agent-framework/module/chassis_components.hpp"
-#include "agent-framework/module/common_components.hpp"
+#include "agent-framework/module/model/model_chassis.hpp"
+#include "agent-framework/module/managers/utils/manager_utils.hpp"
 
 
 
 using namespace agent::chassis::ipmb::command;
 
-using agent_framework::module::ChassisComponents;
-using agent_framework::module::CommonComponents;
+using agent_framework::module::get_manager;
+using namespace agent_framework::model;
 
 namespace {
 
@@ -114,28 +114,23 @@ void GetDrawerPower::make_response(DrawerPowerIpmbResponse& response) {
     uint8_t sled_presence_bit_map = 0;
     uint8_t sled_presence_mask = 1;
 
-    auto drawer_manager_keys = CommonComponents::get_instance()->
-        get_module_manager().get_keys("");
-    auto blade_manager_keys = CommonComponents::get_instance()->
-        get_module_manager().get_keys(drawer_manager_keys.front());
+    auto drawer_manager_keys = get_manager<Manager>().get_keys("");
+    auto sled_manager_keys = get_manager<Manager>().get_keys(drawer_manager_keys.front());
 
-    for (const auto& key: blade_manager_keys) {
-        auto manager = CommonComponents::get_instance()->
-            get_module_manager().get_entry(key);
+    for (const auto& key: sled_manager_keys) {
+        auto manager = get_manager<Manager>().get_entry(key);
         if (manager.get_presence()) {
             sled_presence_bit_map = uint8_t(sled_presence_bit_map | sled_presence_mask << (manager.get_slot() - 1));
             log_debug(LOGUSR, "Sled presence mask: " << std::to_string(static_cast<uint>(sled_presence_mask))
                                                      << " Sled presence bit map: "
                                                      << std::to_string(static_cast<uint>(sled_presence_bit_map)));
-            auto chassis_keys = CommonComponents::get_instance()->
-                get_chassis_manager().get_keys(manager.get_uuid());
-            auto power_zone_keys = ChassisComponents::get_instance()->
-                get_power_zone_manager().get_keys(chassis_keys.front());
+            auto sled_chassis_keys = get_manager<Chassis>().get_keys(manager.get_uuid());
 
-            auto power_zone = ChassisComponents::get_instance()->
-                get_power_zone_manager().get_entry_reference(power_zone_keys.front());
+            auto power_zone_keys = get_manager<PowerZone>().get_keys(sled_chassis_keys.front());
 
-            auto power = power_zone->get_power_consumed_watts();
+            auto power_zone = get_manager<PowerZone>().get_entry(power_zone_keys.front());
+
+            auto power = power_zone.get_power_consumed_watts();
             response.sled_power[response.sled_count] = drawer_power_ipmi_order(
                 uint16_t(power.has_value() ? power.value() : ~0x00));
 

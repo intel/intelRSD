@@ -1,8 +1,7 @@
 /*!
  * @brief Definition of NvmeLoader class.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file loader.hpp
  */
 
@@ -40,7 +38,7 @@ public:
      * @param[in] json JSON configuration file
      * @return true if success otherwise false
      */
-    bool load(const json::Value& json) override;
+    bool load(const json::Json& json) override;
 };
 
 }

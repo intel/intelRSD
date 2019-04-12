@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,29 +85,42 @@ class TestsDumpAction(Action):
         if not exists(self.METADATA_HOME_DIR):
             makedirs(self.METADATA_HOME_DIR)
 
+        # location
         for l in self.loc:
             path = os.path.join(self.METADATA_HOME_DIR, l.replace("_", "."))
             if not exists(path):
                 makedirs(path)
 
+        # file
         for f in self.xmlss:
             meta_loc = pkg_resources.resource_string(
                 self.METADATA_PACKAGES, f
             )
-            with open('/'.join((self.METADATA_HOME_DIR, f.replace("_", "."))), 'w') as resource:
+            relative_path, filename = self.__divide_path(f)
+
+            with open('/'.join((self.METADATA_HOME_DIR, relative_path.replace('_', '.'), filename)), 'w') as resource:
                 resource.write(meta_loc)
 
-    def discover_local_metadata(self, dir=None):
-        if not dir:
-            dir = ""
+    @staticmethod
+    def __divide_path(relative_path):
+        """
+        :param relative_path:
+        :return: relative path without filename, filename
+        """
+        divided_path = relative_path.split('/')
+        return '/'.join(divided_path[:-1]), divided_path[-1]
+
+    def discover_local_metadata(self, directory=None):
+        if not directory:
+            directory = ""
 
         folders = [x for x in pkg_resources.resource_listdir(
-            self.METADATA_PACKAGES, dir + "/") if not x.startswith("__")]
+            self.METADATA_PACKAGES, directory + "/") if not x.startswith("__")]
         for fold in folders:
             if pkg_resources.resource_isdir(self.METADATA_PACKAGES, fold + "/"):
                 self.discover_local_metadata(fold)
             else:
-                folder_name = "/".join((dir, fold))
+                folder_name = "/".join((directory, fold))
                 self.loc.append(folder_name)
                 xml = [x for x in pkg_resources.resource_listdir(
                     self.METADATA_PACKAGES, folder_name + "/") if not x.startswith("__")]

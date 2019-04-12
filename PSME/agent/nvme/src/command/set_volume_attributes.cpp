@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file set_volume_attributes.cpp
  */
 
@@ -24,7 +22,7 @@
 #include "agent-framework/action/task_runner.hpp"
 #include "agent-framework/action/task_creator.hpp"
 
-#include <mutex>
+
 
 using namespace agent::nvme;
 using namespace agent_framework;
@@ -37,14 +35,15 @@ namespace {
 bool get_fast_flag(const std::string& value) {
     auto type = enums::VolumeInitializationType::from_string(value);
     switch (type) {
-    case enums::VolumeInitializationType::Fast:
-        return true;
-    case enums::VolumeInitializationType::Slow:
-        return false;
-    default:
-        THROW(InvalidValue, "nvme-agent", "Unsupported initialization type.");
+        case enums::VolumeInitializationType::Fast:
+            return true;
+        case enums::VolumeInitializationType::Slow:
+            return false;
+        default:
+            THROW(InvalidValue, "nvme-agent", "Unsupported initialization type.");
     }
 }
+
 
 void throw_if_volume_is_shared(const Uuid& uuid) {
     if (tools::is_volume_shared(uuid)) {
@@ -53,18 +52,22 @@ void throw_if_volume_is_shared(const Uuid& uuid) {
     }
 }
 
+
 std::tuple<std::string, std::string> get_drive_and_volume_name(const Uuid& uuid) {
     auto volume = get_manager<Volume>().get_entry(uuid);
-    auto volume_name = tools::get_name_from_path(attribute::Identifier::get_system_path(volume));
     auto storage_pool_uuids = get_m2m_manager<StoragePool, Volume>().get_parents(uuid);
     if (storage_pool_uuids.size() != 1) {
-        throw std::runtime_error(std::string("Invalid number of storage pools for volume: "
-            + std::to_string(storage_pool_uuids.size())));
+        THROW(NvmeError, "nvme-agent",
+            "Invalid number of storage pools for volume: " + std::to_string(storage_pool_uuids.size()));
     }
     auto storage_pool = get_manager<StoragePool>().get_entry(storage_pool_uuids.front());
-    auto drive_name = tools::get_drive_name(storage_pool);
-    return std::make_tuple(drive_name, volume_name);
+    if (!storage_pool.get_name().has_value()) {
+        log_error("nvme-agent", "Storage pool " << storage_pool.get_uuid() << " has no name!");
+        throw NvmeError("Related Storage Pool has no name!");
+    }
+    return std::make_tuple(storage_pool.get_name(), volume.get_name());
 }
+
 
 void lock_volume(const Uuid& uuid) {
     auto volume_ref = get_manager<Volume>().get_entry_reference(uuid);
@@ -77,17 +80,17 @@ void lock_volume(const Uuid& uuid) {
     }
 }
 
+
 void unlock_and_handle_fail(const Uuid& uuid) {
     tools::VolumeDatabase db{uuid};
     db.put(tools::NvmeDatabase::VOLUME_ERASED, json::Json().dump());
     {
         auto volume_ref = get_manager<Volume>().get_entry_reference(uuid);
         volume_ref->set_is_being_initialized(false);
-        volume_ref->set_is_in_warning_state(true);
         volume_ref->set_status(attribute::Status{enums::State::Enabled, enums::Health::Warning});
-        volume_ref->set_erased(false);
     }
 }
+
 
 void unlock_and_handle_success(const Uuid& uuid) {
     tools::VolumeDatabase db{uuid};
@@ -95,27 +98,32 @@ void unlock_and_handle_success(const Uuid& uuid) {
     {
         auto volume_ref = get_manager<Volume>().get_entry_reference(uuid);
         volume_ref->set_is_being_initialized(false);
-        volume_ref->set_is_in_warning_state(false);
-        volume_ref->set_status(attribute::Status(true));
-        volume_ref->set_erased(true);
+        volume_ref->set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     }
 }
+
 
 void initialize_volume(SetComponentAttributes::ContextPtr context, const Uuid& uuid, bool fast_flag) {
     std::string drive_name{};
     std::string volume_name{};
     std::tie(drive_name, volume_name) = get_drive_and_volume_name(uuid);
 
-    // prepare handler
-    auto handler = context->drive_handler_factory->get_handler(drive_name);
-    if (!handler) {
-        throw std::runtime_error(std::string{"Unable to get handler for drive "} + drive_name);
-    }
-    handler->load();
+    try {
+        // prepare handler
+        auto handler = context->drive_handler_factory->get_handler(drive_name);
+        if (!handler) {
+            throw std::runtime_error(std::string{"Unable to get handler for drive "} + drive_name);
+        }
+        handler->load();
 
-    // initialize
-    handler->erase_volume(volume_name, fast_flag);
+        // initialize
+        handler->erase_volume(volume_name, fast_flag);
+    }
+    catch (const std::exception& exception) {
+        THROW(NvmeError, "nvme-agent", exception.what());
+    }
 }
+
 
 Uuid initialize_volume_task(SetComponentAttributes::ContextPtr context, const Uuid& uuid, const std::string& value) {
     log_info("nvme-agent", "Executing volume initialization.");
@@ -124,9 +132,9 @@ Uuid initialize_volume_task(SetComponentAttributes::ContextPtr context, const Uu
     bool fast_flag = get_fast_flag(value);
     action::TaskCreator task_creator{};
     task_creator.prepare_task();
-    task_creator.add_subtask([uuid](){lock_volume(uuid);});
-    task_creator.add_subtask([uuid, fast_flag, context](){initialize_volume(context, uuid, fast_flag);});
-    task_creator.add_subtask([uuid](){unlock_and_handle_success(uuid);});
+    task_creator.add_subtask([uuid]() { lock_volume(uuid); });
+    task_creator.add_subtask([uuid, fast_flag, context]() { initialize_volume(context, uuid, fast_flag); });
+    task_creator.add_subtask([uuid]() { unlock_and_handle_success(uuid); });
     task_creator.add_exception_callback([uuid](const exceptions::GamiException&) { unlock_and_handle_fail(uuid); });
     task_creator.set_promised_response([]() { return SetComponentAttributes::Response().to_json(); });
 
@@ -136,30 +144,13 @@ Uuid initialize_volume_task(SetComponentAttributes::ContextPtr context, const Uu
     return task_creator.get_task_resource().get_uuid();
 }
 
-void set_erased(const Uuid& uuid, json::Json value) {
-    static std::mutex local_mutex{};
-    std::lock_guard<std::mutex> lock(local_mutex);
-
-    log_debug("nvme-agent", "Setting erased");
-    tools::VolumeDatabase db{uuid};
-    if (value.is_boolean()) {
-        db.put(tools::NvmeDatabase::VOLUME_ERASED, value.dump());
-        {
-            auto volume_ref = get_manager<Volume>().get_entry_reference(uuid);
-            volume_ref->set_erased(value.get<bool>());
-        }
-        log_debug("nvme-agent", "Erased has been set to: " << value.dump());
-    }
-    else {
-        THROW(NvmeError, "nvme-agent", std::string{"Invalid 'erased' type: "} + value.dump());
-    }
 }
 
-}
 
-void agent::nvme::command::set_volume_attributes(agent::nvme::SetComponentAttributes::ContextPtr context,
-        const Uuid& uuid, const agent_framework::model::attribute::Attributes& attributes,
-        SetComponentAttributes::Response& response) {
+void agent::nvme::command::set_volume_attributes(SetComponentAttributes::ContextPtr context,
+                                    const Uuid& uuid,
+                                    const attribute::Attributes& attributes,
+                                    SetComponentAttributes::Response& response) {
 
     log_debug("nvme-agent", "Executing setVolumeAttributes command");
     log_debug("nvme-agent", "Processing Volume [UUID = " << uuid << "]");
@@ -171,18 +162,7 @@ void agent::nvme::command::set_volume_attributes(agent::nvme::SetComponentAttrib
         log_debug("nvme-agent", "Attribute name: " << attribute_name);
         log_debug("nvme-agent", "Attribute value: " << value.dump());
 
-        if (literals::Volume::ERASED == attribute_name) {
-            try {
-                set_erased(uuid, value);
-            }
-            catch (const exceptions::GamiException&) {
-                throw;
-            }
-            catch (const std::exception& e) {
-                THROW(NvmeError, "nvme-agent", std::string{"Error while setting volume attributes: "} + e.what());
-            }
-        }
-        else if (literals::Volume::INITIALIZATION == attribute_name) {
+        if (literals::Volume::INITIALIZATION == attribute_name) {
             try {
                 response.set_task(initialize_volume_task(context, uuid, value.get<std::string>()));
             }

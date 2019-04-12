@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,37 +27,37 @@ using namespace psme::rest;
 using namespace psme::rest::constants;
 using namespace agent_framework::module;
 
-
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchPortMetrics.EthernetSwitchPortMetrics";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EthernetSwitchPortMetrics.v1_0_0.EthernetSwitchPortMetrics";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Ethernet Switch Port Metrics";
     r[Common::DESCRIPTION] = "Ethernet Switch Port Metrics";
 
-    json::Value data;
-    data[constants::EthernetSwitchPortMetrics::PACKETS] = json::Value::Type::NIL;
-    data[constants::EthernetSwitchPortMetrics::DROPPED_PACKETS] = json::Value::Type::NIL;
-    data[constants::EthernetSwitchPortMetrics::ERROR_PACKETS] = json::Value::Type::NIL;
-    data[constants::EthernetSwitchPortMetrics::BROADCAST_PACKETS] = json::Value::Type::NIL;
-    data[constants::EthernetSwitchPortMetrics::MULTICAST_PACKETS] = json::Value::Type::NIL;
-    data[constants::EthernetSwitchPortMetrics::ERRORS] = json::Value::Type::NIL;
-    data[constants::EthernetSwitchPortMetrics::BYTES] = json::Value::Type::NIL;
+    json::Json data = json::Json();
+    data[constants::EthernetSwitchPortMetrics::PACKETS] = json::Json::value_t::null;
+    data[constants::EthernetSwitchPortMetrics::DROPPED_PACKETS] = json::Json::value_t::null;
+    data[constants::EthernetSwitchPortMetrics::ERROR_PACKETS] = json::Json::value_t::null;
+    data[constants::EthernetSwitchPortMetrics::BROADCAST_PACKETS] = json::Json::value_t::null;
+    data[constants::EthernetSwitchPortMetrics::MULTICAST_PACKETS] = json::Json::value_t::null;
+    data[constants::EthernetSwitchPortMetrics::ERRORS] = json::Json::value_t::null;
+    data[constants::EthernetSwitchPortMetrics::BYTES] = json::Json::value_t::null;
 
-    json::Value data_received = data;
+    json::Json data_received = data;
     r[constants::EthernetSwitchPortMetrics::RECEIVED] = std::move(data_received);
     r[constants::EthernetSwitchPortMetrics::TRANSMITTED] = std::move(data);
 
-    r[constants::EthernetSwitchPortMetrics::COLLISIONS] = json::Value::Type::NIL;
+    r[constants::EthernetSwitchPortMetrics::COLLISIONS] = json::Json::value_t::null;
 
     return r;
 }
 
 }
+
 
 endpoint::EthernetSwitchPortMetrics::EthernetSwitchPortMetrics(const std::string& path) : EndpointBase(path) {}
 
@@ -68,12 +68,12 @@ endpoint::EthernetSwitchPortMetrics::~EthernetSwitchPortMetrics() {}
 void endpoint::EthernetSwitchPortMetrics::get(const server::Request& req, server::Response& res) {
     auto r = ::make_prototype();
     r[Common::ODATA_ID] = PathBuilder(req).build();
-    r[Common::ID] = "Port " + req.params[PathParam::SWITCH_PORT_ID] + " Metrics";
+    r[Common::ID] = constants::Common::METRICS;
+    r[Common::NAME] = "Port " + req.params[PathParam::SWITCH_PORT_ID] + " Metrics";
 
     // check if port exists
-    psme::rest::model::Find<agent_framework::model::EthernetSwitchPort>(req.params[PathParam::SWITCH_PORT_ID])
-        .via<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
-        .get_uuid();
+    psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort>(
+        req.params).get_uuid();
 
     set_response(res, r);
 }

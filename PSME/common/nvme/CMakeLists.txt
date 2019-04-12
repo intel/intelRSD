@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,20 +19,6 @@
 cmake_minimum_required(VERSION 3.4)
 project("NVME" CXX)
 
-set(NVME_LIBRARIES
-    nvme
-    CACHE PATH "NVME libraries"
-    )
-
-set(NVME_INCLUDE_DIRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    CACHE PATH "NVME include directory"
-    )
-
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
 add_library(nvme STATIC
     src/commands/generic_nvme_command.cpp
     src/commands/controller_reset.cpp
@@ -42,6 +28,9 @@ add_library(nvme STATIC
     src/commands/namespace_management.cpp
     src/commands/namespace_attachment.cpp
     src/commands/get_log_page.cpp
+    src/commands/get_features.cpp
+    src/commands/set_features.cpp
+
     src/utils.cpp
     src/abstract_nvme_invoker.cpp
     src/abstract_nvme_interface.cpp
@@ -50,10 +39,9 @@ add_library(nvme STATIC
     src/nvme_exception.cpp
 )
 
-install(TARGETS nvme
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
+target_include_directories(nvme
+    PUBLIC
+    include
 )
 
 add_subdirectory(tests)

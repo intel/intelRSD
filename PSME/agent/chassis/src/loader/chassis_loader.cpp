@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,18 +67,22 @@ ChassisLoader::~ChassisLoader() {}
 class LoadManagers {
 public:
 
-    void read_managers(const json::Value& json) {
-        for (const auto& elem : json["managers"].as_array()) {
-            auto manager = make_manager(elem);
-            read_manager(manager, elem);
+    void read_managers(const json::Json& json) {
+        if (json.count("managers")) {
+            for (const auto& elem : json["managers"]) {
+                auto manager = make_manager(elem);
+                read_manager(manager, elem);
+            }
         }
     }
 
 
-    void read_managers(const std::string& parent, const json::Value& json) {
-        for (const auto& elem : json["managers"].as_array()) {
-            auto manager = make_manager(parent, elem);
-            read_manager(manager, elem);
+    void read_managers(const std::string& parent, const json::Json& json) {
+        if (json.count("managers")) {
+            for (const auto& elem : json["managers"]) {
+                auto manager = make_manager(parent, elem);
+                read_manager(manager, elem);
+            }
         }
     }
 
@@ -115,9 +119,9 @@ public:
 
 
 private:
-    void read_manager(Manager& manager, const json::Value& json) {
+    void read_manager(Manager& manager, const json::Json& json) {
 
-        if (json["chassis"].is_object()) {
+        if (json.value("chassis", json::Json()).is_object()) {
             auto chassis = make_chassis(manager, json["chassis"]);
             log_debug("discovery",
                       "Adding chassis:" << chassis.get_uuid() << " to manager " << manager.get_uuid());
@@ -128,21 +132,20 @@ private:
         log_debug("discovery", "Adding manager:" << manager.get_uuid());
         get_manager<Manager>().add_entry(manager);
 
-        if (json["managers"].is_array()) {
+        if (json.value("managers", json::Json()).is_array()) {
             log_debug("discovery", "Adding children managers to manager:" << manager.get_uuid());
             read_managers(manager.get_uuid(), json);
         }
     }
 
 
-    Manager make_manager(const json::Value& json) {
+    Manager make_manager(const json::Json& json) {
         Manager manager{};
 
         //Chassis collection is added only to top level manager.
         manager.add_collection(attribute::Collection(
             enums::CollectionName::Chassis,
-            enums::CollectionType::Chassis,
-            {}
+            enums::CollectionType::Chassis
         ));
 
         make_manager_internals(manager, json);
@@ -150,30 +153,30 @@ private:
     }
 
 
-    Manager make_manager(const std::string& parent, const json::Value& json) {
+    Manager make_manager(const std::string& parent, const json::Json& json) {
         Manager manager{parent};
         make_manager_internals(manager, json);
         return manager;
     }
 
 
-    void make_manager_internals(Manager& manager, const json::Value& json) {
+    void make_manager_internals(Manager& manager, const json::Json& json) {
         manager.set_firmware_version(Version::VERSION_STRING);
-        manager.set_slot(std::uint8_t(json["slot"].as_uint()));
+        manager.set_slot(std::uint8_t(json.value("slot", std::uint16_t{})));
 
         try {
-            if (json["chassis"].is_object() &&
-                enums::ChassisType(enums::ChassisType::Drawer).to_string() == json["chassis"]["type"].as_string()) {
+            if (json.value("chassis", json::Json()).is_object() &&
+                enums::ChassisType(enums::ChassisType::Drawer).to_string() == json.value("chassis", json::Json::object()).value("type", std::string{})) {
                 manager.set_manager_type(enums::ManagerInfoType::EnclosureManager);
             }
 
-            manager.set_ipv4_address(json["ipv4"].as_string());
+            manager.set_ipv4_address(json.value("ipv4", std::string{}));
 
             ConnectionData connection_data{};
-            connection_data.set_ip_address(json["ipv4"].as_string());
-            connection_data.set_port(json["port"].as_uint());
-            connection_data.set_username(decrypt_value(json["username"].as_string()));
-            connection_data.set_password(decrypt_value(json["password"].as_string()));
+            connection_data.set_ip_address(json.value("ipv4", std::string{}));
+            connection_data.set_port(json.value("port", std::uint16_t{}));
+            connection_data.set_username(decrypt_value(json.value("username", std::string{})));
+            connection_data.set_password(decrypt_value(json.value("password", std::string{})));
             log_debug("agent", "Manager connection data loaded. IP="
                 << connection_data.get_ip_address()
                 << ", port=" << connection_data.get_port());
@@ -192,7 +195,7 @@ private:
         attribute::SerialConsole serial{};
         serial.set_bitrate(115200);
         serial.set_data_bits(8);
-        serial.set_enabled(json["serialConsoleEnabled"].as_bool());
+        serial.set_enabled(json.value("serialConsoleEnabled", bool{}));
         serial.set_flow_control(enums::SerialConsoleFlowControl::None);
         serial.set_parity(enums::SerialConsoleParity::None);
         serial.set_pin_out(enums::SerialConsolePinOut::Cisco);
@@ -203,12 +206,12 @@ private:
     }
 
 
-    Chassis make_chassis(Manager& parent, const json::Value& json) {
+    Chassis make_chassis(Manager& parent, const json::Json& json) {
         Chassis chassis{parent.get_uuid()};
         try {
-            chassis.set_location_offset(json["locationOffset"].as_uint());
+            chassis.set_location_offset(json.value("locationOffset", std::uint16_t{}));
 
-            chassis.set_type(enums::ChassisType::from_string(json["type"].as_string()));
+            chassis.set_type(enums::ChassisType::from_string(json.value("type", std::string{})));
             if (chassis.get_type() == enums::ChassisType::Drawer) {
                 /* Drawers are managed by RackManager from RMM... */
                 chassis.set_is_managed(false);
@@ -216,12 +219,12 @@ private:
                 parent.set_location(chassis.get_uuid());
             }
 
-            const auto& parent_id_json = json["parentId"];
-            if (parent_id_json.is_uint()) { // for backward compatibility
-                chassis.set_parent_id(std::to_string(parent_id_json.as_uint()));
+            const auto& parent_id_json = json.value("parentId", json::Json());
+            if (parent_id_json.is_number_unsigned()) { // for backward compatibility
+                chassis.set_parent_id(std::to_string(parent_id_json.get<unsigned int>()));
             }
             else {
-                chassis.set_parent_id(parent_id_json.as_string());
+                chassis.set_parent_id(parent_id_json.get<std::string>());
             }
         }
         catch (const std::runtime_error& e) {
@@ -229,16 +232,16 @@ private:
             log_debug("discovery", "Invalid chassis configuration: " << e.what());
         }
 
-        if (json["platform"].is_string()) {
-            chassis.set_platform(enums::PlatformType::from_string(json["platform"].as_string()));
+        if (json.value("platform", json::Json()).is_string()) {
+            chassis.set_platform(enums::PlatformType::from_string(json.value("platform", std::string{})));
         }
         else {
             log_warning("discovery", "Field 'platform' missing in configuration file. Set default: BDCR");
             chassis.set_platform(enums::PlatformType::BDCR);
         }
 
-        if (json["networkInterface"].is_string()) {
-            chassis.set_network_interface(json["networkInterface"].as_string());
+        if (json.value("networkInterface", json::Json()).is_string()) {
+            chassis.set_network_interface(json.value("networkInterface", std::string{}));
         }
 
         chassis.set_status({
@@ -259,14 +262,14 @@ private:
 };
 
 
-bool ChassisLoader::load(const json::Value& json) {
+bool ChassisLoader::load(const json::Json& json) {
     try {
         LoadManagers lm{};
         lm.read_managers(json);
         lm.generate_blade_chassis();
         return true;
     }
-    catch (const json::Value::Exception& e) {
+    catch (const std::exception e) {
         log_error("discovery", "Load agent configuration failed: " << e.what());
     }
     return false;

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ GetStorageSubsystemInfo::GetStorageSubsystemInfo(const std::string& storage) : m
 
 
 json::Json GetStorageSubsystemInfo::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[StorageSubsystem::STORAGE] = m_storage;
     return value;
 }

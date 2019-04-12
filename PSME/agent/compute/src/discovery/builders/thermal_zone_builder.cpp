@@ -1,7 +1,7 @@
 /*!
  * @brief Thermal zone builder class implementation
  *
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file thermal_zone_builder.cpp
  */
 
@@ -29,8 +28,8 @@ agent_framework::model::ThermalZone ThermalZoneBuilder::build_default(const std:
     ThermalZone zone{parent_uuid};
 
     zone.add_collection({enums::CollectionName::Fans,
-                         enums::CollectionType::Fans,
-                         ""});
+                         enums::CollectionType::Fans
+    });
     zone.set_status({enums::State::Enabled, {}});
     return zone;
 }

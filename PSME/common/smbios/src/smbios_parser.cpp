@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,11 +24,11 @@
  * */
 
 #include "smbios/smbios_parser.hpp"
+#include "logger/logger.hpp"
 #include <numeric>
 #include <cstddef>
 #include <cstring>
 #include <ostream>
-#include <iostream>
 #include <iomanip>
 #include <iterator>
 #include <safe-string/safe_lib.hpp>
@@ -39,21 +39,13 @@
 namespace smbios {
 namespace parser {
 
-template<typename T>
-using StructEnhanced = SmbiosParser::StructEnhanced<T>;
-
-
-template<typename T>
-void validate_length(StructEnhanced<T> structure) {
-    if (sizeof(T) != structure.header.length) {
-        std::cout << "WARNING: Length ("
-                  << int(structure.header.length)
-                  << ") is different than expected ("
-                  << int(sizeof(T))
-                  << ")." << std::endl;
-    }
+template<>
+bool is_valid_structure_length<SMBIOS_SPEED_SELECT_INFO_DATA>(const uint8_t length) {
+    static constexpr uint8_t MIN_LENGTH = sizeof(SMBIOS_SPEED_SELECT_INFO_DATA);
+    // variable length structure: contains zero or more Speed Select Configurations
+    return length >= MIN_LENGTH &&
+        (length - MIN_LENGTH) % sizeof(SPEED_SELECT_CONFIGURATION) == 0;
 }
-
 
 SmbiosParser::Exception::~Exception() {}
 
@@ -61,6 +53,42 @@ SmbiosParser::Exception::~Exception() {}
 }
 
 namespace mdr {
+
+template<>
+StructEnhanced<smbios::parser::SMBIOS_SPEED_SELECT_INFO_DATA> parse_struct<smbios::parser::SMBIOS_SPEED_SELECT_INFO_DATA>(
+    std::shared_ptr<const uint8_t> bufp, const size_t buf_size, uint64_t& offset, bool has_auxiliary_string) {
+    using namespace smbios::parser;
+
+    auto buf = bufp.get();
+    const SMBIOS_SPEED_SELECT_INFO_DATA* structure = reinterpret_cast<const SMBIOS_SPEED_SELECT_INFO_DATA*>(buf + offset);
+    std::vector<SPEED_SELECT_CONFIGURATION> configs;
+    std::vector<std::string> strings{};
+
+    offset += sizeof(SMBIOS_SPEED_SELECT_INFO_DATA);
+
+    // Verify length of configs in buffer. Skip reading them if there is a mismatch.
+    if ((structure->header.length - sizeof(SMBIOS_SPEED_SELECT_INFO_DATA)) / sizeof(SPEED_SELECT_CONFIGURATION)
+        != structure->data.number_of_configs) {
+
+        log_warning("smbios", "SMBIOS Speed Select structure: length and number of configurations do not match for handle "
+                    << structure->header.handle << ". Speed Select Configurations skipped!");
+        offset += structure->header.length - sizeof(SMBIOS_SPEED_SELECT_INFO_DATA);
+    }
+    else {
+        for (uint8_t i = 0; i < structure->data.number_of_configs; ++i) {
+            const SPEED_SELECT_CONFIGURATION config = *reinterpret_cast<const SPEED_SELECT_CONFIGURATION*>(buf + offset);
+            configs.push_back(config);
+            offset += sizeof(SPEED_SELECT_CONFIGURATION);
+        }
+    }
+
+    if (has_auxiliary_string) {
+        read_auxiliary_strings(buf, buf_size, offset, strings);
+    }
+
+    return {*structure, std::move(configs), std::move(strings), bufp};
+}
+
 
 template<>
 std::shared_ptr<const uint8_t> smbios::parser::SmbiosParser::init_buffer(const uint8_t* _buf, size_t _buf_size) {
@@ -190,6 +218,11 @@ std::ostream& operator<<(std::ostream& os, const smbios::parser::SmbiosParser& p
                 os << data;
                 break;
             }
+            case SMBIOS_SPEED_SELECT_INFO_DATA::ID: {
+                const auto data = parser.read_struct<SMBIOS_SPEED_SELECT_INFO_DATA>(offset);
+                os << data;
+                break;
+            }
             default:
                 offset += header.length;
                 /* Get past trailing string-list - double-null */
@@ -221,7 +254,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_SYSTEM_INFO_DATA>& s) {
     os << "SMBIOS_SYSTEM_INFO_DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tManufacturer    : " << s.get_string(s.data.manufacturer)
        << "\n\tProduct Name    : " << s.get_string(s.data.product_name)
        << "\n\tVersion         : " << s.get_string(s.data.version)
@@ -240,7 +272,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_MODULE_INFO_DATA>& s) {
     os << "SMBIOS_MODULE_INFO_DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tManufacturer    : " << s.get_string(s.data.manufacturer)
        << "\n\tProduct Name    : " << s.get_string(s.data.product)
        << "\n\tVersion         : " << s.get_string(s.data.version)
@@ -255,7 +286,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_PCIE_INFO_DATA>& s) {
     os << "PCIE_INFO_DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tPciClassCode    : 0x" << std::hex << static_cast<uint32_t>(s.data.ClassCode)
        << "\n\tSlotNo          : 0x" << std::hex << s.data.SlotNo
        << "\n\tVendorID        : 0x" << std::hex << s.data.VendorID
@@ -271,7 +301,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_PROCESSOR_INFO_DATA>& s) {
     os << "PROCESSOR INFO DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tSocketDesignation        : " << s.get_string(s.data.socket_designation)
        << "\n\tProcessorType            : 0x" << std::hex << static_cast<int>(s.data.processor_type)
        << "\n\tProcessorFamily          : 0x" << std::hex << static_cast<int>(s.data.processor_family)
@@ -303,7 +332,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_CPUID_DATA>& s) {
     os << "CPUID DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tSocket designation   : " << s.get_string(s.data.socket_designation)
        << "\n\tSubType              : 0x" << std::hex << static_cast<uint32_t>(s.data.socket_designation) << std::endl;
     return os;
@@ -312,7 +340,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_CPUID_DATA_V2>& s) {
     os << "CPUID DATA V2\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tSocket designation   : " << s.get_string(s.data.socket_designation)
        << "\n\tSubType              : 0x" << std::hex << static_cast<uint32_t>(s.data.socket_designation) << std::endl;
     return os;
@@ -321,7 +348,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_STORAGE_INFO_DATA>& s) {
     os << "HDD_INFO_DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tPciClassCode    : 0x" << std::hex << static_cast<uint32_t> (s.data.PciClassCode)
        << "\n\tVendorID        : 0x" << std::hex << s.data.VendorID
        << "\n\tDeviceID        : 0x" << std::hex << s.data.DeviceID
@@ -339,7 +365,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_STORAGE_INFO_DATA_V2>& s) {
     os << "HDD_INFO_DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tPciClassCode    : 0x" << std::hex << static_cast<uint32_t> (s.data.PciClassCode)
        << "\n\tPciSubClassCode : 0x" << std::hex << static_cast<uint32_t> (s.data.PciSubClassCode)
        << "\n\tVendorID        : 0x" << std::hex << s.data.VendorID
@@ -360,7 +385,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_NIC_INFO_DATA>& s) {
     os << "NIC_INFO_DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tPciClassCode    : 0x" << std::hex << static_cast<uint32_t>(s.data.PciClassCode)
        << "\n\tSlotNo          : 0x" << std::hex << s.data.SlotNo
        << "\n\tVendorID        : 0x" << std::hex << s.data.VendorID
@@ -384,7 +408,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_NIC_INFO_DATA_V2>& s) {
     os << "NIC_INFO_DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tPciClassCode    : 0x" << std::hex << static_cast<uint32_t>(s.data.PciClassCode)
        << "\n\tSlotNo          : 0x" << std::hex << s.data.SlotNo
        << "\n\tVendorID        : 0x" << std::hex << s.data.VendorID
@@ -409,7 +432,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_FPGA_DATA>& s) {
     os << "FPGA_DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tFPGAIndex                        : " << std::dec << int{s.data.fpga_index}
        << "\n\tFPGAType                         : 0x" << std::hex << static_cast<int>(s.data.fpga_type)
        << "\n\tFPGAStatus                       : 0x" << std::hex << static_cast<int>(s.data.fpga_status)
@@ -430,9 +452,9 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
        << "\n\tPCIeDeviceIdentifier             : " << std::dec << uint32_t{s.data.fpga_pcie_device_identifier}
        << "\n\tPCIeFunctionIdentifier           : " << std::dec << uint32_t{s.data.fpga_pcie_function_identifier}
        << "\n\tThermalDesignPower               : " << std::dec << s.data.thermal_design_power
-       << "\n\tOnPackageMemoryTechnology        : " << std::dec << static_cast<uint32_t>(s.data.memory_technology)
-       << "\n\tOnPackageMemoryCapacity          : " << std::dec << s.data.on_package_memory_capacity
-       << "\n\tOnPackageMemorySpeed             : " << std::dec << uint{s.data.on_package_memory_speed} << std::endl;
+       << "\n\tIntegratedMemoryTechnology        : " << std::dec << static_cast<uint32_t>(s.data.memory_technology)
+       << "\n\tIntegratedMemoryCapacity          : " << std::dec << s.data.integrated_memory_capacity
+       << "\n\tIntegratedMemorySpeed             : " << std::dec << uint{s.data.integrated_memory_speed} << std::endl;
 
     return os;
 }
@@ -440,7 +462,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_FPGA_DATA_OEM>& s) {
     os << "FPGA_DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tFPGAIndex                        : " << std::dec << int{s.data.fpga_index}
        << "\n\tFPGAType                         : 0x" << std::hex << static_cast<int>(s.data.fpga_type)
        << "\n\tFPGAStatus                       : 0x" << std::hex << static_cast<int>(s.data.fpga_status)
@@ -461,9 +482,9 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
        << "\n\tPCIeDeviceIdentifier             : " << std::dec << uint32_t{s.data.fpga_pcie_device_identifier}
        << "\n\tPCIeFunctionIdentifier           : " << std::dec << uint32_t{s.data.fpga_pcie_function_identifier}
        << "\n\tThermalDesignPower               : " << std::dec << s.data.thermal_design_power
-       << "\n\tOnPackageMemoryTechnology        : " << std::dec << static_cast<uint32_t>(s.data.memory_technology)
-       << "\n\tOnPackageMemoryCapacity          : " << std::dec << s.data.on_package_memory_capacity
-       << "\n\tOnPackageMemorySpeed             : " << std::dec << uint{s.data.on_package_memory_speed} << std::endl;
+       << "\n\tIntegratedMemoryTechnology        : " << std::dec << static_cast<uint32_t>(s.data.memory_technology)
+       << "\n\tIntegratedMemoryCapacity          : " << std::dec << s.data.integrated_memory_capacity
+       << "\n\tIntegratedMemorySpeed             : " << std::dec << uint{s.data.integrated_memory_speed} << std::endl;
 
     return os;
 }
@@ -471,7 +492,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_STORAGE_DEVICE_INFO_DATA>& s) {
     os << "STORAGE_DEVICE_DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tPortDesignation                  : " << std::dec << uint32_t{s.data.port_designation}
        << "\n\tDeviceIndex                      : " << std::dec << uint32_t{s.data.device_index}
        << "\n\tConnectorType                    : 0x" << std::hex << static_cast<uint32_t>(s.data.connector_type)
@@ -494,7 +514,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_TPM_INFO_DATA>& s) {
     os << "TPM_DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tConfigurationIndex       : " << std::dec << uint32_t{s.data.tpm_configuration_index}
        << "\n\tVersion                  : " << s.get_string(s.data.tpm_version)
        << "\n\tStatus                   : 0x" << std::hex << static_cast<uint32_t>(s.data.tpm_status) << std::endl;
@@ -505,7 +524,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_TXT_INFO_DATA>& s) {
     os << "TXT DEVICE DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tTxtStatus      : 0x" << std::hex << static_cast<uint32_t>(s.data.status) << std::endl;
     return os;
 }
@@ -514,7 +532,6 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 std::ostream&
 operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_MEMORY_DEVICE_EXTENDED_INFO_DATA>& s) {
     os << "MEMORY DEVICE EXTENDED DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tMemoryDeviceHandle        : " << std::dec << uint32_t{s.data.memory_device_handle}
        << "\n\tMemoryType                : 0x" << std::hex << static_cast<uint32_t>(s.data.type)
        << "\n\tMemoryMedia               : 0x" << std::hex << static_cast<uint32_t>(s.data.media)
@@ -528,7 +545,6 @@ operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_MEMORY_
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_MEMORY_DEVICE>& s) {
     os << "MEMORY DEVICE DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     os << "\tPhysicalMemoryArrayHandle         : 0x" << std::hex << s.data.physical_memory_array_handle
        << "\n\tMemoryErrorInfoHandle             : 0x" << std::hex
        << static_cast<uint32_t>(s.data.memory_error_info_handle)
@@ -559,8 +575,29 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_PCIE_PORT_INFO_DATA>& s) {
     os << "CABLED PCIE PORT DATA\t@" << s.header.handle << "\n";
-    smbios::parser::validate_length(s);
     return os;
+}
+
+
+std::ostream& operator<<(std::ostream& os, const StructEnhanced<smbios::parser::SMBIOS_SPEED_SELECT_INFO_DATA>& s) {
+    os << "SPEED SELECT DATA\t@" << s.header.handle << "\n";
+    os << "\tSocket_number               : " << std::dec << uint32_t(s.data.socket_number)
+       << "\n\tStructure_version           : " << uint32_t(s.data.structure_version)
+       << "\n\tNumber_of_configs           : " << uint32_t(s.data.number_of_configs)
+       << "\n\tCurrent_config              : " << uint32_t(s.data.current_config);
+
+    for (const auto& config : s.configs) {
+       os << "\n\n\tConfiguration_number        : " << uint32_t(config.configuration_number)
+          << "\n\tHigh_priority_core_count    : " << uint32_t(config.high_priority_core_count)
+          << "\n\tHigh_priority_base_frequency: " << uint32_t(config.high_priority_base_frequency)
+          << "\n\tLow_priority_core_count     : " << uint32_t(config.low_priority_core_count)
+          << "\n\tLow_priority_base_frequency : " << uint32_t(config.low_priority_base_frequency)
+          << "\n\tMax_tdp                     : " << config.max_tdp
+          << "\n\tMax_junction_temperature    : " << uint32_t(config.max_junction_temperature)
+          << "\n\tHigh_priority_code_apic_ids" << s.get_string(config.high_priority_code_apic_ids);
+    }
+
+    return os << std::endl;
 }
 
 }

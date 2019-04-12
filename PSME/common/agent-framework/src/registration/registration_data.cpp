@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,10 +37,10 @@ const constexpr char INTERVAL[] = "interval";
 }
 
 
-RegistrationData::RegistrationData(const json::Value& config) :
-    m_ipv4_address(config[::REGISTRATION][::IPv4].as_string()),
-    m_port(static_cast<std::uint16_t>(config[::REGISTRATION][::PORT].as_uint())),
-    m_interval(config[::REGISTRATION][::INTERVAL].as_uint()) {
+RegistrationData::RegistrationData(const json::Json& config) :
+    m_ipv4_address(config.value(::REGISTRATION, json::Json::object()).value(::IPv4, std::string{})),
+    m_port(config.value(::REGISTRATION, json::Json::object()).value(::PORT, std::uint16_t{})),
+    m_interval(config.value(::REGISTRATION, json::Json::object()).value(::INTERVAL, std::uint32_t{})) {
 }
 
 

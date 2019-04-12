@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,41 +11,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file rmm/event_collector/event_collector.cpp
- */
+ * */
 
 #include "event_collector/event_collector.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
 
 using namespace agent::rmm::event_collector;
-using namespace agent_framework::eventing;
 
-void EventCollector::poll_add_event(const enums::Component component, const std::string& resource_uuid,
+void EventCollector::poll_add_event(const agent_framework::model::enums::Component component,
+    const std::string& resource_uuid,
     const std::string& parent_uuid) {
 
-    poll_event(component, resource_uuid, parent_uuid, Notification::Add);
+    poll_event(component, resource_uuid, parent_uuid, agent_framework::model::enums::Notification::Add);
 }
 
-void EventCollector::poll_remove_event(const enums::Component component, const std::string& resource_uuid,
+void EventCollector::poll_remove_event(const agent_framework::model::enums::Component component,
+    const std::string& resource_uuid,
     const std::string& parent_uuid) {
 
-    poll_event(component, resource_uuid, parent_uuid, Notification::Remove);
+    poll_event(component, resource_uuid, parent_uuid, agent_framework::model::enums::Notification::Remove);
 }
 
 
-void EventCollector::poll_update_event(const enums::Component component, const std::string& resource_uuid,
+void EventCollector::poll_update_event(const agent_framework::model::enums::Component component,
+    const std::string& resource_uuid,
     const std::string& parent_uuid) {
 
-    poll_event(component, resource_uuid, parent_uuid, Notification::Update);
+    poll_event(component, resource_uuid, parent_uuid, agent_framework::model::enums::Notification::Update);
 }
 
-void EventCollector::poll_event(const enums::Component component, const std::string& resource_uuid,
-    const std::string& parent_uuid, Notification event_type) {
+void EventCollector::poll_event(const agent_framework::model::enums::Component component,
+    const std::string& resource_uuid,
+    const std::string& parent_uuid,
+    agent_framework::model::enums::Notification event_type) {
 
     /* Any squashing should be done here */
 
-    EventData event{};
+    agent_framework::model::attribute::EventData event{};
     event.set_component(resource_uuid);
     event.set_parent(parent_uuid);
     event.set_type(component);
@@ -56,12 +58,11 @@ void EventCollector::poll_event(const enums::Component component, const std::str
 }
 
 void EventCollector::send() {
-    EventDataVec notifications(m_event_pool.begin(), m_event_pool.end());
-    EventsQueue::get_instance()->push_back(notifications);
+    agent_framework::model::attribute::EventData::Vector notifications(m_event_pool.begin(), m_event_pool.end());
+    agent_framework::eventing::EventsQueue::get_instance()->push_back(notifications);
     clear();
 }
 
 void EventCollector::clear() {
-
     m_event_pool.clear();
 }

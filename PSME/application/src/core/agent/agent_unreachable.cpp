@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,18 +24,30 @@
 
 #include "psme/core/agent/agent_unreachable.hpp"
 
+
+
 using namespace psme::core::agent;
 
 
 AgentUnreachable::AgentUnreachable(const std::string& gami_id)
-    : m_gami_id(gami_id) { }
+    : m_gami_id(gami_id) {
+    make_what();
+}
+
 
 AgentUnreachable::~AgentUnreachable() noexcept {}
+
 
 const std::string& AgentUnreachable::get_gami_id() const {
     return m_gami_id;
 }
 
+
 const char* AgentUnreachable::what() const noexcept {
-    return ("Could not connect to agent [ID = '" + get_gami_id() + "']").c_str();
+    return m_what.c_str();
+}
+
+
+void AgentUnreachable::make_what() {
+    m_what = std::string("Could not connect to agent [ID = '" + get_gami_id() + "']");
 }

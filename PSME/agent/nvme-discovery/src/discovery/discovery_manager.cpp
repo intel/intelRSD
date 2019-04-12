@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of discovery manager.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file discovery_manager.cpp
  */
 
@@ -67,7 +65,7 @@ Uuid create_fabric(const Uuid& uuid) {
     NvmeStabilizer ns{};
     Fabric fabric{uuid};
     fabric.set_status({enums::State::Enabled, enums::Health::OK});
-    fabric.set_protocol(enums::StorageProtocol::NVMeOverFabrics);
+    fabric.set_protocol(enums::TransportProtocol::NVMeOverFabrics);
     fabric.add_collection({CollectionName::Endpoints, CollectionType::Endpoints});
     fabric.add_collection({CollectionName::Zones, CollectionType::Zones});
     ns.stabilize(fabric);

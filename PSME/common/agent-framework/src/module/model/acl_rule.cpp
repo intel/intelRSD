@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +41,7 @@ AclRule::~AclRule() {}
 
 
 json::Json AclRule::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[literals::AclRule::STATUS] = get_status().to_json();
     value[literals::AclRule::RULE_ID] = get_rule_id();
     value[literals::AclRule::ACTION] = get_action();

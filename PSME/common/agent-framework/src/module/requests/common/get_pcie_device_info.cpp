@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ using namespace agent_framework::model::literals;
 GetPcieDeviceInfo::GetPcieDeviceInfo(const std::string& device): m_device{device} {}
 
 json::Json GetPcieDeviceInfo::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[PcieDevice::DEVICE] = m_device;
     return value;
 }

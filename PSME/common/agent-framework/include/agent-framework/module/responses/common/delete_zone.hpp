@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@
 
 #include "agent-framework/module/model/attributes/oem.hpp"
 #include "json-wrapper/json-wrapper.hpp"
+#include "agent-framework/module/utils/uuid.hpp"
 
 #include <string>
 
@@ -54,7 +55,27 @@ public:
      */
     static DeleteZone from_json(const json::Json& json);
 
+
+    /*!
+     * @brief Set task UUID
+     * @param[in] task_uuid Task UUID
+     * */
+    void set_task(const Uuid& task_uuid) {
+        m_task = task_uuid;
+    }
+
+
+    /*!
+     * @brief Get task UUID
+     * @return Task UUID
+     * */
+    const Uuid& get_task() const {
+        return m_task;
+    }
+
+
 private:
+    Uuid m_task{};
     attribute::Oem m_oem{};
 };
 

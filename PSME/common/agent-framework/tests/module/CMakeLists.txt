@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ endif()
 add_gtest(module agent-framework
     test_runner.cpp
     generic_manager_test.cpp
-    json_transformations_test.cpp
     optional_values_test.cpp
     persistent_uuid_generation_test.cpp
     obj_reference_test.cpp
@@ -51,17 +50,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
     )
 endif()
 
-if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
-    set_source_files_properties(
-        json_transformations_test.cpp
-        COMPILE_FLAGS "-Wno-missing-variable-declarations -Wno-missing-prototypes"
-    )
-endif()
-
 target_link_libraries(${test_target}
-    ${AGENT_FRAMEWORK_LIB}
-    ${UUID_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
+    agent-framework
 )

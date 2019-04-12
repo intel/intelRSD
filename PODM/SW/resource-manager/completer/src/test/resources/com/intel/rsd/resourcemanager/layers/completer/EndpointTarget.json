@@ -1,0 +1,37 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Endpoint.Endpoint",
+  "@odata.id": "/redfish/v1/Fabrics/e3583610-7ad2-11e8-b20c-fb5de0316502_1/Endpoints/nqn.2014-08.org.nvmexpress:e358ab40-7ad2-11e8-b20c-fb5de0316502",
+  "@odata.type": "#Endpoint.v1_0_0.Endpoint",
+  "Id": "nqn.2014-08.org.nvmexpress:e358ab40-7ad2-11e8-b20c-fb5de0316502",
+  "Name": "Downstream Endpoint",
+  "Description": "Downstream endpoint",
+  "Identifiers": [
+    {
+      "DurableNameFormat": "NQN",
+      "DurableName": "nqn.2014-08.org.nvmexpress:e358ab40-7ad2-11e8-b20c-fb5de0316502"
+    }
+  ],
+  "ConnectedEntities": [
+    {
+
+      "EntityRole": "Target",
+      "PciFunctionId": 1,
+      "PciClassCode": "0x010802",
+      "EntityLink": {
+        "@odata.id": "/redfish/v1/StorageServices/fd7af870-7b68-11e8-9dff-111ed2f64bd0_1/Volumes/1"
+      },
+      "EntityPciId": {
+        "DeviceId": "0xABCD",
+        "VendorId": "0xNNBCD",
+        "SubsystemId": "0xCCBCD",
+        "SubsystemVendorId": "0xBBCD"
+      },
+      "Identifiers": [
+        {
+          "DurableNameFormat": "NQN",
+          "DurableName": "nqn.2014-08.org.nvmexpress:fd7b6da6-7b68-11e8-9dff-111ed2f64bd0"
+        }
+      ]
+    }
+  ]
+}

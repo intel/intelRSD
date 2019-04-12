@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,17 +32,17 @@ using namespace psme::rest::endpoint::utils;
 
 namespace {
 
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[constants::Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#MessageRegistry.MessageRegistry";
-    r[constants::Common::ODATA_ID] = json::Value::Type::NIL;
+    r[constants::Common::ODATA_ID] = json::Json::value_t::null;
     r[constants::Common::ODATA_TYPE] = "#MessageRegistry.v1_0_0.MessageRegistry";
-    r[constants::MessageRegistry::LANGUAGE] = json::Value::Type::NIL;
-    r[constants::MessageRegistry::MESSAGES] = json::Value::Type::NIL;
-    r[constants::MessageRegistry::OWNING_ENTITY] = json::Value::Type::NIL;
-    r[constants::MessageRegistry::REGISTRY_PREFIX] = json::Value::Type::NIL;
-    r[constants::MessageRegistry::REGISTRY_VERSION] = json::Value::Type::NIL;
+    r[constants::MessageRegistry::LANGUAGE] = json::Json::value_t::null;
+    r[constants::MessageRegistry::MESSAGES] = json::Json::value_t::null;
+    r[constants::MessageRegistry::OWNING_ENTITY] = json::Json::value_t::null;
+    r[constants::MessageRegistry::REGISTRY_PREFIX] = json::Json::value_t::null;
+    r[constants::MessageRegistry::REGISTRY_VERSION] = json::Json::value_t::null;
 
     return r;
 }

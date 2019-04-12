@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,8 @@
 #include "agent-framework/module/requests/network.hpp"
 #include "agent-framework/module/responses/network.hpp"
 
+
+
 using namespace psme::rest;
 using namespace psme::rest::validators;
 using namespace psme::rest::endpoint;
@@ -35,25 +37,28 @@ using namespace psme::rest::constants;
 using namespace agent_framework::model;
 using NetworkComponents = agent_framework::module::NetworkComponents;
 
-
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchStaticMACCollection.EthernetSwitchStaticMACCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EthernetSwitchStaticMACCollection.EthernetSwitchStaticMACCollection";
     r[Common::NAME] = "Static MAC Collection";
     r[Common::DESCRIPTION] = "Collection of Static MACs";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
 }
 
+
 StaticMacCollection::StaticMacCollection(const std::string& path) : EndpointBase(path) {}
+
+
 StaticMacCollection::~StaticMacCollection() {}
+
 
 void StaticMacCollection::get(const server::Request& req, server::Response& res) {
     auto json = ::make_prototype();
@@ -61,17 +66,16 @@ void StaticMacCollection::get(const server::Request& req, server::Response& res)
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
     const auto port_uuid =
-        psme::rest::model::Find<agent_framework::model::EthernetSwitchPort>(req.params[PathParam::SWITCH_PORT_ID])
-        .via<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
-        .get_uuid();
+        psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort>(
+            req.params).get_uuid();
 
     const auto keys = NetworkComponents::get_instance()->
-            get_static_mac_manager().get_ids(port_uuid);
+        get_static_mac_manager().get_ids(port_uuid);
 
     json[Collection::ODATA_COUNT] = static_cast<std::uint32_t>(keys.size());
 
     for (const auto& key : keys) {
-        json::Value link_elem(json::Value::Type::OBJECT);
+        json::Json link_elem(json::Json::value_t::object);
         link_elem[Common::ODATA_ID] = PathBuilder(req).append(key).build();
         json[Collection::MEMBERS].push_back(std::move(link_elem));
     }
@@ -79,20 +83,20 @@ void StaticMacCollection::get(const server::Request& req, server::Response& res)
     set_response(res, json);
 }
 
-void endpoint::StaticMacCollection::post(const server::Request& req, server::Response& res) {
 
-    auto parent_port = model::Find<agent_framework::model::EthernetSwitchPort>
-                            (req.params[PathParam::SWITCH_PORT_ID])
-                            .via<agent_framework::model::EthernetSwitch>
-                            (req.params[PathParam::ETHERNET_SWITCH_ID]).get();
+void endpoint::StaticMacCollection::post(const server::Request& req, server::Response& res) {
+    static const constexpr char TRANSACTION_NAME[] = "PostStaticMacCollection";
+
+    auto parent_port = model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort>(
+        req.params).get();
 
     const auto json = JsonValidator::validate_request_body<schema::StaticMacCollectionPostSchema>(req);
 
     const requests::AddPortStaticMac add_port_static_mac_request{
-           parent_port.get_uuid(),
-           json[constants::Common::MAC_ADDRESS].as_string(),
-           json[constants::StaticMac::VLAN_ID],
-           attribute::Oem()
+        parent_port.get_uuid(),
+        json[constants::Common::MAC_ADDRESS].get<std::string>(),
+        json.value(constants::StaticMac::VLAN_ID, OptionalField<uint32_t>()),
+        attribute::Oem()
     };
 
     const auto& gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(parent_port.get_agent_id());
@@ -110,5 +114,5 @@ void endpoint::StaticMacCollection::post(const server::Request& req, server::Res
 
         res.set_status(server::status_2XX::CREATED);
     };
-    gami_agent->execute_in_transaction(add_static_mac);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, add_static_mac);
 }

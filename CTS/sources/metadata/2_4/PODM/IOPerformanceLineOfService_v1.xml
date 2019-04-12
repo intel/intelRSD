@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---->
+<!-- Copyright 2015-2018 Storage Networking Industry Association (SNIA), USA. All rights reserved.-->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Org.OData.Measures.V1.xml">
+    <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions_v1.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource_v1.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="IOPerformanceLoSCapabilities_v1.xml">
+    <edmx:Include Namespace="IOPerformanceLoSCapabilities"/>
+  </edmx:Reference>
+
+  <edmx:DataServices>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOPerformanceLineOfService">
+      <EntityType Name="IOPerformanceLineOfService" BaseType="Resource.v1_0_0.Resource" Abstract="true">
+        <Annotation Term="OData.Description" String="Describe data protection capabilities"/>
+        <Annotation
+          Term="OData.LongDescription"
+          String="The capabilities to protect data from loss by the use of a replica. The requirements must be met collectively by the communication path and the replica. There will be one instance associated to a class of service for each replica. Each replica has its own class of service that describes its characteristics."/>
+      </EntityType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOPerformanceLineOfService.v1_0_0">
+
+      <EntityType Name="IOPerformanceLineOfService" BaseType="IOPerformanceLineOfService.IOPerformanceLineOfService">
+        <Annotation Term="OData.Description" String="Describe service option within the IO performance line of service."/>
+        <Annotation Term="OData.LongDescription" String="This structure may be used to define a service option related to IO performance."/>
+
+        <Property Name="IOOperationsPerSecondIsLimited" Type="Edm.Boolean" DefaultValue="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Limit the IOPS."/>
+          <Annotation Term="OData.LongDescription" String="If true, the system should not allow IOPS to exceed MaxIoOperationsPerSecondPerTerabyte * VolumeSize. Otherwise, the system shall not enforce a limit.  The default value for this property is false."/>
+        </Property>
+        <Property Name="SamplePeriod" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Sampling period over which average values are calculated."/>
+          <Annotation Term="OData.LongDescription" String="The value shall be an ISO 8601 duration specifying the sampling period over which average values are calculated."/>
+        </Property>
+        <Property Name="MaxIOOperationsPerSecondPerTerabyte" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The amount of IOPS a volume of a given committed size can support."/>
+          <Annotation
+            Term="OData.LongDescription"
+            String="The value shall be the amount of IOPS a volume of a given committed size in Terabytes can support. This IOPS density value is useful as a metric that is independent of capacity. Cost is a function of this value and the AverageIOOperationLatencyMicroseconds."/>
+          <Annotation Term="Measures.Unit" String="1/s/TBy"/>
+        </Property>
+        <Property Name="AverageIOOperationLatencyMicroseconds" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Expected average IO latency."/>
+          <Annotation Term="OData.LongDescription" String="The value shall be the expected average IO latency in microseconds calculated over sample periods (see SamplePeriodSeconds)."/>
+          <Annotation Term="Measures.Unit" String="us"/>
+        </Property>
+        <Property Name="IOWorkload" Type="IOPerformanceLoSCapabilities.IOWorkload">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="A description of the expected workload."/>
+          <Annotation
+            Term="OData.LongDescription"
+            String="The value shall be a description of the expected workload. The workload provides the context in which the values of  MaxIOOperationsPerSecondPerTerabyte and AverageIOOperationLatencyMicroseconds are expected to be achieveable."/>
+        </Property>
+      </EntityType>
+
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOPerformanceLineOfService.v1_0_1">
+      <Annotation Term="OData.Description" String="Change references to unversioned. "/>
+    </Schema>
+
+  </edmx:DataServices>
+</edmx:Edmx>

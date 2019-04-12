@@ -1,8 +1,7 @@
 /*!
  * @brief Triggers collection endpoint
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file triggers_collection.cpp
  */
 
@@ -26,16 +24,16 @@ using namespace psme::rest::constants;
 using namespace psme::rest::endpoint;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#TriggersCollection.TriggersCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
-    r[Common::ODATA_TYPE] = "#MetricDefinitionCollection.MetricDefinitionCollection";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Intel_RackScale.TriggersCollection.TriggersCollection";
+    r[Common::ODATA_ID] = json::Json::value_t::null;
+    r[Common::ODATA_TYPE] = "#Intel_RackScale.MetricDefinitionCollection.MetricDefinitionCollection";
     r[Common::NAME] = "Metric Definition Collection";
     r[Common::DESCRIPTION] = "Metric Definition Collection";
     r[Collection::ODATA_COUNT] = 0;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
@@ -58,5 +56,6 @@ void TriggersCollection::get(const server::Request& request, server::Response& r
 }
 
 
-void TriggersCollection::post(const server::Request&, server::Response&) {
+[[noreturn]] void TriggersCollection::post(const server::Request&, server::Response&) {
+    throw agent_framework::exceptions::NotImplemented("This method is not implemented.");
 }

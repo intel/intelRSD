@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ using namespace agent_framework::model::literals;
 GetStoragePoolInfo::GetStoragePoolInfo(const std::string& pool): m_storage_pool(pool) {}
 
 json::Json GetStoragePoolInfo::to_json() const {
-    json::Json value{};
+    json::Json value = json::Json();
     value[StoragePool::STORAGE_POOL] = m_storage_pool;
     return value;
 }

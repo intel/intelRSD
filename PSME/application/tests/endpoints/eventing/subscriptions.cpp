@@ -1,8 +1,7 @@
 /*!
  * @brief Subscriptions tests
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file subscriptions.cpp
  */
 
 #include "psme/rest/eventing/model/subscription.hpp"
 #include "psme/rest/eventing/manager/subscription_manager.hpp"
-#include "json/value.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 #include "gtest/gtest.h"
-#include "json/deserializer.hpp"
+
 #include "configuration/utils.hpp"
 
 using namespace testing;
@@ -77,7 +75,7 @@ std::uint32_t get_number_of_subscriptions(const SubscriptionManager& manager) {
 void add_subscription(SubscriptionManager& manager, const char* subscription_txt, std::uint64_t& id) {
     std::uint32_t number = get_number_of_subscriptions(manager);
 
-    json::Value subscription_json;
+    json::Json subscription_json = json::Json();
     Subscription subscription;
     ASSERT_TRUE(configuration::string_to_json(subscription_txt, subscription_json))
                         << "Cannot parse subscription JSON";
@@ -136,7 +134,7 @@ TEST(SubscriptionsTest, EqualSubscriptions) {
     sub1.set_id(5u);
     ASSERT_NE(sub1.get_id(), sub2.get_id());
     ASSERT_TRUE(equal_subscriptions(sub1, sub2));
-    json::Value subscription_json;
+    json::Json subscription_json = json::Json();
     ASSERT_TRUE(configuration::string_to_json(SUBSCRIPTION, subscription_json))
                 << "Cannot parse subscription JSON";
     sub1 = Subscription::from_json(subscription_json, false);
@@ -205,7 +203,7 @@ TEST(SubscriptionsTest, WithResource) {
     SubscriptionManager manager{};
     std::uint64_t id;
 
-    json::Value subscription_json;
+    json::Json subscription_json = json::Json();
     ASSERT_TRUE(configuration::string_to_json(SUBSCRIPTION_RES, subscription_json))
                         << "Cannot parse subscription JSON";
 

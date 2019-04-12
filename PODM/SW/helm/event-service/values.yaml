@@ -1,0 +1,51 @@
+# Default values for event-service.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: event-service
+  pullPolicy: IfNotPresent
+
+applicationProperties:
+  server:
+    port: 9000
+  spring:
+    datasource:
+      url: "jdbc:postgresql://podm-db-postgresql.default.svc.cluster.local.:5432/eventservice"
+      password: ${PODM_POSTGRES_USER_PASSWORD}
+  eureka:
+    client:
+      serviceUrl:
+        defaultZone: "http://{{ .Release.Name }}-service-registry/eureka/"
+    instance:
+      prefer-ip-address: true
+
+readinessProbe:
+  initialDelaySeconds: 1
+  periodSeconds: 20
+
+livenessProbe:
+  initialDelaySeconds: 20
+  periodSeconds: 20
+
+secretName: "pod-manager-secret"
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

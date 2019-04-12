@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -473,7 +473,6 @@ class DiscoveryContainerTest(unittest.TestCase):
         id_for_not_generalized = match.group('id')
 
         self.assertNotEqual(id_for_generalized, id_for_not_generalized)
-
 
 
     def test_dataframes(self):

@@ -5,8 +5,7 @@
  * library. These introduces second stage of validation, where data is checked
  * according to the schema (provided by request class).
  *
- * @header{License}
- * @copyright Copyright (c) 2016-2018 Intel Corporation.
+ * @copyright Copyright (c) 2016-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file procedure_validator.hpp
  */
 
@@ -45,8 +43,6 @@
 
 
 #include "agent-framework/validators/checkers/validity_checker.hpp"
-
-#include <json/value.hpp>
 
 /*!
  * @defgroup valmacros JSON schema definitions
@@ -433,17 +429,6 @@ public:
      * @throw InvalidParameters if value (document) is not valid
      * */
     void validate(const json::Json& req) const;
-
-
-    /*!
-     * @brief Check JSON-CXX value if valid
-     *
-     * Conversion to JSONRPC value is done here.
-     *
-     * @param val JSON-CXX value to be validated
-     * @deprecated It must be removed when "our" JSON is removed
-     */
-    void validate(const json::Value& val) const __attribute__((deprecated));
 
     /*!
      * @brief Gets the procedure name

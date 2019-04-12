@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,6 +43,12 @@ namespace error {
 class ServerException : public std::exception {
 private:
     const ServerError m_error;
+    mutable std::string m_what{};
+
+
+    /* Prepares m_what field returned on what() method call */
+    void make_what() const;
+
 
 public:
     /*!

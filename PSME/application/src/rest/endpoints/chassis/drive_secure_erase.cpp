@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,13 +45,13 @@ endpoint::DriveSecureErase::~DriveSecureErase() {}
 
 
 void endpoint::DriveSecureErase::post(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PostDriveSecureErase";
     validators::JsonValidator::validate_empty_request(request);
 
-    const auto drive = model::Find<agent_framework::model::Drive>(request.params[PathParam::DRIVE_ID]).
-        via<agent_framework::model::Chassis>(request.params[PathParam::CHASSIS_ID]).get();
+    const auto drive = model::find<agent_framework::model::Chassis, agent_framework::model::Drive>(
+        request.params).get();
 
-    if (drive.get_interface() != agent_framework::model::enums::StorageProtocol::NVMe) {
-        // the drive is not a pnc drive
+    if (drive.get_interface() != agent_framework::model::enums::TransportProtocol::NVMe) {
         throw agent_framework::exceptions::InvalidValue("This method is allowed for NVMe drives only.");
     }
 
@@ -59,14 +59,13 @@ void endpoint::DriveSecureErase::post(const server::Request& request, server::Re
     auto& endpoint_manager = agent_framework::module::get_manager<agent_framework::model::Endpoint>();
     auto& zone_endpoint_manager = agent_framework::module::CommonComponents::get_instance()->get_zone_endpoint_manager();
     for (const auto& endpoint_uuid : endpoint_manager.get_keys()) {
-        const auto endpoint = endpoint_manager.get_entry(endpoint_uuid);
-        if (endpoint.has_drive_entity(drive.get_uuid())) {
-            const auto endpoint_zones = zone_endpoint_manager.get_parents(endpoint.get_uuid());
+        if (agent_framework::model::Endpoint::has_entity(endpoint_uuid, drive.get_uuid())) {
+            const auto endpoint_zones = zone_endpoint_manager.get_parents(endpoint_uuid);
             if (endpoint_zones.size() > 0) {
                 throw agent_framework::exceptions::InvalidValue(
                     "The drive is an entity of endpoint "
                     + endpoint::utils::get_component_url(agent_framework::model::enums::Component::Endpoint,
-                                                         endpoint.get_uuid())
+                                                         endpoint_uuid)
                     + " which is assigned to zone "
                     + endpoint::utils::get_component_url(agent_framework::model::enums::Component::Zone,
                                                          endpoint_zones.front())
@@ -94,17 +93,12 @@ void endpoint::DriveSecureErase::post(const server::Request& request, server::Re
     auto update_on_completion = [drive](const std::string& task_uuid) {
         auto agent = psme::core::agent::AgentManager::get_instance()->get_agent(drive.get_agent_id());
 
-        auto task = agent_framework::module::get_manager<agent_framework::model::Task>().get_entry_reference(
-            task_uuid);
-        if (task->get_state() == agent_framework::model::enums::TaskState::Completed) {
-            agent_framework::model::Task::Messages messages{
-                agent_framework::model::attribute::Message{"Base.1.0.0.Success", "Successfully Completed Request",
-                                                           agent_framework::model::enums::Health::OK,
-                                                           "None", agent_framework::model::attribute::Oem{},
-                                                           agent_framework::model::attribute::Message::RelatedProperties{
-                                                               "#/Id"},
-                                                           agent_framework::model::attribute::Message::MessageArgs{}}};
-            task->set_messages(messages);
+        {
+            auto task = agent_framework::module::get_manager<agent_framework::model::Task>()
+                .get_entry_reference(task_uuid);
+            if (task->get_state() == agent_framework::model::enums::TaskState::Completed) {
+                task->set_messages(task_service_utils::build_success_message());
+            }
         }
 
         psme::rest::model::handler::HandlerManager::get_instance()
@@ -139,8 +133,11 @@ void endpoint::DriveSecureErase::post(const server::Request& request, server::Re
                                task_uuid,
                                false);
             MonitorContentBuilder::get_instance()->add_builder(task_uuid, response_renderer);
-            agent_framework::module::get_manager<agent_framework::model::Task>().get_entry_reference(task_uuid)
-                ->add_completion_notifier(std::bind(update_on_completion, task_uuid));
+
+            {
+                agent_framework::module::get_manager<agent_framework::model::Task>().get_entry_reference(task_uuid)
+                    ->add_completion_notifier(std::bind(update_on_completion, task_uuid));
+            }
 
             std::string task_monitor_url =
                 PathBuilder(utils::get_component_url(agent_framework::model::enums::Component::Task, task_uuid))
@@ -151,5 +148,5 @@ void endpoint::DriveSecureErase::post(const server::Request& request, server::Re
         }
     };
 
-    gami_agent->execute_in_transaction(secure_erase);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, secure_erase);
 }

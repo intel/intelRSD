@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file partition/mbr_partition_table.cpp
  */
 
@@ -36,7 +34,7 @@
 #pragma clang diagnostic ignored "-Wextra-semi"
 #endif
 
-#include "uuid++.hh"
+#include "uuid/uuid.hpp"
 
 #ifdef __clang__
 #pragma clang diagnostic pop
@@ -57,15 +55,6 @@ uint64_t integer_divide_and_ceil(uint64_t a, uint64_t b) {
     }
     // this is a trick to make integer division with ceil operation without using floating point numbers
     return (a + b - 1) / b;
-}
-
-std::string get_random_uuid() {
-    uuid tmp_uuid;
-    tmp_uuid.make(UUID_MAKE_V1);
-    char* uuid_char = tmp_uuid.string();
-    std::string tmp_str = std::string{uuid_char};
-    free(uuid_char);
-    return tmp_str;
 }
 
 }
@@ -364,7 +353,7 @@ GptPartitionTable::GptPartitionData GptPartitionTable::get_linux_partition_entry
 
     GptPartitionData entry{};
     entry.type_guid = GPT_PARTITION_TYPE_UUID_LINUX;
-    entry.guid = get_random_uuid();
+    entry.guid = make_v1_uuid();
 
     entry.name = pd.name;
     entry.first_lba = pd.first_lba;
@@ -493,7 +482,7 @@ void GptPartitionTable::reset(uint64_t drive_size_lba) {
     m_gpt_header.first_usable_lba = GPT_HEADER_LBA + GPT_HEADER_SIZE_LBA + gpt_table_size_lba + 1;
     // last usable LBA is the last LBA just before the backup GPT table entries
     m_gpt_header.last_usable_lba = drive_size_lba - 1 - GPT_HEADER_SIZE_LBA - gpt_table_size_lba;
-    m_gpt_header.disk_guid = get_random_uuid();
+    m_gpt_header.disk_guid = make_v1_uuid();
 
     // prepare GPT table entries
     auto empty_partition = GptPartitionData{};

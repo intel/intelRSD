@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ extern const char LOCATION[];
 extern const char PARENT_ID[];
 extern const char CONTAINS[];
 extern const char COMPUTER_SYSTEMS[];
-extern const char SWITCHES[];
+extern const char ETHERNET_SWITCHES[];
 extern const char MANAGERS_IN_CHASSIS[];
 extern const char POWERED_BY[];
 extern const char COOLED_BY[];
@@ -125,7 +125,7 @@ extern const char READING_VOLTS_PATH[];
 /*!
  * @brief Constant literals for Chassis/n/Drive endpoint.
  */
-namespace PncDrive {
+namespace Drive {
 extern const char SECURE_ERASE[];
 extern const char SECURE_ERASE_ENDPOINT[];
 extern const char CAPABLE_SPEED[];
@@ -138,9 +138,9 @@ extern const char PROTOCOL[];
 extern const char CAPACITY_BYTES[];
 extern const char INFO[];
 extern const char INFO_FORMAT[];
-extern const char ERASE_ON_DETACH[];
 extern const char DRIVE_ERASED[];
 extern const char FIRMWARE_VERSION[];
+extern const char LATENCY_TRACKING_ENABLED[];
 extern const char STATUS_INDICATOR[];
 extern const char REVISION[];
 extern const char FAILURE_PREDICTED[];
@@ -152,6 +152,11 @@ extern const char BLOCK_SIZE_BYTES[];
 extern const char PREDICTED_MEDIA_LIFE_LEFT[];
 extern const char PCIE_FUNCTION[];
 extern const char USED_BY[];
+extern const char INTERFACE[];
+extern const char CAPACITY[];
+extern const char TYPE[];
+extern const char RPM[];
+extern const char BUS_INFO[];
 }
 
 /*!
@@ -194,6 +199,7 @@ extern const char AVAILABLE_SPARE_PERCENTAGE[];
 extern const char PREDICTED_MEDIA_LIFE_USED_PERCENT[];
 extern const char UNSAFE_SHUTDOWNS[];
 extern const char MEDIA_ERRORS[];
+
 }
 
 }

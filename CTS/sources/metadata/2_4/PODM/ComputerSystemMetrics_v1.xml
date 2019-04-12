@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---->
+<!--################################################################################       -->
+<!--# Redfish Schema:  ComputerSystemMetrics  v1.1.0-->
+<!--#                                                                                      -->
+<!--# For a detailed change log, see the README file contained in the DSP8010 bundle,      -->
+<!--# available at http://www.dmtf.org/standards/redfish                                   -->
+<!--# Copyright 2014-2016 Distributed Management Task Force, Inc. (DMTF).                  -->
+<!--# For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright -->
+<!--################################################################################       -->
+<!---->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions_v1.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource_v1.xml">
+    <edmx:Include Namespace="Resource.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Org.OData.Measures.V1.xml">
+    <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions_v1.xml">
+    <edmx:Include Namespace="Validation.v1_0_0" Alias="Validation"/>
+  </edmx:Reference>
+
+  <edmx:DataServices>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ComputerSystemMetrics">
+
+      <EntityType Name="ComputerSystemMetrics" BaseType="Resource.v1_0_0.Resource" Abstract="true">
+        <Annotation Term="OData.Description"
+                    String="ComputerSystemMetrics contains usage and health statistics for a ComputerSystem (all Cores) ."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource shall be used to represent the ComputerSystem Metrics for a single ComputerSystem in a Redfish implementation."/>
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+      </EntityType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ComputerSystemMetrics.v1_0_0">
+
+      <EntityType Name="ComputerSystemMetrics" BaseType="ComputerSystemMetrics.ComputerSystemMetrics">
+        <Property Name="ProcessorBandwidthPercent" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="CPU Bandwidth in Percent."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be CPU Utilization on all the available CPUs in Percent. This metric is aggregate of all Processor sockets of this Computer System."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Validation.Maximum" Int="100"/>
+        </Property>
+        <Property Name="MemoryBandwidthPercent" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Memory Bandwidth in Percent."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be Memory Utilization on all the available Memory channels in Percent. This metric is aggregate of all memory controllers on all Processor sockets of this Computer System."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Validation.Maximum" Int="100"/>
+        </Property>
+        <Property Name="MemoryThrottledCyclesPercent" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="The percentage of memory cycles that were throttled due to power limiting (all packages and memory controllers)."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be the percentage of memory cycles that were throttled due to power limiting. This metric is aggregate of all memory controllers on all Processor sockets of this Computer System."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+          <Annotation Term="Validation.Maximum" Int="100"/>
+        </Property>
+        <Property Name="ProcessorPowerWatt" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Power consumed by Processor resource."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be global power for CPU domain (all packages) in Watts."/>
+          <Annotation Term="Measures.Unit" String="W"/>
+        </Property>
+        <Property Name="MemoryPowerWatt" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Power consumed by Memory domain resource."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be global power for Memory domain (all packages and channels) in Watts."/>
+          <Annotation Term="Measures.Unit" String="W"/>
+        </Property>
+        <Property Name="IOBandwidthGBps" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="IO Bandwidth rate in ComputerSystem resource based on PCIe data transmission rate in GB/s"/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be IO Bandwidth rate in ComputerSystem resource based on PCIe and DMI data transmission rate in GB/s."/>
+          <Annotation Term="Measures.Unit" String="GB/s"/>
+        </Property>
+        <Property Name="Health" Type="Collection(Edm.String)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="ComputerSystem Health as a discrete sensor reading"/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be Computer System Health as a discrete sensor reading."/>
+        </Property>
+      </EntityType>
+
+
+    </Schema>
+
+  </edmx:DataServices>
+</edmx:Edmx>

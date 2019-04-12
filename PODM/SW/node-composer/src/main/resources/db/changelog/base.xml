@@ -1,0 +1,1158 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <changeSet author="podm (generated)" id="1554203203264-1">
+        <createTable tableName="associated_drive_uri">
+            <column name="associated_drive_uri_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="associated_drives_uris" type="TEXT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-2">
+        <createTable tableName="associated_endpoint_uri">
+            <column name="associated_endpoint_uri_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="associated_endpoints_uris" type="TEXT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-3">
+        <createTable tableName="associated_processor_uri">
+            <column name="associated_processor_uri_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="associated_processor_uris" type="TEXT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-4">
+        <createTable tableName="associated_volume_uri">
+            <column name="associated_volume_uri_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="associated_volumes_uris" type="TEXT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-5">
+        <createTable tableName="boot_boot_source_override_mode_allowable_value">
+            <column name="boot_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="boot_source_override_mode_allowable_value" type="TEXT"/>
+            <column name="boot_source_override_mode_allowable_value_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-6">
+        <createTable tableName="boot_boot_source_override_target_allowable_value">
+            <column name="boot_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="boot_source_override_target_allowable_value" type="TEXT"/>
+            <column name="boot_source_override_target_allowable_value_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-7">
+        <createTable tableName="capacity_source">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="volume_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-8">
+        <createTable tableName="chassis">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="parent_chassis_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-9">
+        <createTable tableName="chassis_computer_system">
+            <column name="chassis_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="computer_system_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-10">
+        <createTable tableName="chassis_fabric_switch">
+            <column name="chassis_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fabric_switch_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-11">
+        <createTable tableName="chassis_pcie_device">
+            <column name="chassis_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pcie_device_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-12">
+        <createTable tableName="composed_node">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="composed_node_pkey"/>
+            </column>
+            <column defaultValueNumeric="0" name="version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="associated_computer_system_uuid" type="TEXT"/>
+            <column name="associated_remote_target_iqn" type="TEXT"/>
+            <column name="clear_optane_memory_on_delete" type="BOOLEAN"/>
+            <column name="clear_tpm_on_delete" type="BOOLEAN"/>
+            <column autoIncrement="true" name="composed_node_id" type="BIGSERIAL">
+                <constraints nullable="false"/>
+            </column>
+            <column name="composed_node_state" type="TEXT"/>
+            <column name="description" type="TEXT"/>
+            <column name="eligible_for_recovery" type="BOOLEAN"/>
+            <column name="name" type="TEXT"/>
+            <column name="prior_untagged_vlan_id" type="INT"/>
+            <column name="remote_drive_capacity_gib" type="numeric"/>
+            <column name="status" type="TEXT"/>
+            <column name="tagged_values" type="TEXT"/>
+            <column name="uri" type="TEXT"/>
+            <column name="computer_system_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-13">
+        <createTable tableName="computer_system">
+            <column name="achievable" type="BOOLEAN"/>
+            <column name="asset_tag" type="TEXT"/>
+            <column name="boot_boot_source_override_enabled" type="TEXT"/>
+            <column name="boot_boot_source_override_mode" type="TEXT"/>
+            <column name="boot_boot_source_override_target" type="TEXT"/>
+            <column name="memory_summary_total_system_memory_gib" type="numeric"/>
+            <column name="power_state" type="TEXT"/>
+            <column name="system_type" type="TEXT"/>
+            <column name="trusted_execution_technology_enabled" type="BOOLEAN"/>
+            <column name="user_mode_enabled" type="BOOLEAN"/>
+            <column name="uuid" type="TEXT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="computer_system_metadata_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-14">
+        <createTable tableName="computer_system_allowable_reset_type">
+            <column name="computer_system_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="allowable_reset_type" type="TEXT"/>
+            <column name="allowable_reset_type_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-15">
+        <createTable tableName="computer_system_manager">
+            <column name="computer_system_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="manager_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-16">
+        <createTable tableName="computer_system_metadata">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="computer_system_metadata_pkey"/>
+            </column>
+            <column defaultValueNumeric="0" name="version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="allocated" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-17">
+        <createTable tableName="computer_system_pcie_connection_id">
+            <column name="computer_system_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pcie_connection_id" type="TEXT"/>
+            <column name="pcie_connection_id_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-18">
+        <createTable tableName="computer_system_performance_configuration_type">
+            <column name="computer_system_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="performance_configuration_type" type="TEXT"/>
+            <column name="performance_configuration_type_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-19">
+        <createTable tableName="computer_system_trusted_module">
+            <column name="computer_system_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="trusted_module_firmware_version" type="TEXT"/>
+            <column name="trusted_module_interface_type" type="TEXT"/>
+            <column name="trusted_module_status" type="TEXT"/>
+            <column name="trusted_module_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-20">
+        <createTable tableName="connected_entity">
+            <column name="entity_role" type="TEXT"/>
+            <column name="lun" type="INT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="endpoint_id" type="BIGINT"/>
+            <column name="discoverable_entity_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-21">
+        <createTable tableName="connected_entity_identifier">
+            <column name="connected_entity_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="durable_name" type="TEXT"/>
+            <column name="durable_name_format" type="TEXT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-22">
+        <createTable tableName="discoverable_entity">
+            <column name="discriminator_class" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="discoverable_entity_pkey"/>
+            </column>
+            <column defaultValueNumeric="0" name="version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="name" type="TEXT"/>
+            <column name="status" type="TEXT"/>
+            <column name="uri" type="TEXT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-23">
+        <createTable tableName="drive">
+            <column name="achievable" type="BOOLEAN"/>
+            <column name="capacity_bytes" type="BIGINT"/>
+            <column name="drive_erased" type="BOOLEAN"/>
+            <column name="media_type" type="TEXT"/>
+            <column name="protocol" type="TEXT"/>
+            <column name="rotation_speed_rpm" type="numeric"/>
+            <column name="serial_number" type="TEXT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="chassis_id" type="BIGINT"/>
+            <column name="composed_node_id" type="BIGINT"/>
+            <column name="drive_metadata_id" type="BIGINT"/>
+            <column name="pcie_device_function_id" type="BIGINT"/>
+            <column name="storage_id" type="BIGINT"/>
+            <column name="storage_service_id" type="BIGINT"/>
+            <column name="volume_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-24">
+        <createTable tableName="drive_metadata">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="drive_metadata_pkey"/>
+            </column>
+            <column defaultValueNumeric="0" name="version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="allocated" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-25">
+        <createTable tableName="endpoint">
+            <column name="achievable" type="BOOLEAN"/>
+            <column name="endpoint_authentication_password" type="TEXT"/>
+            <column name="endpoint_authentication_username" type="TEXT"/>
+            <column name="endpoint_protocol" type="TEXT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="composed_node_id" type="BIGINT"/>
+            <column name="computer_system_id" type="BIGINT"/>
+            <column name="fabric_id" type="BIGINT"/>
+            <column name="endpoint_metadata_id" type="BIGINT"/>
+            <column name="storage_service_id" type="BIGINT"/>
+            <column name="zone_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-26">
+        <createTable tableName="endpoint_identifier">
+            <column name="endpoint_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="durable_name" type="TEXT"/>
+            <column name="durable_name_format" type="TEXT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-27">
+        <createTable tableName="endpoint_metadata">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="endpoint_metadata_pkey"/>
+            </column>
+            <column defaultValueNumeric="0" name="version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="allocated" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-28">
+        <createTable tableName="ethernet_interface">
+            <column name="mac_address" type="TEXT"/>
+            <column name="speed_mbps" type="INT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="computer_system_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-29">
+        <createTable tableName="ethernet_interface_endpoint">
+            <column name="ethernet_interface_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="endpoint_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-30">
+        <createTable tableName="ethernet_interface_supported_protocol">
+            <column name="ethernet_interface_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="supported_protocol" type="TEXT"/>
+            <column name="supported_protocol_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-31">
+        <createTable tableName="ethernet_switch">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="chassis_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-32">
+        <createTable tableName="ethernet_switch_port">
+            <column name="neighbor_mac" type="TEXT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ethernet_switch_id" type="BIGINT"/>
+            <column name="primary_vlan_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-33">
+        <createTable tableName="ethernet_switch_port_vlan">
+            <column name="tagged" type="BOOLEAN"/>
+            <column name="vlan_id" type="INT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ethernet_interface_id" type="BIGINT"/>
+            <column name="ethernet_switch_port_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-34">
+        <createTable tableName="fabric">
+            <column name="fabric_type" type="TEXT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-35">
+        <createTable tableName="fabric_manager">
+            <column name="fabric_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="manager_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-36">
+        <createTable tableName="ip_transport_details">
+            <column name="ipv4_address" type="TEXT"/>
+            <column name="ipv4_address_origin" type="TEXT"/>
+            <column name="ipv4_gateway" type="TEXT"/>
+            <column name="ipv4_oem" type="TEXT"/>
+            <column name="ipv4_subnet_mask" type="TEXT"/>
+            <column name="ipv6_address" type="TEXT"/>
+            <column name="ipv6_address_origin" type="TEXT"/>
+            <column name="address_state" type="TEXT"/>
+            <column name="ipv6_oem" type="TEXT"/>
+            <column name="prefix_length" type="INT"/>
+            <column name="port" type="INT"/>
+            <column name="transport_protocol" type="TEXT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="endpoint_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-37">
+        <createTable tableName="manager">
+            <column name="manager_type" type="TEXT"/>
+            <column name="remote_redfish_service_uri" type="TEXT"/>
+            <column name="service_entry_point_uuid" type="TEXT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-38">
+        <createTable tableName="memory">
+            <column name="capacity_mib" type="INT"/>
+            <column name="data_width_bits" type="INT"/>
+            <column name="manufacturer" type="TEXT"/>
+            <column name="memory_device_type" type="TEXT"/>
+            <column name="memory_type" type="TEXT"/>
+            <column name="operating_speed_mhz" type="INT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="computer_system_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-39">
+        <createTable tableName="network_device_function">
+            <column name="chap_username" type="TEXT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="network_interface_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-40">
+        <createTable tableName="network_interface">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="computer_system_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-41">
+        <createTable tableName="pcie_device">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-42">
+        <createTable tableName="pcie_device_function">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pcie_device_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-43">
+        <createTable tableName="port">
+            <column name="port_type" type="TEXT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fabric_switch_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-44">
+        <createTable tableName="port_endpoint">
+            <column name="port_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="endpoint_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-45">
+        <createTable tableName="port_pcie_connection_id">
+            <column name="port_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pcie_connection_id" type="TEXT"/>
+            <column name="pcie_connection_id_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-46">
+        <createTable tableName="processor">
+            <column name="achievable" type="BOOLEAN"/>
+            <column name="brand" type="TEXT"/>
+            <column name="instruction_set" type="TEXT"/>
+            <column name="max_speed_mhz" type="INT"/>
+            <column name="model" type="TEXT"/>
+            <column name="processor_erased" type="BOOLEAN"/>
+            <column name="processor_type" type="TEXT"/>
+            <column name="total_cores" type="INT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="composed_node_id" type="BIGINT"/>
+            <column name="computer_system_id" type="BIGINT"/>
+            <column name="processor_metadata_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-47">
+        <createTable tableName="processor_capability">
+            <column name="processor_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="capability" type="TEXT"/>
+            <column name="capability_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-48">
+        <createTable tableName="processor_metadata">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="processor_metadata_pkey"/>
+            </column>
+            <column defaultValueNumeric="0" name="version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="allocated" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-49">
+        <createTable tableName="simple_storage">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="computer_system_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-50">
+        <createTable tableName="simple_storage_device">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="simple_storage_device_pkey"/>
+            </column>
+            <column defaultValueNumeric="0" name="version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="capacity_bytes" type="numeric"/>
+            <column name="status" type="TEXT"/>
+            <column name="simple_storage_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-51">
+        <createTable tableName="storage">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="chassis_id" type="BIGINT"/>
+            <column name="computer_system_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-52">
+        <createTable tableName="storage_pool">
+            <column name="data_allocated_bytes" type="numeric"/>
+            <column name="data_consumed_bytes" type="numeric"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="storage_pool_id" type="BIGINT"/>
+            <column name="storage_service_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-53">
+        <createTable tableName="storage_pool_composed_node">
+            <column name="storage_pool_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="composed_node_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-54">
+        <createTable tableName="storage_providing_pool_capacity_source">
+            <column name="storage_pool_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="capacity_source_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-55">
+        <createTable tableName="storage_service">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="computer_system_id" type="BIGINT"/>
+            <column name="fabric_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-56">
+        <createTable tableName="storage_service_manager">
+            <column name="storage_service_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="manager_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-57">
+        <createTable tableName="switch">
+            <column name="switch_type" type="TEXT"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fabric_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-58">
+        <createTable tableName="volume">
+            <column name="achievable" type="BOOLEAN"/>
+            <column name="bootable" type="BOOLEAN"/>
+            <column name="capacity_bytes" type="numeric"/>
+            <column name="initialize_action_supported" type="BOOLEAN"/>
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="composed_node_id" type="BIGINT"/>
+            <column name="volume_metadata_id" type="BIGINT"/>
+            <column name="storage_pool_id" type="BIGINT"/>
+            <column name="storage_service_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-59">
+        <createTable tableName="volume_identifier">
+            <column name="volume_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="durable_name" type="TEXT"/>
+            <column name="durable_name_format" type="TEXT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-60">
+        <createTable tableName="volume_metadata">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="volume_metadata_pkey"/>
+            </column>
+            <column defaultValueNumeric="0" name="version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="allocated" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-61">
+        <createTable tableName="zone">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fabric_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-62">
+        <addPrimaryKey columnNames="boot_id, boot_source_override_mode_allowable_value_order" constraintName="boot_boot_source_override_mode_allowable_value_pkey" tableName="boot_boot_source_override_mode_allowable_value"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-63">
+        <addPrimaryKey columnNames="boot_id, boot_source_override_target_allowable_value_order" constraintName="boot_boot_source_override_target_allowable_value_pkey" tableName="boot_boot_source_override_target_allowable_value"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-64">
+        <addPrimaryKey columnNames="id" constraintName="capacity_source_pkey" tableName="capacity_source"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-65">
+        <addPrimaryKey columnNames="chassis_id, computer_system_id" constraintName="chassis_computer_system_pkey" tableName="chassis_computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-66">
+        <addPrimaryKey columnNames="chassis_id, fabric_switch_id" constraintName="chassis_fabric_switch_pkey" tableName="chassis_fabric_switch"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-67">
+        <addPrimaryKey columnNames="chassis_id, pcie_device_id" constraintName="chassis_pcie_device_pkey" tableName="chassis_pcie_device"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-68">
+        <addPrimaryKey columnNames="id" constraintName="chassis_pkey" tableName="chassis"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-69">
+        <addPrimaryKey columnNames="computer_system_id, allowable_reset_type_order" constraintName="computer_system_allowable_reset_type_pkey" tableName="computer_system_allowable_reset_type"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-70">
+        <addPrimaryKey columnNames="computer_system_id, manager_id" constraintName="computer_system_manager_pkey" tableName="computer_system_manager"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-71">
+        <addPrimaryKey columnNames="computer_system_id, pcie_connection_id_order" constraintName="computer_system_pcie_connection_id_pkey" tableName="computer_system_pcie_connection_id"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-72">
+        <addPrimaryKey columnNames="computer_system_id, performance_configuration_type_order" constraintName="computer_system_performance_configuration_type_pkey" tableName="computer_system_performance_configuration_type"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-73">
+        <addPrimaryKey columnNames="id" constraintName="computer_system_pkey" tableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-74">
+        <addPrimaryKey columnNames="computer_system_id, trusted_module_order" constraintName="computer_system_trusted_module_pkey" tableName="computer_system_trusted_module"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-75">
+        <addPrimaryKey columnNames="id" constraintName="connected_entity_pkey" tableName="connected_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-76">
+        <addPrimaryKey columnNames="id" constraintName="drive_pkey" tableName="drive"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-77">
+        <addPrimaryKey columnNames="id" constraintName="endpoint_pkey" tableName="endpoint"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-78">
+        <addPrimaryKey columnNames="ethernet_interface_id, endpoint_id" constraintName="ethernet_interface_endpoint_pkey" tableName="ethernet_interface_endpoint"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-79">
+        <addPrimaryKey columnNames="id" constraintName="ethernet_interface_pkey" tableName="ethernet_interface"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-80">
+        <addPrimaryKey columnNames="ethernet_interface_id, supported_protocol_order" constraintName="ethernet_interface_supported_protocol_pkey" tableName="ethernet_interface_supported_protocol"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-81">
+        <addPrimaryKey columnNames="id" constraintName="ethernet_switch_pkey" tableName="ethernet_switch"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-82">
+        <addPrimaryKey columnNames="id" constraintName="ethernet_switch_port_pkey" tableName="ethernet_switch_port"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-83">
+        <addPrimaryKey columnNames="id" constraintName="ethernet_switch_port_vlan_pkey" tableName="ethernet_switch_port_vlan"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-84">
+        <addPrimaryKey columnNames="fabric_id, manager_id" constraintName="fabric_manager_pkey" tableName="fabric_manager"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-85">
+        <addPrimaryKey columnNames="id" constraintName="fabric_pkey" tableName="fabric"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-86">
+        <addPrimaryKey columnNames="id" constraintName="ip_transport_details_pkey" tableName="ip_transport_details"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-87">
+        <addPrimaryKey columnNames="id" constraintName="manager_pkey" tableName="manager"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-88">
+        <addPrimaryKey columnNames="id" constraintName="memory_pkey" tableName="memory"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-89">
+        <addPrimaryKey columnNames="id" constraintName="network_device_function_pkey" tableName="network_device_function"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-90">
+        <addPrimaryKey columnNames="id" constraintName="network_interface_pkey" tableName="network_interface"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-91">
+        <addPrimaryKey columnNames="id" constraintName="pcie_device_function_pkey" tableName="pcie_device_function"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-92">
+        <addPrimaryKey columnNames="id" constraintName="pcie_device_pkey" tableName="pcie_device"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-93">
+        <addPrimaryKey columnNames="port_id, endpoint_id" constraintName="port_endpoint_pkey" tableName="port_endpoint"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-94">
+        <addPrimaryKey columnNames="port_id, pcie_connection_id_order" constraintName="port_pcie_connection_id_pkey" tableName="port_pcie_connection_id"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-95">
+        <addPrimaryKey columnNames="id" constraintName="port_pkey" tableName="port"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-96">
+        <addPrimaryKey columnNames="processor_id, capability_order" constraintName="processor_capability_pkey" tableName="processor_capability"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-97">
+        <addPrimaryKey columnNames="id" constraintName="processor_pkey" tableName="processor"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-98">
+        <addPrimaryKey columnNames="id" constraintName="simple_storage_pkey" tableName="simple_storage"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-99">
+        <addPrimaryKey columnNames="id" constraintName="storage_pkey" tableName="storage"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-100">
+        <addPrimaryKey columnNames="storage_pool_id, composed_node_id" constraintName="storage_pool_composed_node_pkey" tableName="storage_pool_composed_node"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-101">
+        <addPrimaryKey columnNames="id" constraintName="storage_pool_pkey" tableName="storage_pool"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-102">
+        <addPrimaryKey columnNames="storage_pool_id, capacity_source_id" constraintName="storage_providing_pool_capacity_source_pkey" tableName="storage_providing_pool_capacity_source"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-103">
+        <addPrimaryKey columnNames="storage_service_id, manager_id" constraintName="storage_service_manager_pkey" tableName="storage_service_manager"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-104">
+        <addPrimaryKey columnNames="id" constraintName="storage_service_pkey" tableName="storage_service"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-105">
+        <addPrimaryKey columnNames="id" constraintName="switch_pkey" tableName="switch"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-106">
+        <addPrimaryKey columnNames="id" constraintName="volume_pkey" tableName="volume"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-107">
+        <addPrimaryKey columnNames="id" constraintName="zone_pkey" tableName="zone"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-108">
+        <addUniqueConstraint columnNames="composed_node_id" constraintName="idx_composed_node_composed_node_id" tableName="composed_node"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-109">
+        <addUniqueConstraint columnNames="uri" constraintName="idx_composed_node_uri" tableName="composed_node"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-110">
+        <addUniqueConstraint columnNames="uri" constraintName="uk_b9xwua9qor92bb4mxcc37a50y" tableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-111">
+        <addForeignKeyConstraint baseColumnNames="ethernet_switch_id" baseTableName="ethernet_switch_port" constraintName="fk_14oc3d5wv6m3e9ptni5kolwj7" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ethernet_switch"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-112">
+        <addForeignKeyConstraint baseColumnNames="endpoint_id" baseTableName="connected_entity" constraintName="fk_17a70jj241lk1okb0brdu5m44" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="endpoint"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-113">
+        <addForeignKeyConstraint baseColumnNames="discoverable_entity_id" baseTableName="connected_entity" constraintName="fk_1ik8qkv4ffnby88eylp3dd2ua" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-114">
+        <addForeignKeyConstraint baseColumnNames="fabric_id" baseTableName="zone" constraintName="fk_1qx30aoet3jq3k8y2ffyoi5al" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="fabric"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-115">
+        <addForeignKeyConstraint baseColumnNames="associated_drive_uri_id" baseTableName="associated_drive_uri" constraintName="fk_1xk99xoj02hb4q1l6q79hsqad" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="composed_node"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-116">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="processor" constraintName="fk_2tcqjwetvafjrncwxdgfxqmg0" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-117">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="storage" constraintName="fk_303v22f6u27remio9g3wkjgs4" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-118">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="ethernet_interface" constraintName="fk_36pt3bdrw0ew81twg7n0kltg7" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-119">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="simple_storage" constraintName="fk_3863hyymhay9xrguda7x76inw" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-120">
+        <addForeignKeyConstraint baseColumnNames="simple_storage_id" baseTableName="simple_storage_device" constraintName="fk_3hw06r8lalse8hhqska4u25px" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="simple_storage"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-121">
+        <addForeignKeyConstraint baseColumnNames="composed_node_id" baseTableName="processor" constraintName="fk_42x49ygafsbiy09ev7upihfi0" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="composed_node"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-122">
+        <addForeignKeyConstraint baseColumnNames="associated_volume_uri_id" baseTableName="associated_volume_uri" constraintName="fk_4ehsffma68kaqxhtxdmuvbi1x" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="composed_node"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-123">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="fabric" constraintName="fk_4uvir8mle70pabjldo72m198f" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-124">
+        <addForeignKeyConstraint baseColumnNames="storage_service_id" baseTableName="drive" constraintName="fk_59a786omqyycd76jpp7ja4ca4" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="storage_service"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-125">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="network_interface" constraintName="fk_5dft6yhrjq4d3c7gegqmwiqkb" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-126">
+        <addForeignKeyConstraint baseColumnNames="manager_id" baseTableName="computer_system_manager" constraintName="fk_5qjqbrmviflp7dgyh3imnvkaw" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="manager"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-127">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="memory" constraintName="fk_61vlwhnkrir23pfwe7y6wd50s" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-128">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="network_interface" constraintName="fk_6crdctyjvdt7tx5iuy74uwdp1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-129">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="composed_node" constraintName="fk_6dvurerir9p7quf3b4bq6vq0t" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-130">
+        <addForeignKeyConstraint baseColumnNames="boot_id" baseTableName="boot_boot_source_override_mode_allowable_value" constraintName="fk_6fn7re809c41t0wj13le353lp" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-131">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="endpoint" constraintName="fk_6p15jxa7qa2u2iylyig3n4sx4" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-132">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="ethernet_switch" constraintName="fk_6rkxinq1qe60ks1g5sninouf7" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-133">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="switch" constraintName="fk_6xxu8f9txm6ub9qrh1um7k44y" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-134">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="endpoint" constraintName="fk_7j9v08qwbrpl4wxrjog3cy1u7" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-135">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="zone" constraintName="fk_7jhic4whhk83teqpjvv0c0h8t" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-136">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="ethernet_switch_port_vlan" constraintName="fk_8ejp883if3pjm176b5cic3o2o" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-137">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="storage_service" constraintName="fk_90sl33yp60n4dgpbjm9osntdi" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-138">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="storage" constraintName="fk_9d9s1f6ryg37k1u44w1elucb8" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-139">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="computer_system_manager" constraintName="fk_9gbeankygenoq464djmovjy0c" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-140">
+        <addForeignKeyConstraint baseColumnNames="storage_pool_id" baseTableName="volume" constraintName="fk_9uqlco3xv0w7i5o3nv22uigdh" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="storage_pool"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-141">
+        <addForeignKeyConstraint baseColumnNames="storage_service_id" baseTableName="storage_service_manager" constraintName="fk_a5pw738ejj33n0al7d0s3t6sa" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="storage_service"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-142">
+        <addForeignKeyConstraint baseColumnNames="endpoint_id" baseTableName="ethernet_interface_endpoint" constraintName="fk_a79h1utxwn29r7oljhatav94s" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="endpoint"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-143">
+        <addForeignKeyConstraint baseColumnNames="storage_service_id" baseTableName="endpoint" constraintName="fk_abj470s1wq95lixg45iro1lyh" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="storage_service"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-144">
+        <addForeignKeyConstraint baseColumnNames="composed_node_id" baseTableName="storage_pool_composed_node" constraintName="fk_abqgvnb4vwa2l7aimajrca4ai" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="composed_node"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-145">
+        <addForeignKeyConstraint baseColumnNames="volume_id" baseTableName="capacity_source" constraintName="fk_aid7k5fb4mit5x55r5y3imblg" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="volume"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-146">
+        <addForeignKeyConstraint baseColumnNames="fabric_switch_id" baseTableName="chassis_fabric_switch" constraintName="fk_anp0qu78n8tyijjr97covl9jp" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="switch"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-147">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="computer_system_performance_configuration_type" constraintName="fk_b3ds3xiaccbmf3rko7kxqebeu" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-148">
+        <addForeignKeyConstraint baseColumnNames="processor_metadata_id" baseTableName="processor" constraintName="fk_be30xw58waxh6vwt7fe9lyrq5" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="processor_metadata"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-149">
+        <addForeignKeyConstraint baseColumnNames="endpoint_id" baseTableName="endpoint_identifier" constraintName="fk_bkav1mey33701095ndikid2tb" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="endpoint"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-150">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="ethernet_interface" constraintName="fk_bm8wr6mkdvjpxuvqqpr0iobq2" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-151">
+        <addForeignKeyConstraint baseColumnNames="connected_entity_id" baseTableName="connected_entity_identifier" constraintName="fk_bqbj5ls5dmxlt4ka5q4unyjty" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="connected_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-152">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="pcie_device" constraintName="fk_btgk9gcjgrc308q7af4pu237d" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-153">
+        <addForeignKeyConstraint baseColumnNames="pcie_device_id" baseTableName="chassis_pcie_device" constraintName="fk_bwbmyt4g5627wfilvxygxsiqr" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="pcie_device"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-154">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="processor" constraintName="fk_c0ryxm4p5bj9737gvef5kglfw" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-155">
+        <addForeignKeyConstraint baseColumnNames="ethernet_interface_id" baseTableName="ethernet_interface_supported_protocol" constraintName="fk_ce9it6x1r3qaxvdilh4x3e32q" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ethernet_interface"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-156">
+        <addForeignKeyConstraint baseColumnNames="endpoint_id" baseTableName="port_endpoint" constraintName="fk_cqdrxblk501fansv2o90havj6" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="endpoint"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-157">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="computer_system_pcie_connection_id" constraintName="fk_csh08v7q5vjxvgt2csgwb9fp6" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-158">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="computer_system" constraintName="fk_cwca10t6xao4h4cdqea0dxita" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-159">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="manager" constraintName="fk_dk9y35huoo6qkm48fj2n3s1kb" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-160">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="network_device_function" constraintName="fk_dmc4vvphx2kk2t9riycu1vtq4" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-161">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="port" constraintName="fk_dvgc32pm231nt5p6hnjjpbo9s" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-162">
+        <addForeignKeyConstraint baseColumnNames="chassis_id" baseTableName="chassis_pcie_device" constraintName="fk_e71b8tftjlqno48so21oibbwt" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="chassis"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-163">
+        <addForeignKeyConstraint baseColumnNames="storage_pool_id" baseTableName="storage_pool_composed_node" constraintName="fk_e9scdonhh1t1vof5wcc7bha3b" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="storage_pool"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-164">
+        <addForeignKeyConstraint baseColumnNames="chassis_id" baseTableName="storage" constraintName="fk_ea0hs48jmmlouy8ku36smxvoy" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="chassis"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-165">
+        <addForeignKeyConstraint baseColumnNames="primary_vlan_id" baseTableName="ethernet_switch_port" constraintName="fk_ex12fvee2h96igx56fnookgb" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ethernet_switch_port_vlan"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-166">
+        <addForeignKeyConstraint baseColumnNames="composed_node_id" baseTableName="volume" constraintName="fk_exalqcebmxgj3iw837c144uoh" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="composed_node"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-167">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="volume" constraintName="fk_f4fmido82kejr7g7ijcffs9js" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-168">
+        <addForeignKeyConstraint baseColumnNames="parent_chassis_id" baseTableName="chassis" constraintName="fk_fdaesv3uw07hhfk9rlmaynxbp" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="chassis"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-169">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="capacity_source" constraintName="fk_fybc548xnj1ugmfle7xceib3u" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-170">
+        <addForeignKeyConstraint baseColumnNames="composed_node_id" baseTableName="endpoint" constraintName="fk_gt4bk9ytuwb0lyt44d78jj0s7" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="composed_node"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-171">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="ethernet_switch_port" constraintName="fk_gv0tspm65f7sfuc8pgipel0s8" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-172">
+        <addForeignKeyConstraint baseColumnNames="storage_pool_id" baseTableName="storage_providing_pool_capacity_source" constraintName="fk_h2wtq3r38qw3h9njxrcfg67rk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="storage_pool"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-173">
+        <addForeignKeyConstraint baseColumnNames="composed_node_id" baseTableName="drive" constraintName="fk_hg2i3dcoyr30041ams83q6k1c" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="composed_node"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-174">
+        <addForeignKeyConstraint baseColumnNames="port_id" baseTableName="port_endpoint" constraintName="fk_hlt8ahyofrovcajtvw4sf2c8n" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="port"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-175">
+        <addForeignKeyConstraint baseColumnNames="chassis_id" baseTableName="chassis_fabric_switch" constraintName="fk_hn0xonsw2n12ttcg8uja39r6a" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="chassis"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-176">
+        <addForeignKeyConstraint baseColumnNames="volume_metadata_id" baseTableName="volume" constraintName="fk_hrgd9v89f7rgxt94oefydf44p" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="volume_metadata"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-177">
+        <addForeignKeyConstraint baseColumnNames="fabric_id" baseTableName="switch" constraintName="fk_hrjog9vjw78fsq9lf7e4ni4hv" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="fabric"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-178">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="chassis_computer_system" constraintName="fk_hseban2kwly4brj8wyrrqvey0" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-179">
+        <addForeignKeyConstraint baseColumnNames="associated_processor_uri_id" baseTableName="associated_processor_uri" constraintName="fk_i4qhvg3dq9siit6ymmclmgwaw" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="composed_node"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-180">
+        <addForeignKeyConstraint baseColumnNames="fabric_switch_id" baseTableName="port" constraintName="fk_il9vsjj7uakouf5c7driq2v9m" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="switch"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-181">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="memory" constraintName="fk_imr6buoy6xv7iok8k16u7auxi" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-182">
+        <addForeignKeyConstraint baseColumnNames="network_interface_id" baseTableName="network_device_function" constraintName="fk_jchhhhbmfa9rly6mf7nrw5tf9" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="network_interface"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-183">
+        <addForeignKeyConstraint baseColumnNames="storage_service_id" baseTableName="storage_pool" constraintName="fk_jlxmwreqatm6c9w4tapkacmkm" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="storage_service"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-184">
+        <addForeignKeyConstraint baseColumnNames="chassis_id" baseTableName="drive" constraintName="fk_jnpr25lir5pn6sct8eu2sdhjf" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="chassis"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-185">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="storage_service" constraintName="fk_jqmsra7bcla6voptd2dgvethj" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-186">
+        <addForeignKeyConstraint baseColumnNames="storage_id" baseTableName="drive" constraintName="fk_k0edqaee47me4mjoffv3poh77" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="storage"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-187">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="drive" constraintName="fk_k7uvdl7n7gcdpko42179klcvl" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-188">
+        <addForeignKeyConstraint baseColumnNames="manager_id" baseTableName="storage_service_manager" constraintName="fk_kl8lw8718nq4qamryjb7mw4cr" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="manager"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-189">
+        <addForeignKeyConstraint baseColumnNames="processor_id" baseTableName="processor_capability" constraintName="fk_kseg4fqdmhk3w58imcvikarn1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="processor"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-190">
+        <addForeignKeyConstraint baseColumnNames="manager_id" baseTableName="fabric_manager" constraintName="fk_ldl6hww7lha75i7dlqm34umk5" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="manager"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-191">
+        <addForeignKeyConstraint baseColumnNames="ethernet_switch_port_id" baseTableName="ethernet_switch_port_vlan" constraintName="fk_llscecvwe3wcu265sxbwjfko0" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ethernet_switch_port"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-192">
+        <addForeignKeyConstraint baseColumnNames="fabric_id" baseTableName="fabric_manager" constraintName="fk_lmw8yr5tfe2gbbs83cwr581cb" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="fabric"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-193">
+        <addForeignKeyConstraint baseColumnNames="storage_pool_id" baseTableName="storage_pool" constraintName="fk_lr31gfsnaejrj2l3s3mitfjb0" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="storage_pool"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-194">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="ip_transport_details" constraintName="fk_lv4ye0wvy8v0aopppbd8ueb1o" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-195">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="computer_system_trusted_module" constraintName="fk_m8q9osn0tsbcgi7uwpgns6pf3" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-196">
+        <addForeignKeyConstraint baseColumnNames="computer_system_metadata_id" baseTableName="computer_system" constraintName="fk_md6awm92wh5cq8dmsgwkdbpy1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system_metadata"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-197">
+        <addForeignKeyConstraint baseColumnNames="capacity_source_id" baseTableName="storage_providing_pool_capacity_source" constraintName="fk_mh12abccrkpmwfl54g9v6g792" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="capacity_source"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-198">
+        <addForeignKeyConstraint baseColumnNames="chassis_id" baseTableName="ethernet_switch" constraintName="fk_n5jyrct0lcdxo4irimihnymjv" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="chassis"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-199">
+        <addForeignKeyConstraint baseColumnNames="volume_id" baseTableName="drive" constraintName="fk_o8ffpxxn9aqpniay6ji6rn3yx" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="volume"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-200">
+        <addForeignKeyConstraint baseColumnNames="fabric_id" baseTableName="endpoint" constraintName="fk_ofmdqutkvp6sw3g905brjxuhv" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="fabric"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-201">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="pcie_device_function" constraintName="fk_ogvc8drh5vmc13gp8pwo2fab8" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-202">
+        <addForeignKeyConstraint baseColumnNames="port_id" baseTableName="port_pcie_connection_id" constraintName="fk_ol24bw8ag6yr0x3hi6a468nbk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="port"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-203">
+        <addForeignKeyConstraint baseColumnNames="storage_service_id" baseTableName="volume" constraintName="fk_oncgq0cahnas9itl0a19gqpt6" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="storage_service"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-204">
+        <addForeignKeyConstraint baseColumnNames="endpoint_metadata_id" baseTableName="endpoint" constraintName="fk_p7teicxqruuhp6jj6e6mfuv17" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="endpoint_metadata"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-205">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="simple_storage" constraintName="fk_pcbos2cmcqofu5aii39b9713x" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-206">
+        <addForeignKeyConstraint baseColumnNames="fabric_id" baseTableName="storage_service" constraintName="fk_pwsftnxjode4yi414w5an0okh" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="fabric"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-207">
+        <addForeignKeyConstraint baseColumnNames="computer_system_id" baseTableName="computer_system_allowable_reset_type" constraintName="fk_q1iv5xwi4hqrxlwwy374amwth" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-208">
+        <addForeignKeyConstraint baseColumnNames="endpoint_id" baseTableName="ip_transport_details" constraintName="fk_qa9v1pip5eqpwwkkk497yvhi1" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="endpoint"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-209">
+        <addForeignKeyConstraint baseColumnNames="pcie_device_id" baseTableName="pcie_device_function" constraintName="fk_qeyudqcco39drbfdsr53j1s6u" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="pcie_device"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-210">
+        <addForeignKeyConstraint baseColumnNames="boot_id" baseTableName="boot_boot_source_override_target_allowable_value" constraintName="fk_qf4nieyuxc7ck34wx3xow0e0u" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="computer_system"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-211">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="storage_pool" constraintName="fk_qixnmckht3ylhe5q6brew0rvb" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-212">
+        <addForeignKeyConstraint baseColumnNames="volume_id" baseTableName="volume_identifier" constraintName="fk_qq4xxk5acatfyti1m8xdpfw5i" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="volume"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-213">
+        <addForeignKeyConstraint baseColumnNames="ethernet_interface_id" baseTableName="ethernet_switch_port_vlan" constraintName="fk_qummguchfcuwyfj0yt95hf3by" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ethernet_interface"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-214">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="chassis" constraintName="fk_rn2i9y69jbo0ta2046abdtj8u" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-215">
+        <addForeignKeyConstraint baseColumnNames="drive_metadata_id" baseTableName="drive" constraintName="fk_rnn8cx4x4xma4clftuqi3boy4" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="drive_metadata"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-216">
+        <addForeignKeyConstraint baseColumnNames="zone_id" baseTableName="endpoint" constraintName="fk_s3uwsvug4plk1dpprwdln4smr" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="zone"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-217">
+        <addForeignKeyConstraint baseColumnNames="pcie_device_function_id" baseTableName="drive" constraintName="fk_stwmvhg01t9xvrifgeo7en331" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="pcie_device_function"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-218">
+        <addForeignKeyConstraint baseColumnNames="chassis_id" baseTableName="chassis_computer_system" constraintName="fk_t2f44367kc2tylbabdtjska31" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="chassis"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-219">
+        <addForeignKeyConstraint baseColumnNames="associated_endpoint_uri_id" baseTableName="associated_endpoint_uri" constraintName="fk_tj8mj4lgdbbbq7rfh6xh2x25o" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="composed_node"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-220">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="connected_entity" constraintName="fk_trradgh56rj8ff6v04rsk94ug" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1554203203264-221">
+        <addForeignKeyConstraint baseColumnNames="ethernet_interface_id" baseTableName="ethernet_interface_endpoint" constraintName="fk_wb9wkddiltnfev1phs8q44rj" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ethernet_interface"/>
+    </changeSet>
+</databaseChangeLog>

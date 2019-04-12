@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,16 +28,16 @@ using namespace psme::rest::constants;
 using namespace agent_framework::module;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#DriveCollection.DriveCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#DriveCollection.DriveCollection";
     r[Common::NAME] = "Drives Collection";
     r[Common::DESCRIPTION] = "Collection of Drives";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
@@ -56,7 +56,7 @@ void DriveCollection::get(const server::Request& req, server::Response& res) {
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
     auto storage_service_uuid =
-        psme::rest::model::Find<agent_framework::model::StorageService>(req.params[PathParam::SERVICE_ID]).get_uuid();
+        psme::rest::model::find<agent_framework::model::StorageService>(req.params).get_uuid();
 
     const auto& drives_uuids =
         get_m2m_manager<agent_framework::model::StorageService, agent_framework::model::Drive>()
@@ -64,7 +64,7 @@ void DriveCollection::get(const server::Request& req, server::Response& res) {
 
     json[Collection::ODATA_COUNT] = static_cast<std::uint32_t>(drives_uuids.size());
     for (const auto& uuid : drives_uuids) {
-        json::Value link(json::Value::Type::OBJECT);
+        json::Json link(json::Json::value_t::object);
         link[Common::ODATA_ID] = utils::get_component_url(agent_framework::model::enums::Component::Drive, uuid);
         json[Collection::MEMBERS].push_back(std::move(link));
     }

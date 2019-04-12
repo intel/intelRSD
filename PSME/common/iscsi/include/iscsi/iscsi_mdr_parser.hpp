@@ -1,7 +1,7 @@
 /*!
  * @brief Parser for the iSCSI MDR region.
  *
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file iscsi_mdr_parser.hpp
  */
 
 #pragma once
 
+#include "iscsi/structs/iscsi_mdr_attempt.hpp"
+#include "iscsi/structs/iscsi_mdr_header.hpp"
+#include "iscsi/structs/iscsi_mdr_initiator.hpp"
+#include "iscsi/structs/iscsi_mdr_target.hpp"
+#include "iscsi/structs/iscsi_mdr_version.hpp"
 #include "mdr/struct_enhanced.hpp"
 #include "mdr/generic_parser.hpp"
 #include "iscsi/iscsi_mdr_entry_point.hpp"

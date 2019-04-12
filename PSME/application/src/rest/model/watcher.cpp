@@ -2,10 +2,9 @@
  * @brief Watcher
  *
  * Class handling events and executing periodic tasks.
- * @todo To be splited into several classes: EventProcessor, TaskSheduler, tasks
+ * @todo To be split into several classes: EventProcessor, TaskScheduler, tasks
  *
- * @header{License}
- * @copyright Copyright (c) 2016-2018 Intel Corporation
+ * @copyright Copyright (c) 2016-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -17,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file watcher.cpp
  */
 
@@ -28,6 +26,11 @@
 #include "agent-framework/eventing/events_queue.hpp"
 
 #include "configuration/configuration.hpp"
+
+namespace {
+    constexpr const auto DEFAULT_INTERVAL_SECONDS = 0;
+    constexpr const auto DEFAULT_OUTDATED_HOURS = std::chrono::hours(24);
+}
 
 namespace psme {
 namespace rest {
@@ -52,12 +55,15 @@ private:
     std::chrono::seconds interval{};
 
     handler::RootHandler root_handler{};
+
+    static const constexpr char TASK_NAME[] = "Polling";
 };
 
+const constexpr char PollingTask::TASK_NAME[];
 
-PollingTask::PollingTask() : WatcherTask("Polling") {
+PollingTask::PollingTask() : WatcherTask(PollingTask::TASK_NAME) {
     auto config = configuration::Configuration::get_instance().to_json();
-    interval = std::chrono::seconds(config["eventing"]["poll-interval-sec"].as_uint());
+    interval = std::chrono::seconds(config.value("eventing", json::Json::object()).value("poll-interval-sec", uint16_t{}));
 }
 
 void PollingTask::execute() {
@@ -67,7 +73,7 @@ void PollingTask::execute() {
             auto polling = [this,agent] {
                 this->root_handler.poll(agent, "" /* parent_uuid */, agent_framework::model::enums::Component::None, "" /* uuid */);
             };
-            agent->execute_in_transaction(polling);
+            agent->execute_in_transaction(PollingTask::TASK_NAME, polling);
         }
         catch (const psme::core::agent::AgentUnreachable&)  {
             log_error("rest", "Polling failed due to agent (id:" << agent.get()->get_gami_id() << ") unreachable");
@@ -106,16 +112,28 @@ public:
 private:
     std::chrono::seconds interval{0};
     std::chrono::seconds outdated{0};
+
+    static const constexpr char TASK_NAME[] = "RetentionPolicy";
 };
 
-RetentionPolicyTask::RetentionPolicyTask() : WatcherTask("RetentionPolicy") {
+const constexpr char RetentionPolicyTask::TASK_NAME[];
+
+
+RetentionPolicyTask::RetentionPolicyTask() : WatcherTask(RetentionPolicyTask::TASK_NAME) {
     auto config = configuration::Configuration::get_instance().to_json();
 
-    auto interval_value = config["database"]["retention-interval-sec"];
-    interval = std::chrono::seconds(interval_value.is_uint() ? interval_value.as_uint() : 0);
+    auto interval_value = config.value("database", json::Json::object())
+                                .value("retention-interval-sec", json::Json());
+    interval = std::chrono::seconds(
+        interval_value.is_number_unsigned() ?
+        interval_value.get<unsigned int>() :
+        DEFAULT_INTERVAL_SECONDS);
 
-    auto outdated_value = config["database"]["retention-outdated-sec"];
-    outdated = outdated_value.is_uint() ? std::chrono::seconds(outdated_value.as_uint()) : std::chrono::hours(24);
+    auto outdated_value = config.value("database", json::Json::object())
+                                .value("retention-outdated-sec", json::Json());
+    outdated = outdated_value.is_number_unsigned() ?
+               std::chrono::seconds(outdated_value.get<unsigned int>()) :
+               std::chrono::hours(DEFAULT_OUTDATED_HOURS);
 }
 
 void RetentionPolicyTask::started() {
@@ -134,7 +152,7 @@ void RetentionPolicyTask::execute() {
     }
     unsigned removed = database::Database::remove_outdated(outdated);
     if (0 != removed) {
-        log_info("rest", "Removed " << removed << " persistance entries on outdate," <<
+        log_info("rest", "Removed " << removed << " persistence entries on outdate," <<
             " interval " << outdated.count());
     }
 }
@@ -142,7 +160,7 @@ void RetentionPolicyTask::execute() {
 void RetentionPolicyTask::stopped() {
     if (0 != interval.count()) {
         unsigned invalidated = database::Database::invalidate_all(outdated);
-        log_info("rest", "Invalidated " << invalidated << " persistance entries");
+        log_info("rest", "Invalidated " << invalidated << " persistence entries");
     }
 }
 
@@ -151,7 +169,9 @@ Watcher::Watcher() {
     add_task(std::unique_ptr<WatcherTask>(new RetentionPolicyTask()));
 }
 
-Watcher::~Watcher() { stop(); }
+Watcher::~Watcher() {
+    stop();
+}
 
 void Watcher::start() {
     if (!m_running) {
@@ -259,7 +279,7 @@ void Watcher::watch() {
     }
 }
 
-void Watcher::process_notification(const agent_framework::eventing::ComponentNotification& gami_notification) {
+void Watcher::process_notification(const ComponentNotification& gami_notification) {
     if (gami_notification.get_notifications().size() == 0) {
         return;
     }
@@ -272,6 +292,7 @@ void Watcher::process_notification(const agent_framework::eventing::ComponentNot
         }
 
         psme::rest::eventing::EventVec collected_northbound_events{};
+        static const constexpr char TRANSACTION_NAME[] = "NotificationHandle";
 
         auto handle_notifications = [this, agent, &gami_notification, &collected_northbound_events] {
 
@@ -287,20 +308,21 @@ void Watcher::process_notification(const agent_framework::eventing::ComponentNot
                     collected_northbound_events.end(), events_from_handling.begin(), events_from_handling.end());
             }
         };
-        agent->execute_in_transaction(handle_notifications);
+        agent->execute_in_transaction(TRANSACTION_NAME, handle_notifications);
 
         // send all collected events in one batch
         psme::rest::eventing::manager::SubscriptionManager::get_instance()->notify(collected_northbound_events);
 
-    } catch (const std::exception& error) {
+    }
+    catch (const std::exception& error) {
         log_error("rest", "Event exception occurred: " << error.what());
-    } catch (...) {
+    }
+    catch (...) {
         log_error("rest", "Unknown exception occurred.");
     }
 }
 
-WatcherTask::WatcherTask(const std::string& _name) :
-    name(_name) { }
+WatcherTask::WatcherTask(const std::string& name) : m_name(name) { }
 
 WatcherTask::~WatcherTask() { }
 

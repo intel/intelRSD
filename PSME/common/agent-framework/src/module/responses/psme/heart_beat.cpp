@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ using namespace agent_framework::model;
 using namespace agent_framework::model::responses;
 
 json::Json HeartBeat::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[literals::HeartBeat::TIME_STAMP] = get_time_stamp();
     value[literals::HeartBeat::MIN_DELAY] = get_min_delay();
     return value;

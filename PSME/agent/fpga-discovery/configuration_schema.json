@@ -1,0 +1,243 @@
+{
+    "title": "PSME FPGA Discovery Agent Configuration Schema",
+    "description": "PSME FPGA Discovery Agent configuration file.",
+    "name": "/",
+    "type": "object",
+    "properties": {
+        "service": {
+            "description": "Name of DB entry with service UUID.",
+            "name": "service",
+            "type": "string"
+        },
+        "agent": {
+            "description": "Container for agent specific information.",
+            "name": "agent",
+            "type": "object",
+            "properties": {
+                "vendor": {
+                    "description": "Information about agent vendor.",
+                    "name": "vendor",
+                    "type": "string"
+                },
+                "capabilities": {
+                    "description": "Capabilities of the agent (compute, network, chassis, storage or multiple).",
+                    "name": "capabilities",
+                    "type": "array",
+                    "items" : {
+                        "type" : "string"
+                    }
+                }
+            },
+            "required": [
+                "capabilities"
+            ]
+        },
+        "server": {
+            "description": "Information for agent about access to REST server.",
+            "name": "server",
+            "type": "object",
+            "properties": {
+                "port": {
+                    "description": "Port number to register to REST server. Must be the same as configured in PSME REST Server.",
+                    "name": "port",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "port"
+            ]
+        },
+        "registration": {
+            "description": "Registration to server configuration container.",
+            "name": "registration",
+            "type": "object",
+            "properties": {
+                "ipv4": {
+                    "description": "PSME REST server IP address or hostname.",
+                    "name": "ipv4",
+                    "type": "string"
+                },
+                "port": {
+                    "description": "PSME REST server registration port number.",
+                    "name": "port",
+                    "type": "integer"
+                },
+                "interval": {
+                    "description": "Delay between next registration try in seconds.",
+                    "name": "interval",
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "ipv4",
+                "port",
+                "interval"
+            ]
+        },
+        "managers": {
+            "description": "List of all managers. Each entry represents single manager.",
+            "name": "managers",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "switches": {
+                        "description": "Configuration for fabrics during discovery.",
+                        "name": "fabrics",
+                        "type": "object",
+                        "properties": {
+                            "locationOffset": {
+                                "description": "Location identifier offset.",
+                                "name": "locationOffset",
+                                "type": "integer"
+                            },
+                            "parentId": {
+                                "description": "Parent Id.",
+                                "name": "parentId",
+                                "type": "integer"
+                            },
+                            "nic-drivers": {
+                                "description": "Driver names of the NIC cards",
+                                "name": "nic-drivers",
+                                "type": "string"
+                            },
+                            "is-target": {
+                                "description": "Is agent running as target",
+                                "name": "is-target",
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "ipv4": {
+                        "description": "Internal IP address of the module.",
+                        "name": "ipv4",
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "discovery-service" : {
+            "description": "FPGAoF discovery service configuration.",
+            "name": "discovery-service",
+            "type": "object",
+            "properties" : {
+                "listener-interfaces": {
+                    "description": "List of interface on which discovery service is listening.",
+                    "name": "listener-interfaces",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "ofi-provider" : {
+                                "description": "OFI provider name",
+                                "name": "ofi-provider",
+                                "type": "string"
+                            },
+                            "trtype" : {
+                                "description": "Transport type",
+                                "name": "trtype",
+                                "type": "string"
+                            },
+                            "adrfam" : {
+                                "description": "Address family",
+                                "name": "adrfam",
+                                "type": "string"
+                            },
+                            "traddr": {
+                                "description": "Name or fabric address to resolve",
+                                "name": "traddr",
+                                "type": "string"
+                            },
+                            "trsvcid": {
+                                "description": "Service name or port number of address",
+                                "name": "trsvcid",
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "loggers": {
+            "description": "Logger configuration.",
+            "name": "loggers",
+            "type": "array",
+            "items": {
+                "description": "Settings of a specific logger.",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "description": "Set the name of the logger.",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    "default": {
+                        "description": "Set the logger as default. Only one can be default.",
+                        "name": "default",
+                        "type": "boolean"
+                    },
+                    "level": {
+                        "description": "Choose severity level compatible with syslog.",
+                        "name": "level",
+                        "type": "string"
+                    },
+                    "timeformat": {
+                        "description": "Define format used for timestamps in log file.",
+                        "name": "timeformat",
+                        "type": "string"
+                    },
+                    "color": {
+                        "description": "Enable or disable colors in log file.",
+                        "name": "color",
+                        "type": "boolean"
+                    },
+                    "output": {
+                        "description": "Turn on, off logging.",
+                        "name": "output",
+                        "type": "boolean"
+                    },
+                    "tagging": {
+                        "description": "Turn on/turn off tagging in application.",
+                        "name": "tagging",
+                        "type": "boolean"
+                    },
+                    "moredebug": {
+                        "description": "Enable/disable additional debug info in log file.",
+                        "name": "moredebug",
+                        "type": "boolean"
+                    },
+                    "streams": {
+                        "description": "Configuration of output methods for logger.",
+                        "name": "streams",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "description": "Choose one of the output methods. Like FILE of STDOUT.",
+                                    "name": "type",
+                                    "type": "string"
+                                },
+                                "file": {
+                                    "description": "Path to the file, if stream type is set to FILE.",
+                                    "name": "file",
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "type"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    },
+   "required": [
+        "service",
+        "agent",
+        "server",
+        "registration",
+        "loggers"
+    ]
+}

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,11 +21,12 @@
 
 #include "agent-framework/command/registry.hpp"
 #include "agent-framework/command/psme_commands.hpp"
-#include "psme/core/agent/agent_manager.hpp"
-#include "configuration/configuration.hpp"
 #include "agent-framework/exceptions/exception.hpp"
-#include "agent-framework/logger_ext.hpp"
+
 #include "psme/rest/server/error/error_factory.hpp"
+#include "psme/core/agent/agent_manager.hpp"
+
+#include "configuration/configuration.hpp"
 
 using namespace agent_framework::command;
 using namespace agent_framework::module;
@@ -121,9 +122,9 @@ void handle_attach(const Attach::Request& request, Attach::Response& response) {
     }
 
     // prepare response
-    const json::Value& configuration = Configuration::get_instance().to_json();
-    const auto& eventing_address = configuration["eventing"]["address"].as_string();
-    const auto& eventing_port = configuration["eventing"]["port"].as_int();
+    const json::Json& configuration = Configuration::get_instance().to_json();
+    const auto& eventing_address = configuration.value("eventing", json::Json::object()).value("address", std::string{});
+    const auto& eventing_port = configuration.value("eventing", json::Json::object()).value("port", int{});
 
     response.set_ipv4_address(eventing_address);
     response.set_version(::GAMI_API_VERSION);

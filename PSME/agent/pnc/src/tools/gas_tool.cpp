@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +24,7 @@
  * @brief GasTool implementation
  * */
 
+#include "discovery/discovery_utils.hpp"
 #include "tools/gas_tool.hpp"
 #include "tools/model_tool.hpp"
 #include "sysfs/sysfs_reader.hpp"
@@ -49,7 +50,7 @@ using namespace agent_framework::model;
 
 namespace {
 
-constexpr unsigned UNBIND_DRIVE_WAIT_TIME = 5;
+constexpr unsigned UNBIND_DEVICE_WAIT_TIME = 5;
 
 
 uint8_t reverse_byte(uint8_t lsb_byte) {
@@ -107,9 +108,9 @@ PortBindingInfo GasTool::get_port_binding_info(const GlobalAddressSpaceRegisters
 
 
 PartitionBindingInfo GasTool::get_partition_binding_info(const GlobalAddressSpaceRegisters& gas,
-                                                         uint8_t zone_id) const {
+                                                         uint8_t partition_id) const {
     PartitionBindingInfo binding_info{gas.get_interface()};
-    binding_info.input.fields.partition_id = zone_id;
+    binding_info.input.fields.partition_id = partition_id;
     auto status = gas.execute_cmd(binding_info);
     if (status != CommandStatus::DONE) {
         THROW(agent_framework::exceptions::PncError, "agent",
@@ -156,7 +157,7 @@ LinkStatusRetrieve GasTool::get_link_status(const GlobalAddressSpaceRegisters& g
         throw std::runtime_error("Cannot get PCIe Port Link status.");
     }
     log_debug("gas-tool", "PortLinkStatus for port " << std::uint32_t(phys_port_id)
-                                                                 << " = " << std::uint32_t(cmd.output.fields.major));
+                                                     << " = " << std::uint32_t(cmd.output.fields.major));
     return cmd;
 }
 
@@ -165,7 +166,7 @@ uint8_t GasTool::get_logical_bridge_for_port(const PortBindingInfo& pbi) const {
 
     if (pbi.output.fields.info_count != 1) {
         log_debug("gas-tool", "Port bound to " << unsigned(pbi.output.fields.info_count)
-                                                           << " partitions, expected 1");
+                                               << " partitions, expected 1");
         throw std::runtime_error("Incorrect port binding info");
     }
     if (0xFF == pbi.output.fields.port_binding_info[0].partition_id ||
@@ -215,8 +216,11 @@ void GasTool::unbind_management_host_driver(const std::string& switch_bridge_pat
     for (const auto& device : devices) {
         auto functions = decoder.get_functions(device);
         for (const auto& function : functions) {
-            if (!reader.unbind_nvme_driver(function.id)) {
-                THROW(agent_framework::exceptions::PncError, "agent", "Cannot unbind device's driver");
+            if (agent::pnc::discovery::utils::to_device_class_enum(function.device_class) ==
+                enums::PcieFunctionDeviceClass::MassStorageController) {
+                if (!reader.unbind_nvme_driver(function.id)) {
+                    THROW(agent_framework::exceptions::PncError, "agent", "Cannot unbind device's driver");
+                }
             }
         }
     }
@@ -318,6 +322,7 @@ uint8_t GasTool::get_available_bridges_count(const PartitionBindingInfo& pbi) co
 
 
 uint64_t GasTool::get_presence_bitmask(const GlobalAddressSpaceRegisters& gas) const {
+    //TODO: Investigate if it requires change for FPGA
     i2c::GasI2cAccessInterface i2c{gas.get_interface()};
     uint8_t ports_0_14{};
     uint8_t ports_32_46{};
@@ -333,19 +338,29 @@ uint64_t GasTool::get_presence_bitmask(const GlobalAddressSpaceRegisters& gas) c
 void GasTool::bind_endpoint_to_zone(const GlobalAddressSpaceRegisters& gas, const std::string& zone_uuid,
                                     const std::string& endpoint_uuid) const {
     auto zone = get_manager<Zone>().get_entry(zone_uuid);
-    PartitionBindingInfo part_bi = this->get_partition_binding_info(gas, zone.get_zone_id());
-    uint8_t free_bridges = get_available_bridges_count(part_bi);
-    // throw exception if not enough bridges are available
-    if (free_bridges < get_m2m_manager<Endpoint, Port>().get_children(endpoint_uuid).size()) {
-        THROW(agent_framework::exceptions::PncError, "agent",
-              "Not enough empty bridges available in the zone");
+    OptionalField<std::uint8_t> partition_id = get_partition_id_by_zone(gas, zone.get_uuid());
+    if (partition_id.has_value()) {
+        log_debug("gas-tool", "Binding Endpoint " << endpoint_uuid << " to Zone " << zone_uuid << "with Partition ID "
+                                                  << static_cast<unsigned>(partition_id.value()));
+        PartitionBindingInfo part_bi = this->get_partition_binding_info(gas, partition_id);
+        uint8_t free_bridges = get_available_bridges_count(part_bi);
+        // throw exception if not enough bridges are available
+        if (free_bridges < get_m2m_manager<Endpoint, Port>().get_children(endpoint_uuid).size()) {
+            THROW(agent_framework::exceptions::PncError, "agent",
+                  "Not enough empty bridges available in the partition");
+        }
+        auto ports = get_m2m_manager<Endpoint, Port>().get_children(endpoint_uuid);
+        for (const auto& port_uuid : ports) {
+            Port port = get_manager<Port>().get_entry(port_uuid);
+            PortBindingInfo port_bi = this->get_port_binding_info(gas, uint8_t(port.get_phys_port_id()));
+            this->bind_to_partition(gas,
+                                    uint8_t(port.get_phys_port_id()),
+                                    partition_id,
+                                    this->get_available_bridge_id(part_bi));
+        }
     }
-    auto ports = get_m2m_manager<Endpoint, Port>().get_children(endpoint_uuid);
-    for (const auto& port_uuid : ports) {
-        Port port = get_manager<Port>().get_entry(port_uuid);
-        PortBindingInfo port_bi = this->get_port_binding_info(gas, uint8_t(port.get_phys_port_id()));
-        this->bind_to_partition(gas, uint8_t(port.get_phys_port_id()), zone.get_zone_id(),
-                                this->get_available_bridge_id(part_bi));
+    else {
+        log_debug("gas-tool", "Zone with UUID " << zone_uuid << " doesn't have associated partition.");
     }
 }
 
@@ -363,16 +378,20 @@ void GasTool::unbind_endpoint_from_zone(const GlobalAddressSpaceRegisters& gas, 
 }
 
 
-void GasTool::bind_drive_to_mgmt_partition(ModelToolPtr mtool, GlobalAddressSpaceRegisters& gas,
-                                           const std::string& drive_uuid) const {
+void GasTool::bind_device_to_mgmt_partition(ModelToolPtr mtool, gas::GlobalAddressSpaceRegisters& gas,
+                                            const Uuid& device_uuid) const {
 
     gas.read_top();
-    auto drive = get_manager<Drive>().get_entry(drive_uuid);
+    if (!mtool->exists_in_components(device_uuid)) {
+        THROW(agent_framework::exceptions::PncError, "agent",
+              "PCIe device with UUID = ['" + device_uuid + "'] not found.");
+    }
+
     // we assume only one port will be found
-    auto ports = mtool->get_ports_by_drive_uuid(drive_uuid);
+    auto ports = mtool->get_ports_by_device_uuid(device_uuid);
     if (ports.empty()) {
         THROW(agent_framework::exceptions::PncError, "agent",
-              "Cannot bind drive to mgmt zone: pcie function not found");
+              "Cannot bind PCIe device to mgmt zone: pcie function not found");
     }
     auto port = get_manager<Port>().get_entry(ports[0]);
 
@@ -386,22 +405,27 @@ void GasTool::bind_drive_to_mgmt_partition(ModelToolPtr mtool, GlobalAddressSpac
     }
     else {
         THROW(agent_framework::exceptions::PncError, "agent",
-              "Cannot bind drive to mgmt zone. Port already bound to partition "
+              "Cannot bind device to mgmt zone. Port already bound to partition "
               + std::to_string(int(port_bi.output.fields.port_binding_info->partition_id)));
     }
 }
 
 
-void GasTool::unbind_drive_from_mgmt_partition(ModelToolPtr mtool, GlobalAddressSpaceRegisters& gas,
-                                               const std::string& drive_uuid) const {
+void GasTool::unbind_device_from_mgmt_partition(ModelToolPtr mtool, GlobalAddressSpaceRegisters& gas,
+                                                const std::string& device_uuid) const {
 
     gas.read_top();
-    auto drive = get_manager<Drive>().get_entry(drive_uuid);
+    if (!mtool->exists_in_components(device_uuid)) {
+
+        THROW(agent_framework::exceptions::PncError, "agent",
+              "Device with UUID = ['" + device_uuid + "'] not found.");
+    }
+
     // we assume only one port will be found
-    auto ports = mtool->get_ports_by_drive_uuid(drive_uuid);
+    auto ports = mtool->get_ports_by_device_uuid(device_uuid);
     if (ports.empty()) {
         THROW(agent_framework::exceptions::PncError, "agent",
-              "Cannot unbind drive from mgmt zone: pcie function not found");
+              "Cannot unbind PCIe device from mgmt zone: pcie function not found");
     }
     auto port = get_manager<Port>().get_entry(ports[0]);
 
@@ -409,6 +433,55 @@ void GasTool::unbind_drive_from_mgmt_partition(ModelToolPtr mtool, GlobalAddress
     if (NO_PORT_ASSIGNED != pbi.output.fields.port_binding_info->partition_id) {
         this->unbind_from_partition(gas, pbi.output.fields.port_binding_info->partition_id,
                                     pbi.output.fields.port_binding_info->logical_bridge_id);
-        std::this_thread::sleep_for(std::chrono::seconds(UNBIND_DRIVE_WAIT_TIME));
+        std::this_thread::sleep_for(std::chrono::seconds(UNBIND_DEVICE_WAIT_TIME));
     }
+}
+
+
+OptionalField<std::uint8_t> GasTool::get_partition_id_by_zone(const gas::GlobalAddressSpaceRegisters& gas,
+                                                              const Uuid& zone_uuid) const {
+    // Path to get partition ID:
+    // Zone -> Initiator Endpoint -> Port -> Port physical ID -> GAS Port binding -> Partition ID
+
+    if(!get_manager<Zone>().entry_exists(zone_uuid)) {
+        THROW(agent_framework::exceptions::InvalidUuid, "model-tool", "Zone not found, invalid uuid: " + zone_uuid);
+    }
+
+    // Get Partition ID for port using phys_port_id
+    PortBindingInfo cmd{gas.get_interface()};
+    try {
+        cmd = get_all_port_binding_info(gas);
+    }
+    catch (const std::exception& e) {
+        log_error("model-tool",
+                  "Cannot get port binding info for all ports during getting partition ID for Zone: "
+                      << e.what());
+        return OptionalField<std::uint8_t>();
+    }
+
+    // Get initiator endpoint
+    log_debug("model-tool", "Getting Partition ID for Zone with UUID " << zone_uuid);
+    for (const auto& endpoint_uuid : get_m2m_manager<Zone, Endpoint>().get_children(zone_uuid)) {
+        const auto& endpoint = get_manager<Endpoint>().get_entry(endpoint_uuid);
+        if (endpoint.get_connected_entities().size() > 0) {
+            const auto& entity_role = endpoint.get_connected_entities()[0].get_entity_role();
+            if (entity_role == enums::EntityRole::Initiator) {
+
+                // Get Port for initiator endpoint
+                for (const auto& port_uuid : get_m2m_manager<Endpoint, Port>().get_children(endpoint_uuid)) {
+                    const auto phys_port_id = get_manager<Port>().get_entry(port_uuid).get_phys_port_id();
+
+                    for (auto& port_binding_into : cmd.output.fields.port_binding_info) {
+                        if (port_binding_into.phy_port_id == phys_port_id) {
+                            return port_binding_into.partition_id;
+                        }
+                    }
+
+                }
+
+            }
+        }
+    }
+
+    return OptionalField<std::uint8_t>();
 }

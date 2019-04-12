@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ DeleteVlan::DeleteVlan(const std::string& vlan,
                 m_oem{} {}
 
 json::Json DeleteVlan::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Vlan::VLAN] = m_vlan;
     value[Oem::OEM] = m_oem.to_json();
     return value;

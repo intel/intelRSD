@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -127,24 +127,6 @@ public:
     }
 
     /*!
-     * Get metric name
-     *
-     * @return Metric name
-     * */
-    const std::string& get_name() const {
-        return m_name;
-    }
-
-    /*!
-     * Set metric name.
-     *
-     * @param[in] name Metric name.
-     * */
-    void set_name(const std::string& name) {
-        m_name = name;
-    }
-
-    /*!
      * Get metric definition uuid.
      *
      * @return Metric definition uuid.
@@ -199,7 +181,6 @@ public:
     }
 
 private:
-    std::string m_name{};
     std::string m_component_uuid{};
     std::string m_metric_definition_uuid{};
     enums::Component m_component_type{enums::Component::None};

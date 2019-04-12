@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +25,8 @@
  * @brief GetAggregatedThermalSensor command handler for RMM.
  * */
 
-#include "agent-framework/module/chassis_components.hpp"
-#include "agent-framework/module/common_components.hpp"
+#include "agent-framework/module/model/model_chassis.hpp"
+#include "agent-framework/module/managers/utils/manager_utils.hpp"
 
 #include <ipmb/utils.hpp>
 #include <ipmb/ipmi_message.hpp>
@@ -41,8 +41,8 @@ using namespace agent::chassis::ipmb::command;
 using namespace agent_framework::model;
 using namespace agent_framework::module;
 
-using agent_framework::module::ChassisComponents;
-using agent_framework::module::CommonComponents;
+using agent_framework::module::get_manager;
+using namespace agent_framework::model;
 
 
 GetAggregatedThermalSensor::~GetAggregatedThermalSensor() {}
@@ -84,40 +84,35 @@ void GetAggregatedThermalSensor::make_response(ThermalSensorIpmbResponse& respon
     uint8_t sled_presence_bit_map = 0;
     uint8_t sled_presence_mask = 1;
 
-    auto drawer_manager_keys = CommonComponents::get_instance()->
-        get_module_manager().get_keys("");
-    auto blade_manager_keys = CommonComponents::get_instance()->
-        get_module_manager().get_keys(drawer_manager_keys.front());
+    auto drawer_manager_keys = get_manager<Manager>().get_keys("");
+    auto sled_manager_keys = get_manager<Manager>().get_keys(drawer_manager_keys.front());
 
-    for (const auto& key: blade_manager_keys) {
-        auto manager = CommonComponents::get_instance()->
-            get_module_manager().get_entry(key);
+    for (const auto& key: sled_manager_keys) {
+        auto manager = get_manager<Manager>().get_entry(key);
 
         if (manager.get_presence()) {
             sled_presence_bit_map = uint8_t(sled_presence_bit_map | sled_presence_mask << (manager.get_slot() - 1));
             log_debug(LOGUSR, "Sled presence mask: " << std::to_string(static_cast<uint>(sled_presence_mask))
                                                      << " Sled presence bit map: "
                                                      << std::to_string(static_cast<uint>(sled_presence_bit_map)));
-            auto chassis_keys = CommonComponents::get_instance()->
-                get_chassis_manager().get_keys(manager.get_uuid());
-            auto thermal_zone_keys = ChassisComponents::get_instance()->
-                get_thermal_zone_manager().get_keys(chassis_keys.front());
-            auto temperature_sensor_keys = ChassisComponents::get_instance()->
-                get_chassis_sensor_manager().get_keys(chassis_keys.front(), [](const ChassisSensor& sensor) {
+            auto sled_chassis_keys = get_manager<Chassis>().get_keys(manager.get_uuid());
+
+            auto thermal_zone_keys = get_manager<ThermalZone>().get_keys(sled_chassis_keys.front());
+
+            auto temperature_sensor_keys = get_manager<ChassisSensor>()
+                .get_keys(sled_chassis_keys.front(), [](const ChassisSensor& sensor) {
                 return sensor.get_reading_units() == enums::ReadingUnits::Celsius;
             });
 
-            auto chassis = CommonComponents::get_instance()->
-                get_chassis_manager().get_entry_reference(chassis_keys.front());
-            auto thermal_zone = ChassisComponents::get_instance()->
-                get_thermal_zone_manager().get_entry_reference(thermal_zone_keys.front());
-            auto temperature_sensor = ChassisComponents::get_instance()->get_chassis_sensor_manager().get_entry_reference(
+            auto chassis = get_manager<Chassis>().get_entry(sled_chassis_keys.front());
+            auto thermal_zone = get_manager<ThermalZone>().get_entry(thermal_zone_keys.front());
+            auto temperature_sensor = get_manager<ChassisSensor>().get_entry(
                 temperature_sensor_keys.front());
 
-            auto desired_speed_pwm = thermal_zone->get_desired_speed_pwm();
-            auto temperature = temperature_sensor->get_reading();
+            auto desired_speed_pwm = thermal_zone.get_desired_speed_pwm();
+            auto temperature = temperature_sensor.get_reading();
 
-            response.thermal_data[response.sled_count].sled_type = uint8_t(chassis->get_ipmb_type());
+            response.thermal_data[response.sled_count].sled_type = uint8_t(chassis.get_ipmb_type());
             response.thermal_data[response.sled_count].desired_pwm = uint8_t(
                 desired_speed_pwm.has_value() ? desired_speed_pwm.value() : 0xff);
             response.thermal_data[response.sled_count].inlet_temp = uint8_t(

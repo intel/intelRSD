@@ -1,0 +1,144 @@
+/*
+ * Copyright (c) 2018-2019 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply from: "../buildscripts/wrapper.gradle"
+
+buildscript {
+    ext {
+        springBootVersion = '2.0.0.RELEASE'
+        dependencyManagementPluginVersion = '1.0.4.RELEASE'
+        podmServiceDockerPluginVersion = '1.0-SNAPSHOT'
+        gradleVersionsPluginVersion = '0.17.0'
+
+        springPlatformBomVersion = 'Cairo-RC1'
+        springCloudVersion = 'Finchley.M8'
+
+        podmCommonVersion = '1.0-SNAPSHOT'
+        rxjavaVersion = '2.1.10'
+        jacocoVersion = '0.8.2'
+
+        hibernateVersion = '5.2.12.Final'
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("io.spring.gradle:dependency-management-plugin:${dependencyManagementPluginVersion}")
+        classpath("com.intel.rsd:podm-service-docker-plugin:${podmServiceDockerPluginVersion}")
+        classpath("com.github.ben-manes:gradle-versions-plugin:${gradleVersionsPluginVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.intel.rsd.podm-service-docker'
+apply plugin: 'com.github.ben-manes.versions'
+apply plugin: 'jacoco'
+
+bootJar {
+    launchScript()
+    excludeDevtools = false
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.spring.io/libs-milestone' }
+    maven { url 'http://repo.spring.io/milestone' }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("io.spring.platform:platform-bom:${springPlatformBomVersion}")
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
+    }
+}
+
+apply from: "../buildscripts/checkstyle.gradle"
+
+dependencies {
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+
+    compile("org.springframework.boot:spring-boot-starter")
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    //TODO: Hibernate in SB 2.0.0.RELEASE (5.2.14.Final) has critical error ( https://hibernate.atlassian.net/browse/HHH-12332 )
+    //Remove these exclusions in newer SB versions
+    compile("org.springframework.boot:spring-boot-starter-data-jpa") {
+                exclude(module: "hibernate-core")
+                exclude(module: "hibernate-entitymanager")
+            }
+    compile("org.hibernate:hibernate-core:${hibernateVersion}")
+    runtime("org.postgresql:postgresql")
+
+    compile("com.intel.rsd:podm-common:${podmCommonVersion}")
+    compile("io.reactivex.rxjava2:rxjava:${rxjavaVersion}")
+
+    runtime("org.springframework.boot:spring-boot-devtools")
+
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
+
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testCompile("com.intel.rsd:podm-common:${podmCommonVersion}")
+    testCompile("org.testng:testng")
+
+    testRuntime("com.h2database:h2")
+}
+
+test {
+    useTestNG() {
+        testLogging {
+            showStandardStreams = false
+            //event to log on gradle output
+            events = ["skipped", "passed", "failed"]
+            exceptionFormat = "full"
+            showExceptions = true
+            showCauses = true
+            showStackTraces = false
+        }
+    }
+}
+
+jacoco {
+    toolVersion = "${jacocoVersion}"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+        csv.enabled = false
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = "LINE"
+                minimum = 0.9
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification
+
+build.dependsOn jacocoTestReport

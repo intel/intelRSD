@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,6 @@
  * */
 
 #include "psme/rest/eventing/rest_client.hpp"
-#include "agent-framework/logger_ext.hpp"
 
 #include <curl/curl.h>
 #include <cstring>

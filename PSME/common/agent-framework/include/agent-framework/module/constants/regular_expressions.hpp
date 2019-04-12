@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,8 +33,8 @@ namespace regex {
  */
 class RemoteTarget {
 public:
-    static constexpr const char TARGET_IQN[] = "^[\\S]+$";
-    static constexpr const char INITIATOR_IQN[] = "^[\\S]+$";
+    static constexpr const char TARGET_IQN[] = "^iqn\\.[a-z0-9.:-]{1,200}";
+    static constexpr const char INITIATOR_IQN[] = "^iqn\\.[a-z0-9.:-]{1,200}";
 };
 
 /*!

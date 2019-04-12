@@ -2,7 +2,7 @@
  * @brief Unit tests for generation of UUIDv5
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@
 #include "tree_stability/pnc_stabilizer.hpp"
 #include "agent-framework/module/pnc_components.hpp"
 #include "agent-framework/module/common_components.hpp"
-#include "agent-framework/service_uuid.hpp"
+#include "agent-framework/module/service_uuid.hpp"
 
 #include "gtest/gtest.h"
 
@@ -176,6 +176,8 @@ void PncTreeStabilityTest::SetUp() {
 
     pcie_function_1.set_function_id(constants::FUNCTION_ID);
     pcie_function_2.set_function_id(constants::FUNCTION_ID);
+    pcie_function_1.set_functional_device(drive_1.get_uuid());
+    pcie_function_2.set_functional_device(drive_2.get_uuid());
 
     // Take care of all relations in the model
     pcie_switch.set_chassis(chassis.get_uuid());

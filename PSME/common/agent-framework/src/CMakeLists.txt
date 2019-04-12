@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,49 +16,13 @@
 #
 # </license_header>
 
-set(SOURCES
-    version.cpp
-    logger_ext.cpp
-    logger_loader.cpp
-    signal.cpp
-    service_uuid.cpp
-)
-
-add_library(agent-framework STATIC ${SOURCES}
-    $<TARGET_OBJECTS:discovery>
-    $<TARGET_OBJECTS:module>
-    $<TARGET_OBJECTS:state_machine>
-    $<TARGET_OBJECTS:command>
-    $<TARGET_OBJECTS:eventing>
-    $<TARGET_OBJECTS:threading>
-    $<TARGET_OBJECTS:registration>
-    $<TARGET_OBJECTS:agent-action>
-    $<TARGET_OBJECTS:exceptions>
-    $<TARGET_OBJECTS:validators>
-    $<TARGET_OBJECTS:tree-stability>
-)
-
-target_link_libraries(agent-framework
-    json-cxx
-    json-rpc
-    json
-    md5
-)
-
-install(TARGETS
-    agent-framework
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
-
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU|Clang)
     set_source_files_properties(
         signal.cpp
         PROPERTIES
         COMPILE_FLAGS "-Wno-old-style-cast"
     )
-endif()
+endif ()
 
 add_subdirectory(action)
 add_subdirectory(exceptions)

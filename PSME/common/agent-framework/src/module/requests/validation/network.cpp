@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +54,8 @@ void NetworkValidator::validate_request_switch_port_priorities(const PrioritiesL
     }
 }
 
-void NetworkValidator::validate_set_port_attributes(const Attributes& attributes) {
+void NetworkValidator::validate_set_port_attributes(
+        const EthernetSwitchPort& port, const Attributes& attributes) {
     jsonrpc::ProcedureValidator validator(
         jsonrpc::PARAMS_BY_NAME,
         literals::EthernetSwitchPort::LINK_SPEED_MBPS, VALID_OPTIONAL(VALID_NUMERIC_TYPED(UINT32)),
@@ -79,6 +80,22 @@ void NetworkValidator::validate_set_port_attributes(const Attributes& attributes
 
         if(!NetworkComponents::get_instance()->get_port_vlan_manager().entry_exists(vlan_uuid)) {
             THROW(exceptions::InvalidValue, "network-agent", "Provided default VLAN does not exist!");
+        }
+    }
+
+    // additional check: there attributtes can be set on physical interfaces only ?
+    if (attributes.to_json().count(literals::EthernetSwitchPort::LLDP_ENABLED) ||
+        attributes.to_json().count(literals::EthernetSwitchPort::PFC_ENABLED) ||
+        attributes.to_json().count(literals::EthernetSwitchPort::PFC_ENABLED_PRIORITIES) ||
+        attributes.to_json().count(literals::EthernetSwitchPort::DCBX_STATE)) {
+
+        // Check switch configuration for physical and working port only
+        if (!port.is_physical_or_up()) {
+            THROW(exceptions::InvalidValue, "network-agent",
+                  std::string("QoS parameters can not be configured on ") +
+                  std::string(port.get_port_identifier()) + std::string(" interface. ") +
+                          std::string("This interface has been recognized as inactive - ") +
+                          std::string("check if the splitter cable is plugged in."));
         }
     }
 

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 add_executable(command-server-example command_server_example.cpp)
 
 target_link_libraries(command-server-example
-    ${AGENT_FRAMEWORK_LIBRARIES}
+    agent-framework
     ${JSON_LIBRARIES}
     ${JSON_RPC_LIBRARIES}
     ${LOGGER_LIBRARIES}

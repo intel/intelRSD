@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,13 +21,16 @@
  * @brief PNC Loader
  * */
 
-#include <agent-framework/service_uuid.hpp>
-#include "loader/pnc_loader.hpp"
-#include "configuration/configuration.hpp"
-#include "logger/logger_factory.hpp"
+#include "aardvark/aardvark_oob_tool.hpp"
 #include "agent-framework/version.hpp"
 #include "agent-framework/module/pnc_components.hpp"
 #include "agent-framework/module/common_components.hpp"
+#include "agent-framework/module/service_uuid.hpp"
+
+#include "configuration/configuration.hpp"
+#include "logger/logger_factory.hpp"
+#include "loader/pnc_configuration.hpp"
+#include "loader/pnc_loader.hpp"
 #include "i2c/i2c_access_interface_factory.hpp"
 #include "tree_stability/pnc_key_generator.hpp"
 
@@ -61,83 +64,105 @@ inline std::string decrypt_value(const std::string& value) {
 #endif
 
 
-void check_required_fields(const json::Value& config) {
-    if (!config["service"].is_string()) {
+void check_required_fields(const json::Json& config) {
+    if (!config.value("service", json::Json()).is_string()) {
         throw std::runtime_error("'service' field is required.");
     }
 
-    if (!config["agent"].is_object()) {
+    if (!config.value("agent", json::Json()).is_object()) {
         throw std::runtime_error("'agent' field is required.");
     }
 
-    if (!config["agent"]["vendor"].is_string()) {
+    if (!config["agent"].value("vendor", json::Json()).is_string()) {
         throw std::runtime_error("'agent:vendor' field is required.");
     }
 
-    if (!config["agent"]["capabilities"].is_array()) {
+    if (!config["agent"].value("capabilities", json::Json()).is_array()) {
         throw std::runtime_error("'agent:capabilities' field is required.");
     }
 
-    if (!config["registration"].is_object()) {
+    if (!config.value("registration", json::Json()).is_object()) {
         throw std::runtime_error("'registration' field is required.");
     }
 
-    if (!config["registration"]["ipv4"].is_string()) {
+    if (!config["registration"].value("ipv4", json::Json()).is_string()) {
         throw std::runtime_error("'registration:ipv4' field is required.");
     }
 
-    if (!config["registration"]["port"].is_number()) {
+    if (!config["registration"].value("port", json::Json()).is_number()) {
         throw std::runtime_error("'registration:port' field is required.");
     }
 
-    if (!config["registration"]["interval"].is_number()) {
+    if (!config["registration"].value("interval", json::Json()).is_number()) {
         throw std::runtime_error("'registration:interval' field is required.");
     }
 
-    if (!config["server"].is_object()) {
+    if (!config.value("server", json::Json()).is_object()) {
         throw std::runtime_error("'server' field is required.");
     }
 
-    if (!config["server"]["port"].is_number()) {
+    if (!config["server"].value("port", json::Json()).is_number()) {
         throw std::runtime_error("'server:port' field is required.");
     }
 
-    if (!config["managers"].is_array()) {
+    if (!config.value("managers", json::Json()).is_array()) {
         throw std::runtime_error("'PCIePorts' array is required.");
     }
 
-    auto& managers_array = config["managers"].as_array();
+    if (config.count("fabric-discovery-mode")) {
+        if (!config["fabric-discovery-mode"].is_string()) {
+            throw std::runtime_error("fabric-discovery-mode' should be a string value");
+        }
+
+        if (config["fabric-discovery-mode"].get<std::string>() != std::string("AUTOMATIC") &&
+            config["fabric-discovery-mode"].get<std::string>() != std::string("DATABASE")) {
+            throw std::runtime_error("Acceptable values for 'fabric-discovery-mode' are 'AUTOMATIC' or 'DATABASE'.");
+        }
+    }
+    else {
+        throw std::runtime_error("'fabric-discovery-mode' field is required.");
+    }
+
+    auto& managers_array = config["managers"];
 
     for (auto& manager_config : managers_array) {
-        auto& pcie_ports_array = manager_config["PCIePorts"].as_array();
+        auto& pcie_ports_array = manager_config.count("PCIePorts") ? manager_config["PCIePorts"] : json::Json{};
 
         if (pcie_ports_array.empty()) {
             throw std::runtime_error("'PCIePorts' array should have at least one entry.");
         }
 
         for (const auto& port: pcie_ports_array) {
-            if (!port["PortId"].is_string()) {
+            if (!port.value("PortId", json::Json()).is_string()) {
                 throw std::runtime_error("Each PCIePort must contain PortId field.");
             }
-            if (!port["TwiPort"].is_uint()) {
+            if (!port.value("TwiPort", json::Json()).is_number_unsigned()) {
                 throw std::runtime_error("Each PCIePort must contain TwiPort field.");
             }
-            if (!port["TwiChannel"].is_uint()) {
+            if (!port.value("TwiChannel", json::Json()).is_number_unsigned()) {
                 throw std::runtime_error("Each PCIePort must contain TwiChannel field.");
             }
         }
     }
+
+    if (!config.value("opae", json::Json()).is_object()) {
+        throw std::runtime_error("'opae' configuration is required.");
+    }
+    if (!config["opae"].value("secureEraseGBS", json::Json()).is_string()) {
+        throw std::runtime_error("'secureEraseGBS' path is required.");
+    }
 }
 
 
-void configure_i2c_interface(const json::Value& config) {
-    if (!config["i2c"].is_object()) {
+void configure_i2c_interface(const json::Json& config) {
+    if (!config.value("i2c", json::Json()).is_object()) {
         throw std::runtime_error("'i2c' field for manager is required.");
     }
-    if (!config["i2c"]["interface"].is_string()) {
+    const json::Json& i2c_config = config["i2c"];
+    if (!i2c_config.value("interface", json::Json()).is_string()) {
         throw std::runtime_error("'interface' field for i2c in manager is required.");
     }
-    std::string interface = config["i2c"]["interface"].as_string();
+    std::string interface = i2c_config["interface"];
     if ("GAS" == interface) {
         log_debug("agent", "GAS has been selected as the I2c interface");
         I2cAccessInterfaceFactory::get_instance().switch_to_gas();
@@ -145,23 +170,23 @@ void configure_i2c_interface(const json::Value& config) {
     else if ("IPMI" == interface) {
         log_debug("agent", "IPMI has been selected as the I2c interface");
         I2cAccessInterfaceFactory::get_instance().switch_to_ipmi();
-        if (!config["i2c"]["ipv4"].is_string()) {
+        if (!i2c_config.value("ipv4", json::Json()).is_string()) {
             throw std::runtime_error("Missing 'ipv4' for IPMI configuration.");
         }
-        if (!config["i2c"]["port"].is_uint()) {
+        if (!i2c_config.value("port", json::Json()).is_number_unsigned()) {
             throw std::runtime_error("Missing 'port' for IPMI configuration.");
         }
-        if (!config["i2c"]["username"].is_string()) {
+        if (!i2c_config.value("username", json::Json()).is_string()) {
             throw std::runtime_error("Missing 'username' for IPMI configuration.");
         }
-        if (!config["i2c"]["password"].is_string()) {
+        if (!i2c_config.value("password", json::Json()).is_string()) {
             throw std::runtime_error("Missing 'password' for IPMI configuration.");
         }
         I2cAccessInterfaceFactory::get_instance().init_ipmi_interface(
-            config["i2c"]["ipv4"].as_string(),
-            config["i2c"]["port"].as_uint(),
-            decrypt_value(config["i2c"]["username"].as_string()),
-            decrypt_value(config["i2c"]["password"].as_string()));
+            i2c_config["ipv4"].get<std::string>(),
+            i2c_config["port"].get<std::uint16_t>(),
+            decrypt_value(i2c_config["username"].get<std::string>()),
+            decrypt_value(i2c_config["password"].get<std::string>()));
     }
     else {
         throw std::runtime_error("Unknown I2c interface type");
@@ -169,26 +194,36 @@ void configure_i2c_interface(const json::Value& config) {
 }
 
 
-Chassis make_chassis(const std::string& parent, const json::Value& json) {
+void configure_aardvark_oob_tool() {
+    try {
+        agent::pnc::aardvark::AardvarkOobTool::get_default_instance()->init_single_device();
+    }
+    catch (std::runtime_error& e) {
+        log_error("agent", std::string("Could not initialize Aardvark device: ") + e.what());
+    }
+}
+
+
+Chassis make_chassis(const std::string& parent, const json::Json& json) {
     Chassis chassis{parent};
     try {
-        chassis.set_location_offset(json["locationOffset"].as_uint());
-        const auto& parent_id_json = json["parentId"];
-        if (parent_id_json.is_uint()) { // for backward compatibility
-            chassis.set_parent_id(std::to_string(parent_id_json.as_uint()));
+        chassis.set_location_offset(json.value("locationOffset", std::uint16_t{}));
+        const auto& parent_id_json = json.value("parentId", json::Json());
+        if (parent_id_json.is_number_unsigned()) { // for backward compatibility
+            chassis.set_parent_id(std::to_string(parent_id_json.get<unsigned int>()));
         }
         else {
-            chassis.set_parent_id(parent_id_json.as_string());
+            chassis.set_parent_id(parent_id_json.get<std::string>());
         }
-        chassis.set_platform(enums::PlatformType::from_string(json["platform"].as_string()));
+        chassis.set_platform(enums::PlatformType::from_string(json.value("platform", std::string{})));
     }
     catch (const std::runtime_error& e) {
         log_error("agent", "Invalid chassis configuration.");
         log_debug("agent", e.what());
     }
 
-    if (json["networkInterface"].is_string()) {
-        chassis.set_network_interface(json["networkInterface"].as_string());
+    if (json.value("networkInterface", json::Json()).is_string()) {
+        chassis.set_network_interface(json["networkInterface"]);
     }
 
     chassis.set_status({
@@ -197,8 +232,7 @@ Chassis make_chassis(const std::string& parent, const json::Value& json) {
                        });
     chassis.add_collection(attribute::Collection(
         enums::CollectionName::Drives,
-        enums::CollectionType::Drives,
-        ""
+        enums::CollectionType::Drives
     ));
 
     log_info("agent", "Chassis found");
@@ -222,23 +256,19 @@ Manager make_manager() {
     manager.set_manager_type(enums::ManagerInfoType::EnclosureManager);
     manager.add_collection(attribute::Collection(
         enums::CollectionName::Fabrics,
-        enums::CollectionType::Fabrics,
-        ""
+        enums::CollectionType::Fabrics
     ));
     manager.add_collection(attribute::Collection(
         enums::CollectionName::Systems,
-        enums::CollectionType::Systems,
-        ""
+        enums::CollectionType::Systems
     ));
     manager.add_collection(attribute::Collection(
         enums::CollectionName::PcieDevices,
-        enums::CollectionType::PCIeDevices,
-        ""
+        enums::CollectionType::PCIeDevices
     ));
     manager.add_collection(attribute::Collection(
         enums::CollectionName::Chassis,
-        enums::CollectionType::Chassis,
-        ""
+        enums::CollectionType::Chassis
     ));
 
     log_info("agent", "Manager found");
@@ -249,42 +279,47 @@ Manager make_manager() {
 }
 
 
-void build_pnc_agent(const json::Value& config) {
+void build_pnc_agent(const json::Json& config) {
 
-    auto& managers_array = config["managers"].as_array();
+    auto& managers_array = config.count("managers") ? config["managers"] : json::Json::array();
 
     if (managers_array.size() > 0) {
 
         auto manager_config = managers_array.front();
 
         auto manager = make_manager();
-        if (manager_config["chassis"].is_object()) {
+        if (manager_config.value("chassis", json::Json()).is_object()) {
             auto chassis = make_chassis(manager.get_uuid(), manager_config["chassis"]);
         }
 
         configure_i2c_interface(manager_config);
+        configure_aardvark_oob_tool();
 
-        // Create temporary PCIePorts list. The list will be used during discovery, and deleted after it finished.
-        auto& pcie_port_array = manager_config["PCIePorts"].as_array();
-        auto pc = PncComponents::get_instance();
-        for (const auto& element: pcie_port_array) {
-            Port pcie_port{};
-            std::string port_id = element["PortId"].as_string();
-            pcie_port.set_port_id(port_id);
-            pcie_port.set_phys_port_id(std::stoi(port_id));
-            pcie_port.set_twi_port(element["TwiPort"].as_uint());
-            pcie_port.set_twi_channel(element["TwiChannel"].as_uint());
+        if (manager_config.count("PCIePorts")) {
+            // Create temporary PCIePorts list. The list will be used during discovery, and deleted after it finished.
+            auto& pcie_port_array = manager_config["PCIePorts"];
+            auto pc = PncComponents::get_instance();
+            for (const auto& element: pcie_port_array) {
+                Port pcie_port{};
+                std::string port_id = element["PortId"].get<std::string>();
+                pcie_port.set_port_id(port_id);
+                pcie_port.set_phys_port_id(std::stoi(port_id));
+                pcie_port.set_twi_port(element["TwiPort"].get<std::uint16_t>());
+                pcie_port.set_twi_channel(element["TwiChannel"].get<std::uint16_t>());
 
-            pc->get_port_manager().add_entry(pcie_port);
+                pc->get_port_manager().add_entry(pcie_port);
+            }
         }
     }
-    agent::pnc::PncKeyGenerator::set_agent_id(
-        agent_framework::generic::ServiceUuid::get_instance()->get_service_uuid());
+    agent::pnc::PncKeyGenerator::set_agent_id(agent_framework::module::ServiceUuid::get_instance()->get_service_uuid());
+
+    PncConfiguration::get_instance()->set_fabric_discovery_mode(config["fabric-discovery-mode"].get<std::string>());
+    PncConfiguration::get_instance()->set_secure_erase_gbs(config["opae"]["secureEraseGBS"].get<std::string>());
 }
 }
 
 
-bool PncLoader::load(const json::Value& config) {
+bool PncLoader::load(const json::Json& config) {
     try {
         check_required_fields(config);
         build_pnc_agent(config);

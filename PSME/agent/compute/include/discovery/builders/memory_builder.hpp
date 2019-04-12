@@ -1,8 +1,7 @@
 /*!
  * @brief Memory builder class interface.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file memory_builder.hpp
  */
 
 #pragma once
 
 
-
 #include "agent-framework/module/model/memory.hpp"
 #include "smbios/smbios_parser.hpp"
-
+#include "acpi/acpi_parser.hpp"
 
 
 namespace agent {
@@ -33,6 +30,7 @@ namespace discovery {
 
 class MemoryBuilder {
 public:
+
     /*!
      * @brief Build default memory object.
      * @param parent_uuid Parent UUID.
@@ -59,6 +57,25 @@ public:
      */
     static void update_smbios_memory_device_extended_data(agent_framework::model::Memory& memory,
                                                           const smbios::parser::SmbiosParser::StructEnhanced<smbios::parser::SMBIOS_MEMORY_DEVICE_EXTENDED_INFO_DATA>& smbios_data);
+
+    /*!
+     * @brief Update memory object with Intel Optane DC Persistent Memory general information.
+     * @param memory Memory object to be filled with discovered data.
+     */
+    static void update_general_dcpmem_data(agent_framework::model::Memory& memory);
+
+    /*!
+     * @brief Update memory object with ACPI NFIT data.
+     * @param memory Memory object to be filled with discovered data.
+     * @param nfit_control_region ACPI NFIT data object containing Control Region info.
+     * @param nfit_region_mapping ACPI NFIT data object containing Region Mapping info.
+     * @param nfit_spa_ranges ACPI NFIT data object containing SPA Range info.
+     */
+    static void update_acpi_nfit_data(agent_framework::model::Memory& memory,
+                                      const OptionalField<acpi::parser::AcpiParser::StructEnhanced<acpi::structs::NFIT_NVDIMM_CONTROL_REGION_STRUCTURE>>& nfit_control_region,
+                                      const OptionalField<std::vector<acpi::parser::AcpiParser::StructEnhanced<acpi::structs::NFIT_NVDIMM_REGION_MAPPING_STRUCTURE>>>& nfit_region_mappings,
+                                      const OptionalField<std::vector<acpi::parser::AcpiParser::StructEnhanced<acpi::structs::NFIT_SPA_RANGE_STRUCTURE>>>& nfit_spa_ranges);
+
 };
 
 }

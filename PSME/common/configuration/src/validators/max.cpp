@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,16 +26,16 @@
  * @brief MaxValidator implementation
  * */
 
+#include "json-wrapper/json-wrapper.hpp"
 #include "configuration/validators/max.hpp"
-#include "json/json.hpp"
 
 using namespace configuration;
 
-bool MaxValidator::is_valid(const json::Value& value) const {
+bool MaxValidator::is_valid(const json::Json& value) const {
     if (!value.is_number()) {
         return false;
     }
-    const auto val = value.as_int();
+    const auto val = value.get<int>();
     return val <= m_max_value;
 }
 

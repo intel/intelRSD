@@ -100,11 +100,6 @@
                                 "description": "Driver names of the NIC cards",
                                 "name": "nic-drivers",
                                 "type": "string"
-                            },
-                            "is-target": {
-                                "description": "Is agent running as target",
-                                "name": "is-target",
-                                "type": "boolean"
                             }
                         }
                     },

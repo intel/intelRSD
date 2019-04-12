@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -98,7 +98,7 @@ public:
      * @brief Gets protocol
      * @return protocol
      */
-    const OptionalField<enums::StorageProtocol>& get_protocol() const {
+    const OptionalField<enums::TransportProtocol>& get_protocol() const {
         return m_protocol;
     }
 
@@ -107,8 +107,26 @@ public:
      * @brief Sets protocol
      * @param[in] protocol Protocol
      */
-    void set_protocol(const OptionalField<enums::StorageProtocol>& protocol) {
+    void set_protocol(const OptionalField<enums::TransportProtocol>& protocol) {
         m_protocol = protocol;
+    }
+
+
+    /*!
+     * @brief Gets OEM protocol
+     * @return OEM protocol type
+     */
+    const OptionalField<enums::OemProtocol>& get_oem_protocol() const {
+        return m_oem_protocol;
+    }
+
+
+    /*!
+     * @brief Sets OEM protocol
+     * @param[in] protocol OEM protocol
+     */
+    void set_oem_protocol(const OptionalField<enums::OemProtocol>& protocol) {
+        m_oem_protocol = protocol;
     }
 
 
@@ -122,21 +140,13 @@ public:
 
 
     /*!
-     * @brief Get fabric UUID
-     * @return fabric UUID
-     */
-    const Uuid& get_fabric() const {
-        // Fabric is our parent
-        return get_parent_uuid();
-    }
-
-    /*!
      * @brief Set connected entities
      * @param[in] connected_entities Connected Entities
      */
     void set_connected_entities(const ConnectedEntities& connected_entities) {
         m_connected_entities = connected_entities;
     }
+
 
     /*!
      * @brief Add connected entity to the Connected entities array
@@ -218,6 +228,7 @@ public:
         m_username = username;
     }
 
+
     /*!
      * @brief Cleans username
      * */
@@ -225,12 +236,14 @@ public:
         m_username.reset();
     }
 
+
     /*!
      * @brief Cleans password
      * */
     void clean_password() {
         m_password.reset();
     }
+
 
     /*!
      * @brief Gets password
@@ -251,16 +264,84 @@ public:
 
 
     /*!
-     * @brief Is the drive an entity of this endpoint
-     * @param[in] drive_uuid queried drive uuid
-     * @return is the drive an entity of this endpoint
+     * @brief Is the provided UUID an entity of this endpoint
+     * @param[in] endpoint_uuid Endpoint's UUID
+     * @param[in] resource_uuid Queried resource's UUID
+     * @return Is the resource an entity of this endpoint
      */
-    bool has_drive_entity(const std::string& drive_uuid) const;
+    static bool has_entity(const Uuid& endpoint_uuid, const Uuid& resource_uuid);
+
+
+    /*!
+     * @brief Is the provided resource UUID member of any endpoint
+     * @param[in] resource_uuid uuid of the queried resource
+     * @return Is the resource member of any endpoint
+     */
+    static bool is_resource_in_endpoint(const Uuid& resource_uuid);
+
+
+    /*!
+     * @brief Checks if given endpoint is in provided role.
+     * @param[in] endpoint_uuid UUID of endpoint to check.
+     * @param[in] role Requested entity role.
+     * @return Returns true if endpoint is in provided role.
+     */
+    static bool is_in_role(const Uuid& endpoint_uuid, const enums::EntityRole& role);
+
+
+    /*!
+     * @brief Checks if given endpoint is in provided role.
+     * @param[in] endpoint Reference to endpoint to check.
+     * @param[in] role Requested entity role.
+     * @return Returns true if endpoint is in provided role.
+     */
+    static bool is_in_role(const Endpoint& endpoint, const enums::EntityRole& role);
+
+
+    /*!
+     * @brief Checks if given endpoint is in target role.
+     * @param endpoint_uuid UUID of endpoint to check.
+     * @return Returns true if endpoint is in target role.
+     */
+    static bool is_target(const Uuid& endpoint_uuid);
+
+
+    /*!
+     * @brief Checks if given endpoint is in initiator role.
+     * @param endpoint_uuid UUID of endpoint to check.
+     * @return Returns true if endpoint is in initiator role.
+     */
+    static bool is_initiator(const Uuid& endpoint_uuid);
+
+
+    /*!
+     * @brief Checks if given endpoint is in target role.
+     * @param endpoint Reference to endpoint to check.
+     * @return Returns true if endpoint is in target role.
+     */
+    static bool is_target(const Endpoint& endpoint);
+
+
+    /*!
+     * @brief Checks if given endpoint is in initiator role.
+     * @param endpoint Reference to endpoint to check.
+     * @return Returns true if endpoint is in initiator role.
+     */
+    static bool is_initiator(const Endpoint& endpoint);
+
+
+    /*!
+     * @brief Checks if Endpoint is bound to Zone
+     * @param endpoint_uuid Endpoint's UUID
+     * @return is Endpoint bound to Zone
+     */
+    static bool is_bound_to_zone(const Uuid& endpoint_uuid);
 
 
 private:
 
-    OptionalField<enums::StorageProtocol> m_protocol{};
+    OptionalField<enums::TransportProtocol> m_protocol{};
+    OptionalField<enums::OemProtocol> m_oem_protocol{};
     ConnectedEntities m_connected_entities{};
     Identifiers m_identifiers{};
     IpTransportDetails m_transports{};

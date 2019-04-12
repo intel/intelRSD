@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,10 +32,6 @@
 #include <memory>
 #include <string>
 
-namespace json {
-    /* Forward declaration */
-    class Value;
-}
 
 /*! PSME namespace */
 namespace psme {
@@ -52,7 +48,7 @@ public:
      *
      * @param config Configuration JSON object
      */
-    explicit EventingServer(const ::json::Value& config);
+    explicit EventingServer(const ::json::Json& config);
 
     /*! @brief EventingServer destructor */
     ~EventingServer();

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@
 #include "configuration/utils.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 using ::testing::Return;
 using ::testing::Throw;
@@ -59,16 +59,16 @@ UtilsTest::~UtilsTest() {}
 /* Positive. */
 
 TEST_F(UtilsTest, PositiveJsonStringCasting) {
-    json::Value json_string;
-    json::Value casted_json_string;
+    json::Json json_string = json::Json();
+    json::Json casted_json_string = json::Json();
     ASSERT_EQ(configuration::string_to_json(VALID_STRING, json_string), true);
     configuration::string_to_json(configuration::json_value_to_string(json_string), casted_json_string);
     ASSERT_EQ(casted_json_string, json_string);
 }
 
 TEST_F(UtilsTest, PositiveJsonFileCasting) {
-    json::Value json_string;
-    json::Value casted_json_string;
+    json::Json json_string = json::Json();
+    json::Json casted_json_string = json::Json();
     ASSERT_NO_THROW(configuration::string_to_json(VALID_STRING, json_string));
     configuration::json_to_file(TEST_FILE_NAME, json_string);
     configuration::file_to_json(TEST_FILE_NAME, casted_json_string);
@@ -78,7 +78,7 @@ TEST_F(UtilsTest, PositiveJsonFileCasting) {
 /* Negative. */
 
 TEST_F(UtilsTest, NegativeInvalidStringValue) {
-    json::Value json_string;
+    json::Json json_string = json::Json();
     ASSERT_EQ(configuration::string_to_json(INVALID_STRING, json_string), false);
 }
 

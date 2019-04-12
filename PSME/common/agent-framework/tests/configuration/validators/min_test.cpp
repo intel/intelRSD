@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@
 #include "configuration/validators/min.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace configuration;
 using namespace json;
@@ -43,19 +43,23 @@ protected:
     virtual ~MinValidatorTest();
 };
 
+constexpr const int MinValidatorTest::MIN_VALUE;
+constexpr const int MinValidatorTest::ABOVE_LIMIT_VALUE;
+constexpr const int MinValidatorTest::BELOW_LIMIT_VALUE;
+
 MinValidatorTest::~MinValidatorTest() {}
 
 /* Positive. */
 
 TEST_F(MinValidatorTest, PositiveAboveLimit) {
     std::unique_ptr<configuration::MinValidator> min_validator(new configuration::MinValidator(MIN_VALUE));
-    json::Value json_int(ABOVE_LIMIT_VALUE);
+    json::Json json_int(ABOVE_LIMIT_VALUE);
     ASSERT_EQ(min_validator->is_valid(json_int), true);
 }
 
 TEST_F(MinValidatorTest, PositiveMarginalValue) {
     std::unique_ptr<configuration::MinValidator> min_validator(new configuration::MinValidator(MIN_VALUE));
-    json::Value json_int(MIN_VALUE);
+    json::Json json_int(MIN_VALUE);
     ASSERT_EQ(min_validator->is_valid(json_int), true);
 }
 
@@ -63,12 +67,12 @@ TEST_F(MinValidatorTest, PositiveMarginalValue) {
 
 TEST_F(MinValidatorTest, NegativeInvalidType) {
     std::unique_ptr<configuration::MinValidator> min_validator(new configuration::MinValidator(MIN_VALUE));
-    json::Value json_int;
+    json::Json json_int = json::Json();
     ASSERT_EQ(min_validator->is_valid(json_int), false);
 }
 
 TEST_F(MinValidatorTest, NegativeBelowLimit) {
     std::unique_ptr<configuration::MinValidator> min_validator(new configuration::MinValidator(MIN_VALUE));
-    json::Value json_int(BELOW_LIMIT_VALUE);
+    json::Json json_int(BELOW_LIMIT_VALUE);
     ASSERT_EQ(min_validator->is_valid(json_int), false);
 }

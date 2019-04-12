@@ -1,7 +1,7 @@
 /*!
  * @brief Generic class used for IPMI blob parsing.
  *
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file struct_enhanced.hpp
  */
 
@@ -33,18 +32,18 @@ namespace mdr {
  * also shared by the parser.
  */
 template <typename T>
-class StructEnhanced final {
+class BufferBasedStruct {
 public:
     using DataType = decltype(T::data);
     using HeaderType = decltype(T::header);
 
     /*!
-     * @brief Constructs StructEnhanced wrapping SMBIOS structure
+     * @brief Constructs BufferBasedStruct wrapping SMBIOS structure
      * @param structure_with_header reference to memory that contains structure of type T
      * @param _strings vector of strings accompanying structure
-     * @param _raw_buffer shared_ptr that keeps the internal buffer alive as long as StructEnhanced exists
+     * @param _raw_buffer shared_ptr that keeps the internal buffer alive as long as BufferBasedStruct exists
      */
-    StructEnhanced(const T& structure_with_header, std::vector<std::string>&& _strings, std::shared_ptr<const uint8_t> _raw_buffer) :
+    BufferBasedStruct(const T& structure_with_header, std::vector<std::string>&& _strings, std::shared_ptr<const uint8_t> _raw_buffer) :
             data(structure_with_header.data),
             header(structure_with_header.header),
             strings(std::move(_strings)),
@@ -54,27 +53,27 @@ public:
     /*!
      * @brief Default copy constructor.
      */
-    StructEnhanced(const StructEnhanced&) = default;
+    BufferBasedStruct(const BufferBasedStruct&) = default;
 
     /*!
      * @brief Default move constructor.
      */
-    StructEnhanced(StructEnhanced&&) = default;
+    BufferBasedStruct(BufferBasedStruct&&) = default;
 
     /*!
      * @brief Default assignment operator.
      */
-    StructEnhanced& operator=(const StructEnhanced&) = default;
+    BufferBasedStruct& operator=(const BufferBasedStruct&) = default;
 
     /*!
      * @brief Default move assignment operator.
      */
-    StructEnhanced& operator=(StructEnhanced&&) = default;
+    BufferBasedStruct& operator=(BufferBasedStruct&&) = default;
 
     /*!
      * @brief Default destructor.
      */
-    ~StructEnhanced() = default;
+    ~BufferBasedStruct() = default;
 
     /*!
      * @brief const reference to header that comes along with structure
@@ -105,29 +104,42 @@ private:
 };
 
 template<typename T>
+struct StructEnhancedHelper{
+    using type = BufferBasedStruct<T>;
+};
+
+/*!
+ * @brief wrapper for MDR structs read by a GenericParser. For most structs, it's
+ * a BufferBasedStruct, but specializing StructEnhancedHelper allows for providing a
+ * custom wrapper.
+ */
+template<typename T>
+using StructEnhanced = typename StructEnhancedHelper<T>::type;
+
+/*!
+ * @brief utility function for reading structs' strings from buffer
+ * @param buf The MDR blob.
+ * @param buf_size Size of the MDR blob.
+ * @param[in,out] offset offset from the beginning of blob
+ * @param[in,out] strings container to be filled with strings from buffer
+ */
+void read_auxiliary_strings(const uint8_t* buf, const size_t buf_size,
+                            uint64_t& offset, std::vector<std::string>& strings);
+
+
+template<typename T>
 StructEnhanced<T> parse_struct(std::shared_ptr<const uint8_t> bufp, const size_t buf_size,
-        uint64_t& offset) {
+        uint64_t& offset, bool has_auxiliary_string) {
     auto buf = bufp.get();
     const T* structure = reinterpret_cast<const T*>(buf + offset);
     std::vector<std::string> strings;
 
     offset += structure->header.length;
 
-	// read strings that may follow structure
-    while (offset + 1 < buf_size && std::uint8_t(*(buf + offset + 1) | *(buf + offset)) != 0) {
-        uint64_t str_len = offset;
-        while (str_len < buf_size && (*(buf + str_len) != 0)) {
-            str_len++;
-        }
-        strings.emplace_back(reinterpret_cast<const char*>(buf + offset), (str_len - offset));
-        offset = str_len;
-        if (offset + 1 < buf_size && std::uint8_t(*(buf + offset + 1) | *(buf + offset)) != 0) {
-            offset++; // jump to the next string (skip single null that separates strings)
-        }
+    if (has_auxiliary_string) {
+        // read strings that may follow structure
+        read_auxiliary_strings(buf, buf_size, offset, strings);
     }
-
-    // skip two null bytes
-    offset += 2;
 
     StructEnhanced<T> entry{*structure, std::move(strings), bufp};
 

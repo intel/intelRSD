@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,29 +20,35 @@
  * limitations under the License.
  *
  * @section DESCRIPTION
- *
- * */
+ */
 
 #include "agent-framework/module/model/attributes/connected_entity.hpp"
 #include "agent-framework/module/constants/common.hpp"
 
+
+
 using namespace agent_framework::model::attribute;
 using namespace agent_framework::model;
 
-ConnectedEntity::~ConnectedEntity() { }
+
+ConnectedEntity::~ConnectedEntity() {}
+
 
 json::Json ConnectedEntity::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::ConnectedEntity::ROLE] = get_entity_role();
     result[literals::ConnectedEntity::IDENTIFIERS] = get_identifiers().to_json();
     result[literals::ConnectedEntity::ENTITY] = get_entity();
+    result[literals::ConnectedEntity::LUN] = get_lun();
     return result;
 }
+
 
 ConnectedEntity ConnectedEntity::from_json(const json::Json& json) {
     attribute::ConnectedEntity ce{};
     ce.set_entity_role(json[literals::ConnectedEntity::ROLE]);
     ce.set_identifiers(Identifiers::from_json(json[literals::ConnectedEntity::IDENTIFIERS]));
     ce.set_entity(json[literals::ConnectedEntity::ENTITY]);
+    ce.set_lun(json.value(literals::ConnectedEntity::LUN, json::Json{}));
     return ce;
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
  * limitations under the License.
  * */
 
-#include "agent-framework/service_uuid.hpp"
+#include "agent-framework/module/service_uuid.hpp"
 #include "agent-framework/module/model/manager.hpp"
 #include "psme/rest/constants/constants.hpp"
 #include "psme/rest/endpoints/manager/manager.hpp"
@@ -29,62 +29,70 @@
 using namespace psme::rest;
 using namespace psme::rest::constants;
 
-using agent_framework::generic::ServiceUuid;
-
 namespace {
 
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Manager.Manager";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
-    r[Common::ODATA_TYPE] = "#Manager.v1_2_0.Manager";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
+    r[Common::ODATA_TYPE] = "#Manager.v1_4_0.Manager";
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Manager";
     r[Common::DESCRIPTION] = "Manager description";
-    r[Manager::MANAGER_TYPE] = json::Value::Type::NIL;
+    r[Manager::MANAGER_TYPE] = json::Json::value_t::null;
     r[Manager::POWER_STATE] = agent_framework::model::enums::ManagerPowerState(
         agent_framework::model::enums::ManagerPowerState::On).to_string();
-    r[Common::MODEL] = json::Value::Type::NIL;
-    r[Common::FIRMWARE_VERSION] = json::Value::Type::NIL;
-    r[Common::UUID] = json::Value::Type::NIL;
+    r[Common::MODEL] = json::Json::value_t::null;
+    r[Common::FIRMWARE_VERSION] = json::Json::value_t::null;
+    r[Common::UUID] = json::Json::value_t::null;
 
-    r[Manager::DATE_TIME] = json::Value::Type::NIL;
-    r[Manager::DATE_TIME_LOCAL_OFFSET] = json::Value::Type::NIL;
+    r[Manager::DATE_TIME] = json::Json::value_t::null;
+    r[Manager::DATE_TIME_LOCAL_OFFSET] = json::Json::value_t::null;
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    r[Common::REDUNDANCY] = json::Value::Type::ARRAY;
-    r[Manager::ETHERNET_INTERFACES] = json::Value::Type::NIL;
-    r[Manager::NETWORK_PROTOCOL] = json::Value::Type::OBJECT;
+    r[Common::REDUNDANCY] = json::Json::value_t::array;
+    r[Manager::ETHERNET_INTERFACES] = json::Json::value_t::null;
+    r[Manager::NETWORK_PROTOCOL] = json::Json::value_t::object;
 
     /*
      * @TODO for BVT, cannot be read right now, will be used later
      *
-     * r[Manager::GRAPHICAL_CONSOLE] = json::Value::Type::NIL;
-     * r[Manager::SERIAL_CONSOLE] = json::Value::Type::NIL;
-     * r[Manager::COMMAND_SHELL] = json::Value::Type::NIL;
+     * r[Manager::GRAPHICAL_CONSOLE] = json::Json::value_t::null;
+     * r[Manager::SERIAL_CONSOLE] = json::Json::value_t::null;
+     * r[Manager::COMMAND_SHELL] = json::Json::value_t::null;
      *
      * */
 
-    r[Common::LINKS][Common::ODATA_TYPE] = "#Manager.v1_1_0.Links";
-    r[Common::LINKS][Manager::MANAGER_FOR_CHASSIS] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Manager::MANAGER_FOR_SERVERS] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Manager::MANAGER_IN_CHASSIS] = json::Value::Type::NIL;
+    r[Common::LINKS][Common::ODATA_TYPE] = "#Manager.v1_4_0.Links";
+    r[Common::LINKS][Manager::MANAGER_FOR_CHASSIS] = json::Json::value_t::array;
+    r[Common::LINKS][Manager::MANAGER_FOR_SERVERS] = json::Json::value_t::array;
+    r[Common::LINKS][Manager::MANAGER_FOR_SWITCHES] = json::Json::value_t::array;
+    r[Common::LINKS][Manager::MANAGER_IN_CHASSIS] = json::Json::value_t::null;
     r[Common::LINKS][Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.ManagerLinks";
-    r[Common::LINKS][Common::OEM][Common::RACKSCALE][Manager::MANAGER_FOR_SERVICES] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Common::OEM][Common::RACKSCALE][Manager::MANAGER_FOR_SWITCHES] = json::Value::Type::ARRAY;
+    r[Common::LINKS][Common::OEM][Common::RACKSCALE][Manager::MANAGER_FOR_SERVICES] = json::Json::value_t::array;
+    r[Common::LINKS][Common::OEM][Common::RACKSCALE][Manager::MANAGER_FOR_FABRICS] = json::Json::value_t::array;
+    r[Common::LINKS][Common::OEM][Common::RACKSCALE][Manager::MANAGER_FOR_ETHERNET_SWITCHES] = json::Json::value_t::array;
 
-    r[Common::OEM] = json::Value::Type::OBJECT;
-    r[Common::ACTIONS] = json::Value::Type::OBJECT;
+
+    r[Common::OEM] = json::Json::value_t::object;
+    r[Common::ACTIONS] = json::Json::value_t::object;
 
     return r;
 }
 
+template <agent_framework::model::enums::ManagerInfoType::base_enum MANAGER_TYPE>
+bool is_manager_of_type(const agent_framework::model::Manager& m) {
+    return MANAGER_TYPE == m.get_manager_type();
+}
 
-void fill_links(const agent_framework::model::Manager& manager, json::Value& r) {
+auto is_rack_manger = is_manager_of_type<agent_framework::model::enums::ManagerInfoType::RackManager>;
+auto is_enclosure_manger = is_manager_of_type<agent_framework::model::enums::ManagerInfoType::EnclosureManager>;
+
+void fill_links(const agent_framework::model::Manager& manager, json::Json& r) {
     // find all chassis managed by this manager
     auto managed_chassis_uuids = agent_framework::module::get_manager<agent_framework::model::Chassis>()
         .get_keys(manager.get_uuid(), [](const agent_framework::model::Chassis& ch) {
@@ -93,7 +101,7 @@ void fill_links(const agent_framework::model::Manager& manager, json::Value& r) 
         });
     for (const auto& chassis_uuid : managed_chassis_uuids) {
         auto c = agent_framework::module::get_manager<agent_framework::model::Chassis>().get_entry(chassis_uuid);
-        json::Value chassis_link{};
+        json::Json chassis_link = json::Json();
         chassis_link[Common::ODATA_ID] =
             endpoint::utils::get_component_url(agent_framework::model::enums::Component::Chassis, chassis_uuid);
         r[Common::LINKS][constants::Manager::MANAGER_FOR_CHASSIS].push_back(chassis_link);
@@ -103,7 +111,7 @@ void fill_links(const agent_framework::model::Manager& manager, json::Value& r) 
     const auto& chassis_uuid = manager.get_location();
     try {
         if (chassis_uuid.has_value()) {
-            json::Value chassis_link{};
+            json::Json chassis_link = json::Json();
             chassis_link[Common::ODATA_ID] =
                 endpoint::utils::get_component_url(agent_framework::model::enums::Component::Chassis, chassis_uuid);
             r[Common::LINKS][constants::Manager::MANAGER_IN_CHASSIS] = std::move(chassis_link);
@@ -111,28 +119,36 @@ void fill_links(const agent_framework::model::Manager& manager, json::Value& r) 
     }
     catch (const agent_framework::exceptions::InvalidUuid&) {}
 
-    // find all systems managed by this manager
-    auto system_ids = agent_framework::module::CommonComponents::get_instance()->get_system_manager()
-        .get_ids(manager.get_uuid());
-    for (auto system_id : system_ids) {
-        json::Value link{};
-        link[Common::ODATA_ID] = psme::rest::endpoint::PathBuilder(constants::PathParam::BASE_URL)
-            .append(constants::Root::SYSTEMS)
-            .append(system_id)
-            .build();
-        r[Common::LINKS][constants::Manager::MANAGER_FOR_SERVERS].push_back(std::move(link));
+    {
+        agent_framework::module::GenericManager<agent_framework::model::System>::IdsVec system_ids{};
+        if (is_enclosure_manger(manager)) {
+            /* Enclosure manager manages all systems*/
+            system_ids = agent_framework::module::get_manager<agent_framework::model::System>().get_ids();
+        }
+        else {
+            // find all systems managed by this manager
+            system_ids = agent_framework::module::get_manager<agent_framework::model::System>().get_ids(manager.get_uuid());
+        }
+        for (auto system_id : system_ids) {
+            json::Json link = json::Json();
+            link[Common::ODATA_ID] = psme::rest::endpoint::PathBuilder(constants::PathParam::BASE_URL)
+                .append(constants::Root::SYSTEMS)
+                .append(system_id)
+                .build();
+            r[Common::LINKS][constants::Manager::MANAGER_FOR_SERVERS].push_back(std::move(link));
+        }
     }
 
-    // find all switches managed by this manager
+    // find all ethernet switches managed by this manager
     auto switch_ids = agent_framework::module::NetworkComponents::get_instance()->get_switch_manager()
         .get_ids(manager.get_uuid());
     for (auto switch_id : switch_ids) {
-        json::Value link{};
+        json::Json link = json::Json();
         link[Common::ODATA_ID] = psme::rest::endpoint::PathBuilder(constants::PathParam::BASE_URL)
             .append(constants::Root::ETHERNET_SWITCHES)
             .append(switch_id)
             .build();
-        r[Common::LINKS][Common::OEM][Common::RACKSCALE][constants::Manager::MANAGER_FOR_SWITCHES].push_back(
+        r[Common::LINKS][Common::OEM][Common::RACKSCALE][constants::Manager::MANAGER_FOR_ETHERNET_SWITCHES].push_back(
             std::move(link));
     }
 
@@ -140,35 +156,47 @@ void fill_links(const agent_framework::model::Manager& manager, json::Value& r) 
     auto service_ids = agent_framework::module::get_manager<agent_framework::model::StorageService>()
         .get_ids(manager.get_uuid());
     for (auto service_id : service_ids) {
-        json::Value link{};
+        json::Json link = json::Json();
         link[Common::ODATA_ID] = psme::rest::endpoint::PathBuilder(constants::PathParam::BASE_URL)
             .append(constants::Root::STORAGE_SERVICES)
             .append(service_id)
             .build();
         r[Common::LINKS][Common::OEM][Common::RACKSCALE][Manager::MANAGER_FOR_SERVICES].push_back(std::move(link));
     }
+
+    // find all fabrics managed by this manager
+    auto fabric_ids = agent_framework::module::get_manager<agent_framework::model::Fabric>()
+        .get_ids(manager.get_uuid());
+    for (auto fabric_id : fabric_ids) {
+        json::Json link = json::Json();
+        link[Common::ODATA_ID] = psme::rest::endpoint::PathBuilder(constants::PathParam::BASE_URL)
+            .append(constants::Root::FABRICS)
+            .append(fabric_id)
+            .build();
+        r[Common::LINKS][Common::OEM][Common::RACKSCALE][Manager::MANAGER_FOR_FABRICS].push_back(std::move(link));
+    }
 }
 
 
 void fill_manager_actions(const server::Request& request,
                           const agent_framework::model::Manager& manager,
-                          json::Value& r) {
+                          json::Json& r) {
 
-    json::Value reset{};
+    json::Json reset = json::Json();
     reset[Common::TARGET] =
         endpoint::PathBuilder(request)
             .append(constants::Common::ACTIONS)
             .append(constants::Manager::MANAGER_RESET)
             .build();
 
-    reset[Common::ALLOWABLE_RESET_TYPES] = json::Value::Type::ARRAY;
+    reset[Common::ALLOWABLE_RESET_TYPES] = json::Json::value_t::array;
     for (const auto& reset_type : manager.get_allowed_reset_actions()) {
         reset[Common::ALLOWABLE_RESET_TYPES].push_back(reset_type.to_string());
     }
     r[Common::ACTIONS][Manager::HASH_MANAGER_RESET] = std::move(reset);
 
     if (manager.get_manager_type() == agent_framework::model::enums::ManagerInfoType::RackManager) {
-        json::Value oem{};
+        json::Json oem = json::Json();
         oem[Manager::HASH_LOAD_FACTORY_DEFAULTS_ACTION][Common::TARGET] =
             endpoint::PathBuilder(request)
                 .append(constants::Common::ACTIONS)
@@ -185,10 +213,10 @@ void fill_manager_actions(const server::Request& request,
 
 /* TODO for BVT, cannot be read right now, will be used later
 template <typename T>
-json::Value console_to_json(const T& console)
+json::Json console_to_json(const T& console)
 {
     if (console.get_enabled().has_value()) {
-        json::Value r;
+        json::Json r = json::Json();
         r[constants::Manager::SERVICE_ENABLED] = console.get_enabled();
 
         r[constants::Manager::MAX_CONCURRENT_SESSIONS] = 0;
@@ -196,7 +224,7 @@ json::Value console_to_json(const T& console)
             r[constants::Manager::MAX_CONCURRENT_SESSIONS] = console.get_max_sessions();
         }
 
-        json::Value array_json = json::Value::Type::ARRAY;;
+        json::Json array_json = json::Json::value_t::array;;
         const auto& supported = console.get_types_supported();
         for (const auto& entry : supported) {
             array_json.push_back(std::move(entry.to_string()));
@@ -205,7 +233,7 @@ json::Value console_to_json(const T& console)
         return r;
     }
     else {
-        return json::Value::Type::NIL;
+        return json::Json::value_t::null;
     }
 }*/
 
@@ -219,8 +247,7 @@ void endpoint::Manager::get(const server::Request& request, server::Response& re
     using namespace agent_framework::model::enums;
 
     auto r = make_prototype();
-    auto manager = psme::rest::model::Find<agent_framework::model::Manager>(request.params[PathParam::MANAGER_ID])
-        .get();
+    auto manager = psme::rest::model::find<agent_framework::model::Manager>(request.params).get();
 
     r[Common::ODATA_ID] = PathBuilder(request).build();
     r[Common::ID] = request.params[PathParam::MANAGER_ID];
@@ -228,10 +255,9 @@ void endpoint::Manager::get(const server::Request& request, server::Response& re
     psme::rest::endpoint::status_to_json(manager, r);
     fill_links(manager, r);
 
-    if (ManagerInfoType::EnclosureManager == manager.get_manager_type() ||
-        ManagerInfoType::RackManager == manager.get_manager_type()) {
+    if (is_rack_manger(manager) || is_enclosure_manger(manager)) {
         r[constants::Manager::SERVICE_ENTRY_POINT_UUID] =
-            ServiceUuid::get_instance()->get_service_uuid();
+            agent_framework::module::ServiceUuid::get_instance()->get_service_uuid();
     }
 
     r[constants::Manager::MANAGER_TYPE] = manager.get_manager_type();

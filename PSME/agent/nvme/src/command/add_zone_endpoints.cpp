@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of AddZoneEndpoints command.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file add_zone_endpoints.cpp
  */
 
@@ -22,7 +20,6 @@
 #include "agent-framework/module/common_components.hpp"
 #include "agent-framework/module/enum/common.hpp"
 #include "loader/config.hpp"
-#include "tools/nvme_transport.hpp"
 #include "tools/databases.hpp"
 #include "tools/tools.hpp"
 
@@ -81,34 +78,6 @@ void add_endpoints_to_zone(const AddZoneEndpoints::Request& req) {
     }
 }
 
-void connect(const AddZoneEndpoints::Request& req, bool initiator_in_request) {
-    const auto& req_endpoints{req.get_endpoints()};
-    std::set<Uuid> endpoints{req_endpoints.begin(), req_endpoints.end()};
-    if (initiator_in_request) {
-        // adding initiator from the request, need to also connect to targets that are already in the zone
-        const auto& zone_endpoints{get_m2m_manager<Zone, Endpoint>().get_children(req.get_zone())};
-        endpoints.insert(zone_endpoints.begin(), zone_endpoints.end());
-    }
-    bool all_connected{true};
-    auto& manager = get_manager<Endpoint>();
-    for (const auto& endpoint : endpoints) {
-        auto endpoint_entry = manager.get_entry(endpoint);
-        if (is_target(endpoint_entry)) {
-            try {
-                NvmeTransport::connect(endpoint_entry);
-            }
-            catch (const std::exception& e) {
-                all_connected = false;
-                manager.get_entry_reference(endpoint)->set_status({enums::State::Enabled, enums::Health::Critical});
-                log_error("nvme-agent", std::string("Unable to connect to target: ") + e.what());
-            }
-        }
-    }
-    if (!all_connected) {
-        get_manager<Zone>().get_entry_reference(req.get_zone())->set_status({enums::State::Enabled, enums::Health::Warning});
-    }
-}
-
 void set_filter(AddZoneEndpoints::ContextPtr ctx, const AddZoneEndpoints::Request& req, bool initiator_in_request) {
     const auto& req_endpoints{req.get_endpoints()};
     std::vector<Uuid> endpoints{req_endpoints.begin(), req_endpoints.end()};
@@ -139,22 +108,15 @@ void add_zone_endpoints(AddZoneEndpoints::ContextPtr ctx, const AddZoneEndpoints
     bool need_connect{false};
     bool initiator_in_request{false};
     check_endpoints(req, need_connect, initiator_in_request);
-    if (NvmeConfig::get_instance()->get_is_target()) {
-        // on target host, add to zone database
-        ZoneDatabase zone_db{req.get_zone()};
-        const auto& endpoints{req.get_endpoints()};
-        if (need_connect) {
-            set_filter(ctx, req, initiator_in_request);
-        }
-        for_each(endpoints.begin(), endpoints.end(),
-                 [&zone_db](const Uuid& endpoint) {zone_db.append(NvmeDatabase::ENDPOINTS, endpoint);});
+    // add to zone database
+    ZoneDatabase zone_db{req.get_zone()};
+    const auto& endpoints{req.get_endpoints()};
+    if (need_connect) {
+        set_filter(ctx, req, initiator_in_request);
     }
-    else {
-        // on host initiator, connect initiator to targets if needed
-        if (need_connect) {
-            connect(req, initiator_in_request);
-        }
-    }
+    for_each(endpoints.begin(), endpoints.end(),
+             [&zone_db](const Uuid& endpoint) {zone_db.append(NvmeDatabase::ENDPOINTS, endpoint);});
+
     add_endpoints_to_zone(req);
     log_debug("nvme-agent", "Added endpoints to zone");
 }

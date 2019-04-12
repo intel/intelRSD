@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,7 @@ from cts_core.commons.error import cts_error
 from cts_core.commons.json_helpers import get_odata_type, is_special_property
 from cts_core.discovery.api_resource import ApiResource
 from cts_core.discovery.discovery_container import DiscoveryContainer
+from cts_core.measure.performance_information import PerformanceData, performance_measure
 from cts_core.metadata.model.metadata_types.dynamic_properties import match_dynamic_property
 from cts_core.metadata.model.metadata_types.metadata_type_categories import MetadataTypeCategories
 from cts_core.metadata.model.property import Property
@@ -70,6 +71,20 @@ class ApiExplorer:
         self._status = ValidationStatus.UNKNOWN
         self._discovery_container = None
         self._bfs_queue = []
+        self._performance = []
+
+    def _add_duration_for_object(self, object, duration, method, status):
+        self._performance.append(PerformanceData(object, duration, method, status))
+
+    def get_performance_information(self):
+        return self._performance
+
+    @property
+    def get_average_duration(self):
+        return self._calculate_average_duration()
+
+    def _calculate_average_duration(self):
+        pass
 
     def discover(self, url, expected_odata_type, discovery_container=None,
                  api_endpoint_override=None):
@@ -84,7 +99,7 @@ class ApiExplorer:
             return self._discovery_container, self._status
 
         self._discovery_container = discovery_container if discovery_container is not None \
-                                                    else DiscoveryContainer(metadata_container=self._metadata_container)
+            else DiscoveryContainer(metadata_container=self._metadata_container)
 
         self._enqueue_resource(url, expected_odata_type, api_endpoint_override)
 
@@ -119,7 +134,7 @@ class ApiExplorer:
             return
 
         link = self._api_caller.links_factory.get_resource_link(url,
-                                                          api_endpoint_override=api_endpoint_override)
+                                                                api_endpoint_override=api_endpoint_override)
         url = link.link
 
         if self._discovery_container.is_visited(url):
@@ -127,8 +142,8 @@ class ApiExplorer:
 
         self._discovery_container.register_url_pattern(url, expected_odata_type)
 
-        link, status, response_body = self._get_resource(url,
-                                                         api_endpoint_override=api_endpoint_override)
+        link, status, response_body, _ = self._get_resource(url,
+                                                            api_endpoint_override=api_endpoint_override)
 
         try:
             self._get_members(url, response_body, expected_odata_type, api_endpoint_override)
@@ -156,8 +171,8 @@ class ApiExplorer:
                 founded_members.append(response_body["Members"][founded_member]["@odata.id"])
 
             for founded_member in list(set(founded_members)):
-                link, status, response_body = self._get_resource(founded_member,
-                                                                 api_endpoint_override=api_endpoint_override)
+                link, status, response_body, _ = self._get_resource(founded_member,
+                                                                    api_endpoint_override=api_endpoint_override)
 
                 if status == RequestStatus.SUCCESS and response_body:
                     api_resource = ApiResource(link.link, link.netloc, response_body, expected_odata_type)
@@ -174,6 +189,7 @@ class ApiExplorer:
             self._discovery_container.add_resource(api_resource)
             self._process_resource(api_resource)
 
+    @performance_measure
     def _get_resource(self, url, api_endpoint_override=None):
         link, status, status_code, response_body, headers = self._api_caller.get_resource(url,
                                                                                           self._discovery_container,
@@ -184,7 +200,7 @@ class ApiExplorer:
             self._status = ValidationStatus.FAILED
 
         status, body = self._dereference_jsonpointer_if_any(url, response_body)
-        return link, status, body
+        return link, status, body, status_code
 
     def _dereference_jsonpointer_if_any(self, url, response_body):
         pointer_pos = url.find("#")
@@ -250,7 +266,7 @@ class ApiExplorer:
                                            property_body,
                                            url,
                                            path)
-            except TypeError:
+            except (TypeError, KeyError):
                 # this is discovery phase
                 # any structure errors must be reported during subsequent analysis
                 pass
@@ -312,7 +328,8 @@ class ApiExplorer:
                                         json_body,
                                         path=path.append(property_description.name))
         elif property_description.type in self._metadata_container.types.keys():
-            if self._metadata_container.types[property_description.type].type_category == MetadataTypeCategories.COMPLEX_TYPE:
+            if self._metadata_container.types[
+                property_description.type].type_category == MetadataTypeCategories.COMPLEX_TYPE:
                 return self._process_complex_type(property_description,
                                                   json_body,
                                                   url,
@@ -351,5 +368,7 @@ class ApiExplorer:
         except KeyError:
             odata_type = property_description.type
 
-        type_definition = self._metadata_container.types[odata_type]
-        self._process_properties(body, type_definition, url, path)
+        # no need to verify @odata.type if there is on ignore types list
+        if odata_type not in self._metadata_container.get_ignored_types:
+            type_definition = self._metadata_container.types[odata_type]
+            self._process_properties(body, type_definition, url, path)

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ using namespace agent::pnc::gas::top;
 using namespace agent::pnc::tools;
 
 void PortBuilder::build_default() {
-    m_obj.set_protocol(enums::StorageProtocol::NVMe);
+    m_obj.set_protocol(enums::TransportProtocol::PCIe);
 
     attribute::Status status;
     status.set_health(enums::Health::OK);
@@ -45,8 +45,7 @@ void PortBuilder::build_default() {
 
     m_obj.add_collection(attribute::Collection(
         enums::CollectionName::Endpoints,
-        enums::CollectionType::Endpoints,
-        ""
+        enums::CollectionType::Endpoints
     ));
 }
 
@@ -78,7 +77,7 @@ PortBuilder::ReturnType PortBuilder::update_binding_info(const std::uint32_t ent
     else if (0 == cmd.output.fields.port_binding_info[entry_id].logical_bridge_id) {
         m_obj.set_port_type(enums::PciePortType::UpstreamPort);
     }
-    /* Device Port. Port id downstream */
+    /* Device Port. Port is downstream */
     else {
         m_obj.set_port_type(enums::PciePortType::DownstreamPort);
     }

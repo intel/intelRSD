@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,11 +29,11 @@ using namespace psme::rest::eventing;
 
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EventService.EventService";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EventService.v1_0_2.EventService";
 
     r[Common::ID] = "EventService";
@@ -43,19 +43,19 @@ json::Value make_prototype() {
     r[Common::STATUS][Common::STATE] = "Enabled";
     r[Common::STATUS][Common::HEALTH] = "OK";
     r[Common::STATUS][Common::HEALTH_ROLLUP] = "OK";
-    r[Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::OEM] = json::Json::value_t::object;
 
     r[EventService::SERVICE_ENABLED] = true;
     r[EventService::DELIVERY_RETRY_ATTEMPTS] = 3;
     r[EventService::DELIVERY_RETRY_INTERVAL_SECONDS] = 60;
 
-    r[EventService::EVENT_TYPES_FOR_SUBSCRIPTION] = json::Value::Type::ARRAY;
+    r[EventService::EVENT_TYPES_FOR_SUBSCRIPTION] = json::Json::value_t::array;
     for(const auto& event_type : EventType::get_values()) {
         r[EventService::EVENT_TYPES_FOR_SUBSCRIPTION].push_back(event_type);
     }
 
     r[EventService::SUBSCRIPTIONS][Common::ODATA_ID] = "/redfish/v1/EventService/Subscriptions";
-    r[Common::ACTIONS][Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::ACTIONS][Common::OEM] = json::Json::value_t::object;
 
     return r;
 }

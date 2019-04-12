@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,10 +18,6 @@
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/compute)
     add_subdirectory(compute)
-endif()
-
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/storage)
-    add_subdirectory(storage)
 endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/network)
@@ -46,4 +42,20 @@ endif()
 
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/nvme-discovery)
     add_subdirectory(nvme-discovery)
+endif()
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/fpga-discovery)
+    add_subdirectory(fpga-discovery)
+endif()
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/spdk)
+    add_subdirectory(spdk)
+endif()
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/storage)
+    add_subdirectory(storage)
+endif()
+
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/fpga-of)
+    add_subdirectory(fpga-of)
 endif()

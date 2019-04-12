@@ -1,8 +1,7 @@
 /*!
  * @brief Volume metrics endpoint
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file volume_metrics.cpp
  */
 
@@ -26,17 +24,17 @@ using namespace psme::rest;
 using namespace psme::rest::constants;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#VolumeMetrics.VolumeMetrics";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#VolumeMetrics.v1_0_0.VolumeMetrics";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Volume Metrics";
     r[Common::DESCRIPTION] = "Metrics for Volume";
 
-    r[Swordfish::CAPACITY_USED_BYTES] = json::Value::Type::NIL;
+    r[Swordfish::CAPACITY_USED_BYTES] = json::Json::value_t::null;
 
     return r;
 }
@@ -51,12 +49,13 @@ endpoint::VolumeMetrics::~VolumeMetrics() {}
 
 void endpoint::VolumeMetrics::get(const server::Request& req, server::Response& res) {
 
-    auto volume = psme::rest::model::Find<agent_framework::model::Volume>(req.params[PathParam::VOLUME_ID])
-        .via<agent_framework::model::StorageService>(req.params[PathParam::SERVICE_ID]).get();
+    auto volume = psme::rest::model::find<agent_framework::model::StorageService, agent_framework::model::Volume>(
+        req.params).get();
 
     auto json = ::make_prototype();
     json[Common::ODATA_ID] = PathBuilder(req).build();
-    json[Common::ID] = "Volume " + req.params[PathParam::VOLUME_ID] + " Metrics";
+    json[Common::ID] = constants::Common::METRICS;
+    json[Common::NAME] = "Volume " + req.params[PathParam::VOLUME_ID] + " Metrics";
 
     set_response(res, json);
 }

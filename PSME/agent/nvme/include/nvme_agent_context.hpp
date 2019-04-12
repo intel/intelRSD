@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file nvme_agent_context.hpp
  */
 
@@ -24,7 +22,7 @@
 #include "nvme/abstract_nvme_interface.hpp"
 #include "nvme-target/base_nvme_target_handler.hpp"
 #include "partition/abstract_drive_interface.hpp"
-#include "tools/base_transaction_handler_factory.hpp"
+#include "utils/transaction/base_transaction_handler_factory.hpp"
 
 namespace agent {
 namespace nvme {
@@ -70,7 +68,7 @@ public:
     /*!
      * Rollback factory used to build rollback handlers.
      */
-    std::shared_ptr<tools::BaseTransactionHandlerFactory> transaction_handler_factory{};
+    std::shared_ptr<::utils::transaction::BaseTransactionHandlerFactory> transaction_handler_factory{};
 
     /*!
      * Database factory used to retrieve nvme related databases.

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,16 +27,14 @@
  * */
 #include "hal/switch_port_info.hpp"
 
-#include "agent-framework/exceptions/exception.hpp"
-#include "json-wrapper/json-wrapper.hpp"
-
-
 
 using namespace agent::network::hal;
 using namespace agent_framework::exceptions;
 
+
 SwitchPortInfo::SwitchPortInfo(const std::string& port_identifier)
     : m_identifier(port_identifier) {}
+
 
 SwitchPortInfo::~SwitchPortInfo() {}
 

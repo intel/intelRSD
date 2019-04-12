@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,11 +19,10 @@
  *
  * @brief Identifier attribute
  * @file identifier.cpp
- * */
+ */
 
 #include "agent-framework/module/model/attributes/identifier.hpp"
 #include "agent-framework/module/constants/common.hpp"
-#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -39,7 +38,7 @@ Identifier::~Identifier() { }
 
 
 json::Json Identifier::to_json() const {
-    json::Json json{};
+    json::Json json = json::Json();
     json[literals::Identifier::DURABLE_NAME] = get_durable_name();
     json[literals::Identifier::DURABLE_NAME_FORMAT] = get_durable_name_format();
     return json;

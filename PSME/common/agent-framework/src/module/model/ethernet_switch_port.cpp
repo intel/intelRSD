@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,7 @@ EthernetSwitchPort::EthernetSwitchPort(const std::string& parent_uuid, enums::Co
 EthernetSwitchPort::~EthernetSwitchPort() {}
 
 json::Json EthernetSwitchPort::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::EthernetSwitchPort::STATUS] = get_status().to_json();
     result[literals::EthernetSwitchPort::PORT_IDENTIFIER] = get_port_identifier();
     result[literals::EthernetSwitchPort::PORT_CLASS] = get_port_class();

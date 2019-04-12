@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +37,7 @@
 #include "agent-framework/exceptions/method_conflict.hpp"
 #include "agent-framework/exceptions/lvm_error.hpp"
 #include "agent-framework/exceptions/iscsi_error.hpp"
+#include "agent-framework/exceptions/spdk_error.hpp"
 #include "agent-framework/exceptions/fm10000_error.hpp"
 #include "agent-framework/exceptions/ipmi_error.hpp"
 #include "agent-framework/exceptions/unsupported_value.hpp"
@@ -45,15 +46,16 @@
 #include "agent-framework/exceptions/pcie_fabric_error.hpp"
 #include "agent-framework/exceptions/network_error.hpp"
 #include "agent-framework/exceptions/nvme_error.hpp"
+#include "agent-framework/exceptions/fpgaof_error.hpp"
 
 #include "logger/logger.hpp"
 
 /*! @brief Logs and throws exception */
 #define THROW(clazz, logger, ...) \
     do { \
-        clazz ex{__VA_ARGS__}; \
-        log_error((logger), #clazz ": " << ex.get_message()); \
-        throw ex; \
+        clazz _ex{__VA_ARGS__}; \
+        log_error((logger), #clazz ": " << _ex.get_message()); \
+        throw _ex; \
     } \
     while (0)
 

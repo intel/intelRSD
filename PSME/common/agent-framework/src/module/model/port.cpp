@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ Port::Port(const std::string& parent_uuid, enums::Component parent_type) :
 Port::~Port() {}
 
 json::Json Port::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::Port::PORT_ID] = get_port_id();
     result[literals::Port::PORT_TYPE] = get_port_type();
     result[literals::Port::CABLE_IDS] = get_cables_ids().to_json();

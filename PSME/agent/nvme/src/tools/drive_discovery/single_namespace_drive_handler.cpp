@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file single_namespace_drive_handler.cpp
  */
 
@@ -24,9 +22,8 @@
 #include "agent-framework/module/utils/to_hex_string.hpp"
 
 #include <regex>
-#include <chrono>
-#include <random>
-#include <stdlib.h>
+
+
 
 using namespace agent::nvme::tools;
 using namespace nvme;
@@ -44,25 +41,18 @@ constexpr size_t MODEL_NUMBER_LENGTH = 40;
 constexpr size_t SERIAL_NUMBER_LENGTH = 20;
 constexpr size_t FIRMWARE_REVISION_LENGTH = 8;
 
-uint32_t find_first_namespace(const NamespaceIdList& ns_id_list) {
-    for (unsigned i = 0; i < NAMESPACE_ID_LIST_MAX_SIZE; ++i) {
-        if (ns_id_list.namespace_id[i] != 0) {
-            return ns_id_list.namespace_id[i];
-        }
-    }
-    throw NvmeException("No active namespaces found");
-}
-
-
 
 std::string convert_uint8_to_string(const uint8_t* array, size_t size) {
     std::stringstream ss{};
     for (size_t i = 0; i < size; ++i) {
+        if (array[i] == '\0') {
+            break;
+        }
         ss << array[i];
     }
     std::string s = ss.str();
-    std::size_t first = s.find_first_not_of(" ");
-    std::size_t last = s.find_last_not_of(" ");
+    std::size_t first = s.find_first_not_of(' ');
+    std::size_t last = s.find_last_not_of(' ');
     if (std::string::npos == first || std::string::npos == last || first > last) {
         return "";
     }
@@ -70,11 +60,13 @@ std::string convert_uint8_to_string(const uint8_t* array, size_t size) {
 
 }
 
+
 std::string get_namespace_device_name(const std::string& name, uint32_t namespace_id) {
     std::stringstream str{};
     str << name << NAMESPACE_AFFIX << namespace_id;
     return str.str();
 }
+
 
 std::string partition_id_to_volume_name(const std::string& name, uint32_t namespace_id, unsigned partition_id) {
     // on the hardware, partition ids start from 0; in the system numbering starts from 1
@@ -84,7 +76,9 @@ std::string partition_id_to_volume_name(const std::string& name, uint32_t namesp
     return str.str();
 }
 
-unsigned volume_name_to_partition_id(const std::string& drive_name, uint32_t namespace_id, const std::string& volume_name) {
+
+unsigned
+volume_name_to_partition_id(const std::string& drive_name, uint32_t namespace_id, const std::string& volume_name) {
 
     std::regex expr(drive_name + NAMESPACE_AFFIX + std::to_string(namespace_id) + PARTITION_AFFIX + "([0-9]*)");
     static constexpr unsigned EXPECTED_MATCHES = 2;
@@ -99,17 +93,19 @@ unsigned volume_name_to_partition_id(const std::string& drive_name, uint32_t nam
     return unsigned(id - 1);
 }
 
+
 long double uint128_to_long_double(const uint64_t value[2]) {
     long double ret{};
     static constexpr int size = 16;
     const uint8_t* bytes = reinterpret_cast<const uint8_t*>(value);
-    for(int i = 0; i < size; ++i) {
+    for (int i = 0; i < size; ++i) {
         ret *= 256;
         ret += bytes[size - 1 - i];
     }
 
     return ret;
 }
+
 
 uint64_t integer_divide_and_ceil(uint64_t a, uint64_t b) {
     if (b == 0) {
@@ -119,17 +115,33 @@ uint64_t integer_divide_and_ceil(uint64_t a, uint64_t b) {
     return (a + b - 1) / b;
 }
 
+
 void force_os_update_partition_table(const std::string& device_name) {
-    // TOOD implement it without system
+    // TODO: implement it without system
     std::string command = "partprobe /dev/" + device_name;
-    if (system(command.c_str()) != 0) {
-        throw std::runtime_error("Unable to force OS partition table update");
+    if (::system(command.c_str()) != 0) {
+        throw std::runtime_error("Unable to force OS partition table update.");
     }
 }
 
+
+void set_latency_data(BaseDriveHandler::LatencyData::HistogramGroup& data,
+                      const OptionalField<std::uint32_t>& min_range_us,
+                      const OptionalField<std::uint32_t>& max_range_us,
+                      const OptionalField<std::uint32_t>& step,
+                      std::uint32_t buckets[],
+                      std::size_t buckets_count) {
+    data.min_range_us = min_range_us;
+    data.max_range_us = max_range_us;
+    data.step_us = step;
+    data.buckets = std::vector<std::uint32_t>(buckets, buckets + buckets_count);
 }
 
+}
+
+
 SingleNamespaceDriveHandler::~SingleNamespaceDriveHandler() {}
+
 
 void SingleNamespaceDriveHandler::load() {
     std::lock_guard<std::mutex> lock{m_mutex};
@@ -137,7 +149,6 @@ void SingleNamespaceDriveHandler::load() {
     static constexpr uint32_t MAX_LBA = 0xFFFFFFFF;
 
     try {
-
         log_debug("drive-handler", "Loading drive data: " << m_name);
 
         // get NVMe drive data
@@ -150,6 +161,18 @@ void SingleNamespaceDriveHandler::load() {
             throw std::runtime_error(std::string{"Unsupported LBA size: "} + std::to_string(lba_size));
         }
         m_lba_size = uint32_t(lba_size);
+
+        try {
+            auto result = m_nvme_interface->get_latency_tracking_feature(m_name, m_namespace_id);
+            m_latency_tracking_feature_enabled = bool(result);
+            log_debug("drive-handler", "Latency tracking for " << m_name
+                << " is enabled: " << std::boolalpha << m_latency_tracking_feature_enabled.value());
+        }
+        catch (const std::exception& e) {
+            log_warning("drive-handler", "Failed to get-feature of '" << m_name
+                << "'. Extended telemetry may not be supported by this drive. " << e.what());
+            m_latency_tracking_feature_enabled.reset();
+        }
 
         // read partition table
         m_partition_table = std::make_shared<GptPartitionTable>(m_lba_size);
@@ -174,6 +197,7 @@ void SingleNamespaceDriveHandler::load() {
     }
 }
 
+
 SingleNamespaceDriveHandler::DriveData SingleNamespaceDriveHandler::get_drive_data() const {
     std::lock_guard<std::mutex> lock{m_mutex};
     DriveData dd{};
@@ -184,8 +208,11 @@ SingleNamespaceDriveHandler::DriveData SingleNamespaceDriveHandler::get_drive_da
     dd.serial_number = convert_uint8_to_string(m_controller_data.serial_number, ::SERIAL_NUMBER_LENGTH);
     dd.firmware_revision = convert_uint8_to_string(m_controller_data.firmware_revision, ::FIRMWARE_REVISION_LENGTH);
     dd.manufacturer_number = to_hex_string<2>(m_controller_data.pci_vendor_id);
+    dd.features.latency_tracking_enabled = m_latency_tracking_feature_enabled;
+    dd.namespaces = {m_namespace_id};
     return dd;
 }
+
 
 std::vector<std::string> SingleNamespaceDriveHandler::get_volumes() const {
     std::lock_guard<std::mutex> lock{m_mutex};
@@ -199,13 +226,15 @@ std::vector<std::string> SingleNamespaceDriveHandler::get_volumes() const {
     return ret;
 }
 
+
 std::string SingleNamespaceDriveHandler::create_volume(const uint64_t size_bytes) const {
     std::lock_guard<std::mutex> lock{m_mutex};
+    auto device_name = get_namespace_device_name(m_name, m_namespace_id);
+
     try {
         uint64_t size_lba = integer_divide_and_ceil(size_bytes, m_lba_size);
         unsigned id = m_partition_table->get_available_partition_id();
         std::string partition_name = partition_id_to_volume_name(m_name, m_namespace_id, id);
-        std::string device_name = get_namespace_device_name(m_name, m_namespace_id);
 
         log_debug("drive-handler", "Creating volume on drive " << m_name);
         log_debug("drive-handler", "\tRequested size (bytes): " << size_bytes);
@@ -214,7 +243,7 @@ std::string SingleNamespaceDriveHandler::create_volume(const uint64_t size_bytes
         log_debug("drive-handler", "\tPartition slot: " << id);
 
         PartitionData pd{};
-        pd.first_lba  = m_partition_table->get_empty_region(size_lba);
+        pd.first_lba = m_partition_table->get_empty_region(size_lba);
         log_debug("drive-handler", "\tStart location (LBA): " << pd.first_lba);
         pd.size_lba = size_lba;
         pd.type = PartitionType::LINUX;
@@ -228,16 +257,24 @@ std::string SingleNamespaceDriveHandler::create_volume(const uint64_t size_bytes
         return partition_name;
     }
     catch (const std::exception& e) {
+        try {
+            // Try to reload information about partitions if something failed...
+            m_partition_table->load(device_name, m_drive_interface);
+        }
+        catch (...) { }
+
         log_error("drive-handler", "Exception while creating volume (on drive " << m_name << "): " << e.what());
         throw;
     }
 
 }
 
+
 void SingleNamespaceDriveHandler::remove_volume(const std::string& id) const {
     std::lock_guard<std::mutex> lock{m_mutex};
+    auto device_name = get_namespace_device_name(m_name, m_namespace_id);
+
     try {
-        std::string device_name = get_namespace_device_name(m_name, m_namespace_id);
         log_debug("drive-handler", "Removing volume on drive " << m_name);
         unsigned partition_id = volume_name_to_partition_id(m_name, m_namespace_id, id);
         log_debug("drive-handler", "\tPartition slot " << partition_id);
@@ -256,10 +293,17 @@ void SingleNamespaceDriveHandler::remove_volume(const std::string& id) const {
         log_debug("drive-handler", "Volume " << id << " removed successfully");
     }
     catch (const std::exception& e) {
+        try {
+            // Try to reload information about partitions if something failed...
+            m_partition_table->load(device_name, m_drive_interface);
+        }
+        catch (...) { }
+
         log_error("drive-handler", "Exception while removing volume (on drive " << m_name << "): " << e.what());
         throw;
     }
 }
+
 
 SingleNamespaceDriveHandler::VolumeData SingleNamespaceDriveHandler::get_volume_data(const std::string& id) const {
     std::lock_guard<std::mutex> lock{m_mutex};
@@ -267,25 +311,27 @@ SingleNamespaceDriveHandler::VolumeData SingleNamespaceDriveHandler::get_volume_
     VolumeData vd{};
     try {
         vd.block_size_bytes = m_lba_size;
-
         if (!m_partition_table) {
-            throw std::runtime_error("Partition table not initialized");
+            throw std::runtime_error("Partition table not initialized.");
         }
         auto partition_data = m_partition_table->get_partition(volume_name_to_partition_id(m_name, m_namespace_id, id));
         vd.size_lba = partition_data.size_lba;
 
     }
     catch (const std::exception& e) {
-        log_error("drive-handler", "Unable to read volume (id = " << id << "), for drive " << m_name << ": " << e.what());
+        log_error("drive-handler",
+                  "Unable to read volume (id = " << id << "), for drive " << m_name << ": " << e.what());
     }
     return vd;
 }
+
 
 uint32_t SingleNamespaceDriveHandler::get_primary_namespace_id() const {
     return find_first_namespace(m_nvme_interface->get_active_namespaces(m_name));
 }
 
-SingleNamespaceDriveHandler::SmartData SingleNamespaceDriveHandler::get_smart_info() const {
+
+SingleNamespaceDriveHandler::SmartData SingleNamespaceDriveHandler::load_smart_info() const {
     std::lock_guard<std::mutex> lock{m_mutex};
     SingleNamespaceDriveHandler::SmartData ret{};
 
@@ -318,6 +364,48 @@ SingleNamespaceDriveHandler::SmartData SingleNamespaceDriveHandler::get_smart_in
     return ret;
 }
 
+
+BaseDriveHandler::LatencyData SingleNamespaceDriveHandler::load_latency_histogram() const {
+    std::lock_guard<std::mutex> lock{m_mutex};
+    SingleNamespaceDriveHandler::LatencyData data{};
+
+    try {
+        auto read_latency = m_nvme_interface->get_read_latency_histogram(m_name, m_namespace_id);
+        log_debug("drive-handler", "Read latency log page version: "
+            << read_latency.major_version << "." << read_latency.minor_version);
+
+        // Steps and ranges defined in Intel NVMe-oF Arch Spec
+        set_latency_data(data.read_histogram.group_1st, 0, 1024, 32, read_latency.buckets_1st_group, 32);
+        set_latency_data(data.read_histogram.group_2nd, 1000, 32000, 1000, read_latency.buckets_2nd_group, 31);
+        set_latency_data(data.read_histogram.group_3rd, 32000, 1023000, 32000, read_latency.buckets_3rd_group, 31);
+        set_latency_data(data.read_histogram.group_4th, 1024000, 2047000, 1023000, read_latency.buckets_4th_group, 1);
+        set_latency_data(data.read_histogram.group_5th, 2048000, 4095000, 2047000, read_latency.buckets_5th_group, 1);
+        set_latency_data(data.read_histogram.group_6th, 4096000, {}, {}, read_latency.buckets_6th_group, 1);
+
+        auto write_latency = m_nvme_interface->get_write_latency_histogram(m_name, m_namespace_id);
+        log_debug("drive-handler", "Write latency log page version: "
+            << write_latency.major_version << "." << write_latency.minor_version);
+
+        set_latency_data(data.write_histogram.group_1st, 0, 1024, 32, write_latency.buckets_1st_group, 32);
+        set_latency_data(data.write_histogram.group_2nd, 1000, 32000, 1000, write_latency.buckets_2nd_group, 31);
+        set_latency_data(data.write_histogram.group_3rd, 32000, 1023000, 32000, write_latency.buckets_3rd_group, 31);
+        set_latency_data(data.write_histogram.group_4th, 1024000, 2047000, 1023000, write_latency.buckets_4th_group, 1);
+        set_latency_data(data.write_histogram.group_5th, 2048000, 4095000, 2047000, write_latency.buckets_5th_group, 1);
+        set_latency_data(data.write_histogram.group_6th, 4096000, {}, {}, write_latency.buckets_6th_group, 1);
+
+    }
+    catch (const NvmeException& e) {
+        log_warning("drive-handler", "NVMe exception while reading histogram data (" << m_name << ")." <<
+        " The feature may not be supported by this drive. Message: " << e.what());
+    }
+    catch (const std::exception& e) {
+        log_warning("drive-handler", "Exception while reading histogram data (" << m_name << "): " << e.what());
+    }
+
+    return data;
+}
+
+
 void SingleNamespaceDriveHandler::initialize_drive() {
     std::lock_guard<std::mutex> lock{m_mutex};
     try {
@@ -338,10 +426,11 @@ void SingleNamespaceDriveHandler::initialize_drive() {
     }
 }
 
+
 void SingleNamespaceDriveHandler::erase_volume(const std::string& id, bool fast_mode) {
     std::lock_guard<std::mutex> lock{m_mutex};
     try {
-        log_info("drive-handler", "Erasing ("  << (fast_mode ? "fast" : "slow") << ") volume " << id);
+        log_info("drive-handler", "Erasing (" << (fast_mode ? "fast" : "slow") << ") volume " << id);
 
         utils::ByteBuffer data(::ERASE_BYTES_PER_SINGLE_WRITE);
 
@@ -349,14 +438,15 @@ void SingleNamespaceDriveHandler::erase_volume(const std::string& id, bool fast_
         if (!fast_mode) {
             std::default_random_engine generator(std::chrono::system_clock::now().time_since_epoch().count());
             std::uniform_int_distribution<uint8_t> distribution(0, 255);
-            std::generate(data.begin(), data.end(), [&distribution, &generator](){ return distribution(generator); });
+            std::generate(data.begin(), data.end(), [&distribution, &generator]() { return distribution(generator); });
         }
 
         auto partition_data = m_partition_table->get_partition(volume_name_to_partition_id(m_name, m_namespace_id, id));
         std::string device_name = get_namespace_device_name(m_name, m_namespace_id);
 
         m_drive_interface->write(device_name, partition_data.first_lba * m_lba_size,
-            partition_data.size_lba * m_lba_size, [&data]() -> const utils::ByteBuffer& { return data; });
+                                 partition_data.size_lba * m_lba_size,
+                                 [&data]() -> const utils::ByteBuffer& { return data; });
         log_debug("drive-handler", "Volume erased successfully");
     }
     catch (const std::runtime_error& e) {

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: resource-manager-config
+data:
+  application.yml: |-
+{{ tpl (toYaml .Values.applicationProperties | indent 4) . }}

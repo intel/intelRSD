@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,7 @@ AddPortStaticMac::AddPortStaticMac(const OptionalField<std::string>& port,
                 m_oem{} {}
 
 json::Json AddPortStaticMac::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[StaticMac::PORT] = m_port;
     value[StaticMac::ADDRESS] = m_mac_address;
     value[StaticMac::VLAN_ID] = m_vlan_id;
@@ -57,7 +57,7 @@ AddPortStaticMac AddPortStaticMac::from_json(const json::Json& json) {
     return AddPortStaticMac{
         json[StaticMac::PORT],
         json[StaticMac::ADDRESS],
-        json[StaticMac::VLAN_ID],
+        json.value(StaticMac::VLAN_ID, OptionalField<uint32_t>()),
         agent_framework::model::attribute::Oem::from_json(json[StaticMac::OEM])
     };
 }

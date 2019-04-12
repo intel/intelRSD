@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ ReplicaInfo::~ReplicaInfo() {}
 
 
 json::Json ReplicaInfo::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::ReplicaInfo::REPLICA] = get_replica();
     result[literals::ReplicaInfo::REPLICA_READ_ONLY_ACCESS] = get_replica_read_only_access();
     result[literals::ReplicaInfo::REPLICA_ROLE] = get_replica_role();

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,16 +21,16 @@
  * */
 
 #include "psme/eventing/eventing_server.hpp"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace psme::app::eventing;
 using namespace json_rpc;
 using namespace agent_framework::command;
 
-EventingServer::EventingServer(const json::Value& config) :
+EventingServer::EventingServer(const json::Json& config) :
         m_connector(
             new HttpServerConnector(
-                static_cast<unsigned short>(config["eventing"]["port"].as_uint())
+                config.value("eventing", json::Json::object()).value("port", std::uint16_t{})
             )
         ),
         m_server(new CommandServer(m_connector)) {

@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---->
+<!--################################################################################       -->
+<!--# Redfish Schema:  Triggers  v1.2.0-->
+<!--#                                                                                      -->
+<!--# For a detailed change log, see the README file contained in the DSP8010 bundle,      -->
+<!--# available at http://www.dmtf.org/standards/redfish                                   -->
+<!--# Copyright 2014-2016 Distributed Management Task Force, Inc. (DMTF).                  -->
+<!--# For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright -->
+<!--################################################################################       -->
+<!---->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions_v1.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+    <edmx:Include Namespace="Validation.v1_0_0" Alias="Validation"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource_v1.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.v1_0_0"/>
+  </edmx:Reference>
+
+  <edmx:DataServices>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Intel_RackScale.Triggers">
+
+      <EntityType Name="Triggers" BaseType="Resource.v1_0_0.Resource" Abstract="true">
+        <Annotation Term="OData.Description"
+                    String="A Triggers is an entity which senses or measures another resource."/>
+        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent a sensor."/>
+      </EntityType>
+
+
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Intel_RackScale.Triggers.v1_0_0">
+
+      <EntityType Name="Triggers" BaseType="Intel_RackScale.Triggers.Triggers">
+        <Annotation Term="OData.Description" String="This is the schema definition for a Triggers."/>
+        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent a sensor."/>
+        <Property Name="MetricType" Type="Intel_RackScale.Triggers.v1_0_0.MetricTypeEnum">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The type of trigger."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall specific the type of trigger."/>
+        </Property>
+        <Property Name="TriggerActions" Type="Collection(Intel_RackScale.Triggers.v1_0_0.TriggerActionEnum)" Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="This property specifies what action is perform when the MetricTrigger occurs."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall specify the action to perform when the MetricTrigger occurs."/>
+        </Property>
+        <Property Name="NumericTriggers" Type="Collection(Intel_RackScale.Triggers.v1_0_0.NumericTrigger)" Nullable="false">
+          <Annotation Term="OData.Description" String="List of numeric triggers."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall contain list of triggers to which a sensor reading will be compared."/>
+        </Property>
+
+        <Property Name="DiscreteTriggerCondition" Type="Intel_RackScale.Triggers.v1_0_0.DiscreteTriggerConditionEnum">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The type of trigger."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall specific the type of trigger."/>
+        </Property>
+
+        <Property Name="DiscreteTriggers" Type="Collection(Intel_RackScale.Triggers.v1_0_0.DiscreteTrigger)" Nullable="false">
+          <Annotation Term="OData.Description" String="List of discrete triggers."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall contains a list of value to which a sensor reading will be compared. This property shall be present when the DiscreteTriggerCondition property has a value of 'Specified'."/>
+        </Property>
+
+        <Property Name="Status" Type="Resource.Status" Nullable="false"/>
+        <Property Name="Wildcards" Type="Collection(Intel_RackScale.Triggers.v1_0_0.Wildcard)">
+          <Annotation Term="OData.Description"
+                      String="Wildcards used to replace values in MetricProperties array property."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The property shall contain an array of wildcards and their replacements strings, which are to appliced to the MetricProperties array."/>
+        </Property>
+        <Property Name="MetricProperties" Type="Collection(Edm.String)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="A collection of URI for the properties on which this metric definition is defined."/>
+          <Annotation Term="OData.LongDescription"
+                      String="Each value may contain one or more Wildcard names enclosed in curly braces.  Wildcard value entries shall be substituted for each Wildcard name found.  If two or more wild names are found, the same Wildcard index is used for each in one substitution pass.  After substituting the WildCard values entries, each value shall be a URI for a property in a resource that matches a property declaration in the corresponding MetricDefinition."/>
+          <Annotation Term="OData.IsURL"
+                      String="After processing Wildcard replacement values, each value shall resolve to an OData conformant URI to a property in an entity."/>
+        </Property>
+
+      </EntityType>
+
+      <EnumType Name="MetricTypeEnum">
+        <Annotation Term="OData.Description" String="Indicates how the corresponding metric values change over time."/>
+        <Annotation Term="OData.LongDescription" String="The value shall indicate how the corresponding metric."/>
+        <Member Name="Numeric">
+          <Annotation Term="OData.Description" String="The trigger is for numeric sensor."/>
+        </Member>
+        <Member Name="Discrete">
+          <Annotation Term="OData.Description" String="The trigger is for a discrete sensor."/>
+        </Member>
+      </EnumType>
+
+      <EnumType Name="TriggerActionEnum">
+        <Member Name="Log">
+          <Annotation Term="OData.Description" String="Upon a trigger, record in a log."/>
+        </Member>
+        <Member Name="Transmit">
+          <Annotation Term="OData.Description" String="Upon a trigger send an Alert event."/>
+        </Member>
+      </EnumType>
+      <EnumType Name="DiscreteTriggerConditionEnum">
+        <Annotation Term="OData.Description" String="Indicates how the corresponding metric values change over time."/>
+        <Annotation Term="OData.LongDescription" String="The value shall indicate how the corresponding metric."/>
+        <Member Name="Specified">
+          <Annotation Term="OData.Description"
+                      String="A discrete trigger occurs when the value of the metric becomes one of the values listed in the DiscreteTRTiggers property."/>
+        </Member>
+        <Member Name="Changed">
+          <Annotation Term="OData.Description"
+                      String="A discrete trigger occures whenever the value of the metric changes."/>
+        </Member>
+      </EnumType>
+
+      <ComplexType Name="NumericTrigger">
+        <Annotation Term="OData.Description" String="A numeric trigger."/>
+        <Annotation Term="OData.LongDescription" String=  "The value shall represent a numeric trigger."/>
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Name" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The name of trigger."/>
+          <Annotation Term="OData.LongDescription" String="This property shall contain a name for the trigger."/>
+        </Property>
+        <Property Name="Value" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="This property contains the value of the trigger."/>
+          <Annotation Term="OData.LongDescription" String="This property shall contain the value of the trigger."/>
+        </Property>
+        <Property Name="DirectionOfCrossing" Type="Intel_RackScale.Triggers.v1_0_0.DirectionOfCrossingEnum">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="This property contains the value of the trigger."/>
+          <Annotation Term="OData.LongDescription" String="This property shall contain the value of the trigger."/>
+        </Property>
+        <Property Name="DwellTimMsec" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="This time the excursion persists before a trigger is determined."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall contain the time that a excursion persist before the MetricAction is performed."/>
+        </Property>
+      </ComplexType>
+
+      <EnumType Name="DirectionOfCrossingEnum">
+        <Annotation Term="OData.Description" String="The direction of crossing which corresponds to a trigger."/>
+        <Annotation Term="OData.LongDescription"
+                    String="The value shall indicate the direction of crossing which corresponds to a trigger."/>
+        <Member Name="Increasing">
+          <Annotation Term="OData.Description"
+                      String="A trigger occurs when the metric value crosses the trigger value while increasing."/>
+        </Member>
+        <Member Name="Decreasing">
+          <Annotation Term="OData.Description"
+                      String="A trigger occurs when the metric value crosses the trigger value while decreasing."/>
+        </Member>
+      </EnumType>
+      <ComplexType Name="DiscreteTrigger">
+        <Annotation Term="OData.Description" String="A discrete trigger."/>
+        <Annotation Term="OData.LongDescription" String=  "The value shall represent a discrete trigger."/>
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Name" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The name of trigger."/>
+          <Annotation Term="OData.LongDescription" String="This property shall contain a name for the trigger."/>
+        </Property>
+        <Property Name="Value" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="This property contains the value of the trigger."/>
+          <Annotation Term="OData.LongDescription" String="This property shall contain the value of the trigger."/>
+        </Property>
+
+        <Property Name="DwellTimMsec" Type="Edm.Decimal">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="This time the excursion persists before a trigger is determined."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall contain the time that a excursion persist before the MetricAction is performed."/>
+        </Property>
+        <Property Name="Severity" Type="Resource.Health">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="This property contains the value of the Severity property in the Event message."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be used for the Severity property in the Event message."/>
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="Wildcard">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Annotation Term="OData.Description" String="Wildcards used to replace values in MetricProperties array property."/>
+        <Annotation Term="OData.LongDescription" String="The property shall contain a wildcard name and an array of replacements strings, which are to applied to the MetricProperties array."/>
+        <Property Name="Name" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The name of Wildcard."/>
+          <Annotation Term="OData.LongDescription" String="This property shall contain a name for a Wildcard."/>
+        </Property>
+        <Property Name="Values" Type="Collection(Edm.String)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="An array of values to substitute for the wildcard."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall contain  then the server shall substitute.  Each not empty value shall be substituted for the wildcard."/>
+        </Property>
+      </ComplexType>
+
+
+    </Schema>
+
+  </edmx:DataServices>
+</edmx:Edmx>

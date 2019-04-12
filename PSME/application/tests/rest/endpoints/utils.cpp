@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +57,7 @@ Manager make_manager(const std::string& parent, const std::string& uuid) {
                            agent_framework::model::enums::Health::OK
                        });
     manager.add_collection(
-        attribute::Collection(enums::CollectionName::Systems, enums::CollectionType::Systems, "slotMask"));
+        attribute::Collection(enums::CollectionName::Systems, enums::CollectionType::Systems));
     return manager;
 }
 
@@ -87,16 +87,18 @@ System make_system(const std::string& parent, const std::string& uuid) {
     system.add_usb_device({"1d6b", "0002"});
     system.add_pci_device({"8086", "0023"});
     system.add_pci_device({"1d5b", "0003"});
-    system.add_collection(
-        attribute::Collection(enums::CollectionName::Processors, enums::CollectionType::Processors, "slotMask"));
-    system.add_collection(
-        attribute::Collection(enums::CollectionName::Memory, enums::CollectionType::Memory, "slotMask"));
-    system.add_collection(
-        attribute::Collection(enums::CollectionName::StorageSubsystems, enums::CollectionType::StorageSubsystems,
-                              "slotMask"));
-    system.add_collection(
-        attribute::Collection(enums::CollectionName::NetworkInterfaces, enums::CollectionType::NetworkInterfaces,
-                              "slotMask"));
+    system.add_collection(attribute::Collection(
+            enums::CollectionName::Processors, enums::CollectionType::Processors
+    ));
+    system.add_collection(attribute::Collection(
+            enums::CollectionName::Memory, enums::CollectionType::Memory
+    ));
+    system.add_collection(attribute::Collection(
+            enums::CollectionName::StorageSubsystems, enums::CollectionType::StorageSubsystems
+    ));
+    system.add_collection(attribute::Collection(
+            enums::CollectionName::NetworkInterfaces, enums::CollectionType::NetworkInterfaces
+    ));
 
     return system;
 
@@ -115,7 +117,7 @@ Processor make_processor(const std::string& parent, const std::string& uuid) {
     processor.set_instruction_set(enums::ProcessorInstructionSet::x86_64);
     processor.set_manufacturer(literals::Intel::INTEL_CORP);
     processor.set_model_name("Multi-Core Intel(R) Xeon(R) processor 7xxx Series");
-    processor.set_model(enums::ProcessorModel::Unknown);
+    processor.set_model(enums::ProcessorModel::E3);
 
     attribute::CpuId cpu_id;
     cpu_id.set_vendor_id("GenuineIntel");

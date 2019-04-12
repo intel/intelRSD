@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of AddVolume command.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file add_volume.cpp
  */
 
@@ -24,11 +22,10 @@
 #include "loader/config.hpp"
 #include "tools/databases.hpp"
 #include "tools/tools.hpp"
-#include "tools/nvme_transport.hpp"
 #include "tree_stability/nvme_stabilizer.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
 
-#include <string>
+
 
 using namespace agent_framework::model;
 using namespace agent_framework::module;
@@ -42,6 +39,9 @@ namespace {
 Uuid validate_request(const AddVolume::Request& req) {
     if (req.get_volume_type() != enums::VolumeType::RawDevice) {
         THROW(exceptions::InvalidValue, "nvme-agent", "RawDevice volume type is the only supported type");
+    }
+    if (!req.get_identifiers().empty()) {
+        THROW(exceptions::InvalidValue, "nvme-agent", "Cannot create Volumes with specified identifiers.");
     }
     if (req.get_capacity_bytes() <= 0) {
         THROW(exceptions::InvalidValue, "nvme-agent", "Invalid number of capacity bytes requested");
@@ -82,6 +82,7 @@ Uuid validate_request(const AddVolume::Request& req) {
     return {};
 }
 
+
 std::pair<bool, std::string> create_volume(AddVolume::ContextPtr context,
                                            const std::string& drive_name,
                                            const std::uint64_t bytes,
@@ -113,9 +114,10 @@ std::pair<bool, std::string> create_volume(AddVolume::ContextPtr context,
     return {false, ""};
 }
 
+
 std::string create_volume_in_pool(AddVolume::ContextPtr context, const AddVolume::Request& req,
-                             std::uint64_t& block_size_bytes, std::uint64_t& volume_size_bytes,
-                             Uuid& pool_uuid) {
+                                  std::uint64_t& block_size_bytes, std::uint64_t& volume_size_bytes,
+                                  Uuid& pool_uuid) {
 
     std::vector<Uuid> considered_pools{};
     if (!pool_uuid.empty()) {
@@ -129,8 +131,12 @@ std::string create_volume_in_pool(AddVolume::ContextPtr context, const AddVolume
 
     for (const auto& considered_pool_uuid : considered_pools) {
         auto pool = get_manager<StoragePool>().get_entry(considered_pool_uuid);
+        if (!pool.get_name().has_value()) {
+            log_warning("nvme-agent", "Storage Pool '" << pool.get_uuid() << "' has no name.");
+            continue;
+        }
         // Try to create volume on each pool, if the operation fail use next one
-        auto status = create_volume(context, tools::get_drive_name(pool),
+        auto status = create_volume(context, pool.get_name(),
                                     req.get_capacity_bytes(), block_size_bytes, volume_size_bytes);
 
         if (status.first) {
@@ -141,15 +147,18 @@ std::string create_volume_in_pool(AddVolume::ContextPtr context, const AddVolume
     }
 
     if (pool_uuid.empty()) {
-        THROW(exceptions::NvmeError, "nvme-agent", std::string{"Could not create partition on any available drive. "} +
-            "Try to provide a valid storage pool or change the requested capacity.");
-    } else {
-        THROW(exceptions::NvmeError, "nvme-agent", std::string{"Could not create partition on the requested drive. "} +
-            "Try to provide another storage pool or change the requested capacity.");
+        THROW(exceptions::InvalidValue, "nvme-agent",
+            "Could not create partition on any available drive. Try to provide a valid storage pool or change the requested capacity.");
+    }
+    else {
+        THROW(exceptions::InvalidValue, "nvme-agent",
+            "Could not create partition on the requested drive. Try to provide another storage pool or change the requested capacity.");
     }
 }
 
+
 void add_volume(AddVolume::ContextPtr context, const AddVolume::Request& req, AddVolume::Response& rsp) {
+    log_info("nvme-agent", "Creating volume....");
     auto pool_uuid = validate_request(req);
     auto storage_services = get_manager<StorageService>().get_keys();
     if (storage_services.size() != 1) {
@@ -159,12 +168,12 @@ void add_volume(AddVolume::ContextPtr context, const AddVolume::Request& req, Ad
     Volume volume{storage_services.front()};
     std::uint64_t block_size_bytes{};
     std::uint64_t volume_size_bytes{};
-    std::string device_path{"/dev/" + create_volume_in_pool(context, req, block_size_bytes, volume_size_bytes, pool_uuid)};
+    std::string volume_name = create_volume_in_pool(context, req, block_size_bytes, volume_size_bytes, pool_uuid);
 
-    volume.set_status(attribute::Status(true));
+    volume.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     volume.set_volume_type(req.get_volume_type());
     volume.set_access_capabilities(req.get_access_capabilities());
-    volume.add_identifier({device_path, enums::IdentifierType::SystemPath});
+    volume.set_name(volume_name);
 
     // update volume providing pools with the appropriate pool_uuid
     attribute::Array<Uuid> providing_pools{pool_uuid};
@@ -192,12 +201,12 @@ void add_volume(AddVolume::ContextPtr context, const AddVolume::Request& req, Ad
     log_info("nvme-agent", "Added volume with UUID '" + volume.get_uuid() + "'");
 
     update_storage_pool_consumed_capacity(pool_uuid);
-    agent_framework::eventing::EventData edat{};
+    attribute::EventData edat{};
     edat.set_component(pool_uuid);
     edat.set_parent(storage_services.front());
     edat.set_type(StoragePool::get_component());
-    edat.set_notification(agent_framework::model::enums::Notification::Update);
-    agent_framework::eventing::EventsQueue::get_instance()->push_back(edat);
+    edat.set_notification(enums::Notification::Update);
+    eventing::EventsQueue::get_instance()->push_back(edat);
 }
 
 }

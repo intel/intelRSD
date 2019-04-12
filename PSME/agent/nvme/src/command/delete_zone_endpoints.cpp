@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of DeleteZoneEndpoints command.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file delete_zone_endpoints.cpp
  */
 
@@ -75,8 +73,6 @@ std::tuple<bool, Endpoint> get_zone_initiator(const Uuid& zone) {
 void delete_zone_endpoints(DeleteZoneEndpoints::ContextPtr ctx, const DeleteZoneEndpoints::Request& req, DeleteZoneEndpoints::Response&) {
     const Uuid& zone = req.get_zone();
     bool initiator_in_zone{false};
-    unique_ptr<ZoneDatabase> zone_db{};
-    bool on_host_initiator{!NvmeConfig::get_instance()->get_is_target()};
 
     // check if zone exists
     get_manager<Zone>().get_entry(zone);
@@ -99,37 +95,11 @@ void delete_zone_endpoints(DeleteZoneEndpoints::ContextPtr ctx, const DeleteZone
         tools::clear_initiator_filter(ctx, endpoints_with_initiator);
     }
 
-    if (on_host_initiator) {
-        if (!initiator_to_remove.empty()) {
-            // we are removing initiator endpoint from zone
-            // disconnect from all targets that are in the zone
-            // before we start removing other endpoints
-            disconnect_all_targets(req.get_zone());
-            // disconnected all targets, no need to disconnect the later in the loop
-            initiator_in_zone = false;
-            log_debug("nvme-agent", "Disconnecting from all targets ...");
-        }
-    }
-    else {
-        // we update database only on host target
-        zone_db.reset(new ZoneDatabase(zone));
-    }
-
+    ZoneDatabase zone_db{zone};
     const auto& endpoints = req.get_endpoints();
     for (const auto& endpoint : endpoints) {
         log_debug("nvme-agent", "Removing endpoint '" + endpoint + "'");
-        if (on_host_initiator && initiator_in_zone ) {
-            // there is initiator in the zone so we need
-            // to disconnect from each target that is in the request
-            auto target = get_manager<Endpoint>().get_entry(endpoint);
-            if (is_target(target)) {
-                // disconnect from single target
-                disconnect_from_target(target);
-            }
-        }
-        if (zone_db) {
-            zone_db->del(endpoint);
-        }
+        zone_db.del(endpoint);
         get_m2m_manager<Zone, Endpoint>().remove_entry(zone, endpoint);
     }
 

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,12 +16,24 @@
 #
 # </license_header>
 
-set(SOURCES
+add_library(agent-framework-action STATIC
     task.cpp
     task_creator.cpp
     task_runner.cpp
     task_result_manager.cpp
-    ${AGENT_FRAMEWORK_DIR}/src/threading/threadpool.cpp
 )
 
-add_library(agent-action OBJECT ${SOURCES})
+target_link_libraries(agent-framework-action
+    PUBLIC
+    agent-framework-module
+    agent-framework-threading
+    agent-framework-eventing
+    agent-framework-exceptions
+    common-include
+)
+
+target_include_directories(agent-framework-action
+    PUBLIC
+    ${AGENT_FRAMEWORK_DIR}/include
+)
+

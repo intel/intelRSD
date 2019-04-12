@@ -18,7 +18,7 @@
                     "description": "List of network interface names used to send and receive packets.",
                     "name": "network-interface-name",
                     "type": "array",
-                    "items" : {
+                    "items": {
                         "type": "string"
                     }
                 },
@@ -68,6 +68,17 @@
                                     "description": "Client is required to send certificate when connecting",
                                     "name": "client-cert-required",
                                     "type": "boolean"
+                                },
+                                "authentication-type": {
+                                    "description": "Authentication type for the connector",
+                                    "name": "authentication-type",
+                                    "type": "string",
+                                    "enum": [
+                                        "none",
+                                        "basic",
+                                        "session",
+                                        "basic-or-session"
+                                    ]
                                 }
                             }
                         }
@@ -97,6 +108,44 @@
                 "required": [
                     "delivery-retry-attempts",
                     "delivery-retry-interval-seconds"
+                ]
+            },
+            "authentication" : {
+                "description": "Configuration of authentication for REST server.",
+                "name": "authentication",
+                "type": "object",
+                "properties": {
+                    "username": {
+                        "description": "This is user name of the administrator account in REST server.",
+                        "name": "username",
+                        "type": "string"
+                    },
+                    "password" : {
+                        "description": "This is password of the administrator account in REST server.",
+                        "name": "password",
+                        "type": "string"
+                    }
+                }
+            },
+            "session-service": {
+                "description": "Configuration of SessionService.",
+                "name": "session-service",
+                "type": "object",
+                "properties": {
+                    "service-enabled": {
+                        "description": "This is boolean value used to enable (true) and disable (false) SessionService.",
+                        "name": "service-enabled",
+                        "type": "boolean"
+                    },
+                    "session-timeout": {
+                        "description": "This represents the number of seconds which passes from last session usage before session become invalid.",
+                        "name": "session-timeout",
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "service-enabled",
+                    "session-timeout"
                 ]
             },
             "task-service": {

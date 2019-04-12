@@ -1,0 +1,8 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#ManagerAccountCollection.ManagerAccountCollection",
+  "@odata.id": "/redfish/v1/AccountService/Accounts",
+  "@odata.type": "#ManagerAccountCollection.ManagerAccountCollection",
+  "Name": "Accounts Collection",
+  "Members@odata.count": 0,
+  "Members": []
+}

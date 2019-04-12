@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -153,17 +153,20 @@ protected:
         Array<Collection> collections;
         collections.add_entry({ Collection(
                 agent_framework::model::enums::CollectionName::Managers,
-                agent_framework::model::enums::CollectionType::Managers, "")
-            });
+                agent_framework::model::enums::CollectionType::Managers)
+        });
         collections.add_entry({ Collection(
                 agent_framework::model::enums::CollectionName::Tasks,
-                agent_framework::model::enums::CollectionType::Tasks, "")});
+                agent_framework::model::enums::CollectionType::Tasks)
+        });
         collections.add_entry({ Collection(
             agent_framework::model::enums::CollectionName::MetricDefinitions,
-            agent_framework::model::enums::CollectionType::MetricDefinitions, "")});
+            agent_framework::model::enums::CollectionType::MetricDefinitions)
+        });
         collections.add_entry({ Collection(
             agent_framework::model::enums::CollectionName::Metrics,
-            agent_framework::model::enums::CollectionType::Metrics, "")});
+            agent_framework::model::enums::CollectionType::Metrics)
+        });
         auto indent = ctx.indent;
         ctx.indent += "    ";
         fetch_subcomponents(ctx, uuid, collections);

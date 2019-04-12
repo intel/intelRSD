@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ static constexpr char TEST_SERIAL[] = "TestSerialNumber";
 static constexpr char TEST_MANUFACTURER[] = "TestManufacturer";
 static constexpr char TEST_MODEL[] = "TestModelNumber";
 static constexpr char TEST_PART[] = "TestPartNumber";
-static constexpr enums::StorageProtocol TEST_INTERFACE{enums::StorageProtocol::SATA};
+static constexpr enums::TransportProtocol TEST_INTERFACE{enums::TransportProtocol::SATA};
 static constexpr enums::DriveType TEST_TYPE{enums::DriveType::HDD};
 static constexpr int TEST_CAPACITY = 2048;
 
@@ -78,8 +78,8 @@ TEST(GetDriveInfoTest, PositiveExecute) {
     MyGetDriveInfo command{"TestDriveId"};
     GetDriveInfo::Request request{""};
     GetDriveInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::Drive::DRIVE] = "TestDriveId";
 
@@ -115,8 +115,8 @@ TEST(GetDriveInfoTest, NegativeModuleNotFound) {
     MyGetDriveInfo command{"TestDriveId"};
     GetDriveInfo::Request request{""};
     GetDriveInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::Drive::DRIVE] = "OtherTestDriveId";
 

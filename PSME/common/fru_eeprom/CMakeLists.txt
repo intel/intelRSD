@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2016-2018 Intel Corporation
+# Copyright (c) 2016-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,32 +16,31 @@
 #
 # </license_header>
 
-cmake_minimum_required(VERSION 2.8)
+
+cmake_minimum_required(VERSION 3.4)
 project(FruEeprom CXX)
 
-set(FRU_EEPROM_LIBRARIES
-        )
+# TODO: remove old-style flags when all usages are removed
+
 set(FRU_EEPROM_INCLUDE_DIRS
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        CACHE PATH "FRU EEPROM include directory"
-        )
-
-include_directories(
-        include
-        )
-
-include_directories(SYSTEM
-        ${SAFESTRING_INCLUDE_DIRS}
-        )
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    CACHE PATH "FRU EEPROM include directory"
+    )
 
 add_library(fru_eeprom STATIC
-        src/fru_eeprom_parser.cpp
-        )
+    src/fru_eeprom_parser.cpp
+    )
 
-install(TARGETS fru_eeprom
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        )
+target_include_directories(fru_eeprom
+    SYSTEM PRIVATE
+    ${SAFESTRING_INCLUDE_DIRS}
+
+    PUBLIC
+    include
+    )
+target_link_libraries(fru_eeprom
+    PRIVATE
+    ${SAFESTRING_LIBRARIES}
+    )
 
 add_subdirectory(tests)

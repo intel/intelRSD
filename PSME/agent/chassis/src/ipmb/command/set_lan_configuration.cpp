@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -76,12 +76,13 @@ void restart_network(const std::string& interface) {
 
 void SetLanConfiguration::process_request() {
     auto& config = configuration::Configuration::get_instance().to_json();
-    auto& managers = config["managers"].as_array();
+    auto& managers = config.count("managers") ? config["managers"] : json::Json{};
 
     for (const auto& manager : managers) {
-        if (manager["chassis"].is_object()) {
-            if (manager["chassis"]["networkInterface"].is_string()) {
-                std::string interface = manager["chassis"]["networkInterface"].as_string();
+        if (manager.value("chassis", json::Json()).is_object()) {
+            if (manager["chassis"].count("networkInterface") &&
+                manager["chassis"]["networkInterface"].is_string()) {
+                std::string interface = manager["chassis"]["networkInterface"].get<std::string>();
                 try {
                     switch (m_param) {
                         case PARAM_IP_ADDRESS: process_ip(interface); break;

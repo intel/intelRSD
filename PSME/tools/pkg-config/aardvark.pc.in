@@ -1,0 +1,10 @@
+prefix=@CMAKE_BINARY_DIR@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: aardvark
+Description: Aardvark I2C/SPI library
+Version: @AARDVARK_VERSION@
+Libs: -L${libdir} -laardvark -ldl -lpthread
+Cflags: -I${includedir}

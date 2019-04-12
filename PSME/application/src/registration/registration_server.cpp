@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,16 +24,16 @@
  * */
 
 #include "psme/registration/registration_server.hpp"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace psme::app::registration;
 using namespace json_rpc;
 using namespace agent_framework::command;
 
-RegistrationServer::RegistrationServer(const json::Value& config) :
+RegistrationServer::RegistrationServer(const json::Json& config) :
         m_connector(
             new HttpServerConnector(
-                static_cast<unsigned short>(config["registration"]["port"].as_uint())
+                config.value("registration", json::Json::object()).value("port", std::uint16_t{})
             )
         ),
         m_server(new CommandServer(m_connector)) {

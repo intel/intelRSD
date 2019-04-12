@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.intel.rsd.http.config.TrustStoreConfig,\
+com.intel.rsd.http.config.KeyStoreConfig,\
+com.intel.rsd.http.RsdClientHttpRequestFactory,\
+com.intel.rsd.crawler.InCurrentThreadCrawlerFactory

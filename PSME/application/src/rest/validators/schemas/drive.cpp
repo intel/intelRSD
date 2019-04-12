@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,7 +51,8 @@ const jsonrpc::ProcedureValidator& DrivePatchSchema::OemSchema::get_procedure() 
 const jsonrpc::ProcedureValidator& DrivePatchSchema::OemSchema::RackScaleSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
         jsonrpc::PARAMS_BY_NAME,
-        constants::PncDrive::DRIVE_ERASED, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
+        constants::Drive::DRIVE_ERASED, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
+        constants::Drive::LATENCY_TRACKING_ENABLED, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
         nullptr
     };
     return procedure;

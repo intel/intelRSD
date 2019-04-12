@@ -1,7 +1,7 @@
 /*!
  * @brief Implementation of the iSCSI MDR entry point v1.0.
  *
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file iscsi_mdr_10_entry_point.cpp
  */
 
@@ -26,7 +25,7 @@ namespace iscsi {
 namespace parser {
 
 IscsiMdr10EntryPoint::IscsiMdr10EntryPoint(const std::uint8_t* buf, const size_t buf_size) :
-    m_version(reinterpret_cast<decltype(m_version)>(buf)) {
+    m_version(reinterpret_cast<decltype(m_version)>(buf)), m_region_length(uint32_t(buf_size)) {
     if (buf_size < sizeof(*m_version)) {
         throw Exception("ISCSI MDR blob size is too small");
     }
@@ -36,16 +35,24 @@ IscsiMdr10EntryPoint::IscsiMdr10EntryPoint(const std::uint8_t* buf, const size_t
     }
 }
 
-std::uint64_t IscsiMdr10EntryPoint::get_struct_table_address() const {
-    return 0;
-}
-
 std::uint8_t IscsiMdr10EntryPoint::get_major_version() const {
     return m_version->data.major_version;
 }
 
 std::uint8_t IscsiMdr10EntryPoint::get_minor_version() const {
     return m_version->data.minor_version;
+}
+
+std::uint32_t IscsiMdr10EntryPoint::get_length() const {
+    return m_region_length;
+}
+
+std::uint64_t IscsiMdr10EntryPoint::get_struct_table_address() const {
+    return 0;
+}
+
+std::uint64_t IscsiMdr10EntryPoint::get_struct_table_end_address() const {
+    return IscsiMdr10EntryPoint::get_length();
 }
 
 std::string IscsiMdr10EntryPoint::get_anchor_string() const {

@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2018 Intel Corporation
+ * @copyright Copyright (c) 2018-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file non_functional_drive_handler.cpp
  */
 
@@ -42,6 +40,9 @@ constexpr uint8_t CRITICAL_WARNING_FLAG_DEGRADED_RELIABILITY = 0x04;
 std::string convert_uint8_to_string(const uint8_t* array, size_t size) {
     std::stringstream ss{};
     for (size_t i = 0; i < size; ++i) {
+        if (array[i] == '\0') {
+            break;
+        }
         ss << array[i];
     }
     std::string s = ss.str();
@@ -78,6 +79,7 @@ NonFunctionalDriveHandler::DriveData NonFunctionalDriveHandler::get_drive_data()
     dd.serial_number = convert_uint8_to_string(m_controller_data.serial_number, ::SERIAL_NUMBER_LENGTH);
     dd.firmware_revision = convert_uint8_to_string(m_controller_data.firmware_revision, ::FIRMWARE_REVISION_LENGTH);
     dd.manufacturer_number = to_hex_string<2>(m_controller_data.pci_vendor_id);
+    dd.namespaces = {};
     return dd;
 }
 
@@ -101,11 +103,16 @@ std::vector<std::string> NonFunctionalDriveHandler::get_volumes() const {
     throw std::runtime_error("Unable to get volume data: drive is not functional");
 }
 
-NonFunctionalDriveHandler::SmartData NonFunctionalDriveHandler::get_smart_info() const {
+NonFunctionalDriveHandler::SmartData NonFunctionalDriveHandler::load_smart_info() const {
     // smart cannot be read from the drive, it hardcoded in the way that drive is exposed with the critical health
     NonFunctionalDriveHandler::SmartData ret{};
     ret.critical_warnings = CRITICAL_WARNING_FLAG_DEGRADED_RELIABILITY;
     return ret;
+}
+
+NonFunctionalDriveHandler::LatencyData NonFunctionalDriveHandler::load_latency_histogram() const {
+    BaseDriveHandler::LatencyData histogram{};
+    return histogram;
 }
 
 [[ noreturn ]] void NonFunctionalDriveHandler::initialize_drive() {

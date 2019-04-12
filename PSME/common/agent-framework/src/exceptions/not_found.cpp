@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +50,7 @@ std::string NotFound::get_uri_from_json_data(const json::Json& data, bool should
 }
 
 json::Json NotFound::create_json_data_from_uri(const std::string& uri) {
-    json::Json json_data{};
+    json::Json json_data = json::Json();
     json_data[NotFound::URI] = uri;
     return json_data;
 }

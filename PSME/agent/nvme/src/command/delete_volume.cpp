@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of DeleteVolume command.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file delete_volume.cpp
  */
 
@@ -23,7 +21,7 @@
 #include "tools/tools.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
 
-#include <string>
+
 
 using namespace agent::nvme;
 using namespace agent_framework::model;
@@ -33,27 +31,21 @@ using namespace agent_framework;
 namespace {
 
 void remove_partition(DeleteVolume::ContextPtr context, StoragePool& pool, const Volume& volume) {
-    std::string system_path{};
-    try {
-        system_path = attribute::Identifier::get_system_path(volume);
-    }
-    catch (const std::exception&) {
-        THROW(exceptions::InvalidValue, "nvme-agent", "Unknown system path for the volume.");
-    }
+
     // remove partition from drive and update storage pool
-    auto drive_name{tools::get_drive_name(pool)};
-    auto handler = context->drive_handler_factory->get_handler(drive_name);
+    auto handler = context->drive_handler_factory->get_handler(pool.get_name());
     if (!handler) {
-        THROW(exceptions::NvmeError, "nvme-agent", "Unable to get handler for drive " + drive_name);
+        THROW(exceptions::NvmeError, "nvme-agent", "Unable to get handler for drive " + pool.get_name().value());
     }
     try {
         handler->load();
-        handler->remove_volume(tools::get_name_from_path(system_path));
+        handler->remove_volume(volume.get_name());
     }
     catch (const std::exception& e) {
         THROW(exceptions::NvmeError, "nvme-agent", std::string("Unable to remove volume: ") + e.what());
     }
 }
+
 
 void throw_if_volume_in_endpoint(const Volume& volume) {
     auto& manager = get_manager<Endpoint>();
@@ -67,7 +59,9 @@ void throw_if_volume_in_endpoint(const Volume& volume) {
     }
 }
 
+
 void delete_volume(DeleteVolume::ContextPtr context, const DeleteVolume::Request& req, DeleteVolume::Response&) {
+    log_info("nvme-agent", "Deleting volume '" << req.get_volume() << "'");
     auto storage_services = get_manager<StorageService>().get_keys();
     if (storage_services.size() != 1) {
         THROW(exceptions::NvmeError, "nvme-agent", "Storage Service was not yet created.");
@@ -93,12 +87,12 @@ void delete_volume(DeleteVolume::ContextPtr context, const DeleteVolume::Request
     log_info("nvme-agent", "Removed volume with UUID '" + volume_uuid + "'");
 
     tools::update_storage_pool_consumed_capacity(pool_uuid);
-    agent_framework::eventing::EventData edat{};
+    attribute::EventData edat{};
     edat.set_component(pool_uuid);
     edat.set_parent(storage_services.front());
     edat.set_type(StoragePool::get_component());
-    edat.set_notification(agent_framework::model::enums::Notification::Update);
-    agent_framework::eventing::EventsQueue::get_instance()->push_back(edat);
+    edat.set_notification(enums::Notification::Update);
+    eventing::EventsQueue::get_instance()->push_back(edat);
 }
 
 }

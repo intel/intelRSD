@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of NvmeKeyGenerator class.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file nvme_key_generator.cpp
  */
 
@@ -30,19 +28,6 @@ using namespace agent_framework::model;
 using namespace agent_framework;
 using namespace std;
 
-namespace {
-
-template<typename T>
-string get_system_path_identifier(const T& resource) {
-    try {
-        return attribute::Identifier::get_system_path(resource);
-    }
-    catch (const logic_error&) {
-        return "";
-    }
-}
-
-}
 
 namespace agent {
 namespace nvme {

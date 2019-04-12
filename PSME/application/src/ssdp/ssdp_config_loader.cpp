@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,12 +22,12 @@
 #include "psme/ssdp/ssdp_config_loader.hpp"
 #include "psme/rest/server/connector/connector_options_loader.hpp"
 #include "psme/rest/constants/constants.hpp"
-#include "agent-framework/service_uuid.hpp"
-#include "json/value.hpp"
+#include "agent-framework/module/service_uuid.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 namespace {
 
-std::string get_service_url(const json::Value& config) {
+std::string get_service_url(const json::Json& config) {
     std::string service_url{};
     for (const auto& conn_options: psme::rest::server::load_connectors_options(config)) {
         if (conn_options.use_ssl()) {
@@ -44,21 +44,23 @@ std::string get_service_url(const json::Value& config) {
 
 namespace ssdp {
 
-SsdpServiceConfig load_ssdp_config(const json::Value& config, const std::string& uuid) {
-    using agent_framework::generic::ServiceUuid;
+SsdpServiceConfig load_ssdp_config(const json::Json& config, const std::string& uuid) {
+    using agent_framework::module::ServiceUuid;
     using std::chrono::seconds;
     SsdpServiceConfig ssdp_service_config;
 
-    const auto& ssdp_config = config["ssdp-service"];
-    if (ssdp_config["enabled"].as_bool()) {
+    const auto& ssdp_config = config.value("ssdp-service", json::Json::object());
+    if (ssdp_config.value("enabled", bool{})) {
         ssdp_service_config.enable_ssdp_service();
     }
-    auto announce_interval = seconds(ssdp_config["announce-interval-seconds"].as_uint());
+    auto announce_interval = seconds(ssdp_config.value("announce-interval-seconds", uint16_t{}));
     ssdp_service_config.set_announce_interval(announce_interval);
-    for (const auto& nic_name: config["server"]["network-interface-name"].as_array()) {
-        ssdp_service_config.add_nic_name(nic_name.as_string());
+    if (config.count("server") && config["server"].count("network-interface-name")) {
+        for (const auto& nic_name: config["server"]["network-interface-name"]) {
+            ssdp_service_config.add_nic_name(nic_name.get<std::string>());
+        }
     }
-    ssdp_service_config.set_socket_ttl(static_cast<unsigned char>(ssdp_config["ttl"].as_uint()));
+    ssdp_service_config.set_socket_ttl(ssdp_config.value("ttl", std::uint8_t{}));
     ssdp_service_config.set_service_uuid(uuid);
     ssdp_service_config.set_service_urn("urn:dmtf-org:service:redfish-rest:1");
     ssdp_service_config.set_service_url(get_service_url(config));

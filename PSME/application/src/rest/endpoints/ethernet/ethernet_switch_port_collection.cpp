@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,16 +46,16 @@ using namespace psme::rest::validators;
 using namespace agent_framework::model;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchPortCollection.EthernetSwitchPortCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EthernetSwitchPortCollection.EthernetSwitchPortCollection";
     r[Common::NAME] = "Ethernet Switch Port Collection";
     r[Common::DESCRIPTION] = "Collection of Ethernet Switch Ports";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
@@ -75,8 +75,7 @@ void EthernetSwitchPortCollection::get(const server::Request& req, server::Respo
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
     const auto switch_uuid =
-        psme::rest::model::Find<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
-        .get_uuid();
+        psme::rest::model::find<agent_framework::model::EthernetSwitch>(req.params).get_uuid();
 
     auto keys = agent_framework::module::NetworkComponents::get_instance()->
         get_port_manager().get_ids(switch_uuid);
@@ -84,7 +83,7 @@ void EthernetSwitchPortCollection::get(const server::Request& req, server::Respo
     json[Collection::ODATA_COUNT] = static_cast<std::uint32_t>(keys.size());
 
     for (const auto& key : keys) {
-        json::Value link_elem(json::Value::Type::OBJECT);
+        json::Json link_elem(json::Json::value_t::object);
         link_elem[Common::ODATA_ID] = PathBuilder(req).append(key).build();
         json[Collection::MEMBERS].push_back(std::move(link_elem));
     }
@@ -95,21 +94,22 @@ void EthernetSwitchPortCollection::get(const server::Request& req, server::Respo
 
 void EthernetSwitchPortCollection::post(const server::Request& req, server::Response& res) {
     using HandlerManager = psme::rest::model::handler::HandlerManager;
+    static const constexpr char TRANSACTION_NAME[] = "PostEthernetSwitchPortCollection";
 
     auto json = JsonValidator::validate_request_body<schema::EthernetSwitchPortCollectionPostSchema>(req);
 
     auto port_members = LagUtils::get_port_members(json);
     LagUtils::validate_port_members(port_members);
 
-    auto parent = psme::rest::model::Find<agent_framework::model::EthernetSwitch>(
-        req.params[PathParam::ETHERNET_SWITCH_ID]).get();
+    auto parent = psme::rest::model::find<agent_framework::model::EthernetSwitch>(
+        req.params).get();
     auto switch_uuid = parent.get_uuid();
 
     requests::AddEthernetSwitchPort add_port_request{
         switch_uuid,
-        json[constants::EthernetSwitchPort::PORT_ID].as_string(),
+        json[constants::EthernetSwitchPort::PORT_ID].get<std::string>(),
         agent_framework::model::enums::PortMode::from_string(
-            json[constants::EthernetSwitchPort::PORT_MODE].as_string()),
+            json[constants::EthernetSwitchPort::PORT_MODE].get<std::string>()),
         port_members,
         agent_framework::model::attribute::Oem()
     };
@@ -125,7 +125,7 @@ void EthernetSwitchPortCollection::post(const server::Request& req, server::Resp
             load(gami_agent, switch_uuid, enums::Component::EthernetSwitch, add_port_response.get_port(), true);
 
         auto created_port = agent_framework::module::NetworkComponents::get_instance()->
-            get_port_manager().get_entry_reference(add_port_response.get_port());
+            get_port_manager().get_entry(add_port_response.get_port());
 
         // Update our information about member ports and their PortVlans
         for (const auto& member : port_members) {
@@ -144,9 +144,9 @@ void EthernetSwitchPortCollection::post(const server::Request& req, server::Resp
         }
 
         ::psme::rest::endpoint::utils::set_location_header(
-            req, res, PathBuilder(req).append(created_port->get_id()).build());
+            req, res, PathBuilder(req).append(created_port.get_id()).build());
 
         res.set_status(server::status_2XX::CREATED);
     };
-    gami_agent->execute_in_transaction(add_port);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, add_port);
 }

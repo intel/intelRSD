@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +26,7 @@ from argparse import ArgumentParser
 
 from cts_framework.actions.execute.execute_dispatch_action import ExecuteDispatchAction
 from cts_framework.actions.metadata.metadata_dispatch_action import MetadataDispatchAction
+from cts_framework.actions.scenario.scenario_dispatch_action import ScenarioDispatchAction
 from cts_framework.actions.show_version_action import ShowVersionAction
 from cts_framework.actions.status.status_dispatcher_action import StatusDispatchAction
 from cts_framework.actions.tests.tests_dispatcher_action import TestsDispatchAction
@@ -36,8 +37,8 @@ from cts_framework.actions.sos.sos_cts import SosAction
 
 
 class ActionsDispatcher:
-    ACTIONS_HANDLERS = [ExecuteDispatchAction, TestsDispatchAction, ShowVersionAction, SosAction, StatusDispatchAction,
-                        ReplayTestRunAction, MetadataDispatchAction]
+    ACTIONS_HANDLERS = [ExecuteDispatchAction, TestsDispatchAction, ScenarioDispatchAction, ShowVersionAction, SosAction,
+                        StatusDispatchAction, ReplayTestRunAction, MetadataDispatchAction]
 
     def __init__(self):
         self.parser = ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)

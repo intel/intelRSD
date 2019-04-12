@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,9 @@
 #include "ipmi/command/generic/set_system_boot_options.hpp"
 #include "ipmi/command/sdv/rsd/set_system_mode.hpp"
 
+#include "command/handle_dcpmem_erase.hpp"
 #include "command/set_network_device_function_attributes.hpp"
+#include "command/set_performance_configuration.hpp"
 #include "command/set_trusted_module_attributes.hpp"
 #include "command/handle_system_power_state.hpp"
 
@@ -58,18 +60,22 @@ struct ConfigurableSystemAttributes {
     OptionalField<enums::BootOverride> boot_override{};
     OptionalField<enums::BootOverrideTarget> boot_override_target{};
     OptionalField<enums::BootOverrideMode> boot_mode{};
-    OptionalField<enums::ResetType> power_state{};
+    OptionalField<enums::ResetType> reset_type{};
     OptionalField<std::string> asset_tag{};
     OptionalField<bool> user_mode_enabled{};
+    OptionalField<bool> dcpmem_reset_configuration{};
+    OptionalField<bool> dcpmem_erase_configuration_keys{};
     OptionalField<attribute::Oem> oem{};
+    OptionalField<std::uint8_t> current_performance_configuration{};
 };
 
 
 BootOverrideTarget convert_boot_override_target_to_ipmi_enum(enums::BootOverrideTarget target) {
     switch (target) {
         case enums::BootOverrideTarget::Hdd:
-        case enums::BootOverrideTarget::RemoteDrive:
             return BootOverrideTarget::Hdd;
+        case enums::BootOverrideTarget::RemoteDrive:
+            return BootOverrideTarget::RemoteDrive;
         case enums::BootOverrideTarget::Pxe:
             return BootOverrideTarget::Pxe;
         case enums::BootOverrideTarget::None:
@@ -244,6 +250,8 @@ void process_system(const Uuid& system_uuid,
     }
 
     bool power_state_found{false};
+    bool dcpmem_erase_found{false};
+    bool performance_configuration_found{false};
     bool other_found{false};
     ConfigurableSystemAttributes attributes_to_configure;
     for (const auto& attribute_name : attribute_names) {
@@ -264,8 +272,8 @@ void process_system(const Uuid& system_uuid,
             attributes_to_configure.boot_override_target = OptionalField<enums::BootOverrideTarget>(value);
             other_found = true;
         }
-        else if (literals::System::POWER_STATE == attribute_name) {
-            attributes_to_configure.power_state = OptionalField<enums::ResetType>(value);
+        else if (literals::System::RESET == attribute_name) {
+            attributes_to_configure.reset_type = OptionalField<enums::ResetType>(value);
             power_state_found = true;
         }
         else if (literals::System::ASSET_TAG == attribute_name) {
@@ -276,17 +284,49 @@ void process_system(const Uuid& system_uuid,
             attributes_to_configure.user_mode_enabled = OptionalField<bool>(value);
             other_found = true;
         }
+        else if (literals::System::RESET_CONFIGURATION == attribute_name) {
+            attributes_to_configure.dcpmem_reset_configuration = OptionalField<bool>(value);
+            dcpmem_erase_found = true;
+        }
+        else if (literals::System::ERASE_CONFIGURATION_KEYS == attribute_name) {
+            attributes_to_configure.dcpmem_erase_configuration_keys = OptionalField<bool>(value);
+            dcpmem_erase_found = true;
+        }
         else if (literals::System::OEM == attribute_name) {
             attributes_to_configure.oem = OptionalField<attribute::Oem>(attribute::Oem::from_json(value));
             other_found = true;
         }
+        else if (literals::System::CURRENT_PERFORMANCE_CONFIGURATION == attribute_name) {
+            attributes_to_configure.current_performance_configuration = OptionalField<std::uint8_t>(value.get<std::uint8_t>());
+            performance_configuration_found = true;
+        }
     }
 
-    if (power_state_found && other_found) {
+    if (power_state_found && (other_found || dcpmem_erase_found || performance_configuration_found)) {
         THROW(UnsupportedField, "agent-framework", "Not supported with other attributes.",
-            literals::System::POWER_STATE, attributes_to_configure.power_state);
+            literals::System::RESET, attributes_to_configure.reset_type);
     }
 
+    if (dcpmem_erase_found && (other_found || power_state_found || performance_configuration_found)) {
+        std::string field_name;
+        json::Json field_value;
+
+        if (attributes_to_configure.dcpmem_reset_configuration.has_value()) {
+            field_name = literals::System::RESET_CONFIGURATION;
+            field_value = attributes_to_configure.dcpmem_reset_configuration;
+        }
+        else {
+            field_name = literals::System::ERASE_CONFIGURATION_KEYS;
+            field_value = attributes_to_configure.dcpmem_erase_configuration_keys;
+        }
+
+        THROW(UnsupportedField, "agent-framework", "Not supported with other attributes.", field_name, field_value);
+    }
+
+    if (performance_configuration_found && (other_found || power_state_found || dcpmem_erase_found)) {
+        THROW(UnsupportedField, "agent-framework", "Not supported with other attributes.",
+              literals::System::CURRENT_PERFORMANCE_CONFIGURATION, attributes_to_configure.current_performance_configuration.value());
+    }
 
     // if one is disabled/none, set the second one
     if (enums::BootOverride::Disabled == attributes_to_configure.boot_override ||
@@ -340,17 +380,58 @@ void process_system(const Uuid& system_uuid,
     }
 
     // if reset was sent, update power status
-    if (attributes_to_configure.power_state.has_value()) {
-        if (enums::ResetType::None != attributes_to_configure.power_state) {
+    if (attributes_to_configure.reset_type.has_value()) {
+        if (enums::ResetType::None != attributes_to_configure.reset_type) {
             try {
-                Uuid task = agent::compute::process_system_power_state(system_uuid, attributes_to_configure.power_state);
+                Uuid task = agent::compute::process_system_power_state(system_uuid, attributes_to_configure.reset_type);
                 if (!task.empty()) {
                     response.set_task(task);
                 }
             }
             catch (const GamiException& ex) {
-                response.add_status({literals::System::POWER_STATE, ex.get_error_code(), ex.get_message()});
+                response.add_status({literals::System::RESET, ex.get_error_code(), ex.get_message()});
             }
+        }
+    }
+
+    if (dcpmem_erase_found) {
+        agent::compute::EraseDcpmemAttributes erase_attributes{false, false};
+        if (attributes_to_configure.dcpmem_reset_configuration.has_value()) {
+            erase_attributes.reset_configuration = attributes_to_configure.dcpmem_reset_configuration.value();
+        }
+
+        if (attributes_to_configure.dcpmem_erase_configuration_keys.has_value()) {
+            erase_attributes.erase_configuration_keys = attributes_to_configure.dcpmem_erase_configuration_keys.value();
+        }
+
+        try {
+            Uuid task = agent::compute::process_dcpmem_erase(system_uuid, erase_attributes);
+
+            if (!task.empty()) {
+                response.set_task(task);
+            }
+        }
+        catch (const GamiException& ex) {
+            response.add_status({literals::System::ERASE_DCPMEM, ex.get_error_code(), ex.get_message()});
+        }
+    }
+
+    if (performance_configuration_found) {
+        if (attributes_to_configure.current_performance_configuration.value() > 7 ||
+            attributes_to_configure.current_performance_configuration.value() > get_system(system_uuid).get_performance_configurations().size()) {
+            THROW(UnsupportedValue, "compute-agent", "Configuration index must be below number of configurations and not greater than 7.");
+        }
+        // Node index and CPU index set to 0 as this sets configuration for the whole system
+        agent::compute::PerformanceConfigurationAttributes configuration{0, 0, attributes_to_configure.current_performance_configuration.value()};
+        try {
+            Uuid task = agent::compute::process_performance_configuration(system_uuid, configuration);
+
+            if (!task.empty()) {
+                response.set_task(task);
+            }
+        }
+        catch (const GamiException& ex) {
+            response.add_status({literals::System::CURRENT_PERFORMANCE_CONFIGURATION, ex.get_error_code(), ex.get_message()});
         }
     }
 }

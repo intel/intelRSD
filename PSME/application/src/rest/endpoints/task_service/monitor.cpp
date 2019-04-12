@@ -2,7 +2,7 @@
  * @brief Provides implementation of task monitor endpoint
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,7 @@ endpoint::Monitor::~Monitor() {}
 
 void endpoint::Monitor::get(const server::Request& request, server::Response& response) {
     auto agent_manager = psme::core::agent::AgentManager::get_instance();
-    auto monitored_task = model::Find<agent_framework::model::Task>(request.params[constants::PathParam::TASK_ID]).get();
+    auto monitored_task = model::find<agent_framework::model::Task>(request.params).get();
     auto agent_id = monitored_task.get_agent_id();
     agent_framework::model::requests::GetTaskResultInfo get_task_result_info_request{monitored_task.get_uuid()};
 
@@ -73,7 +73,8 @@ void endpoint::Monitor::get(const server::Request& request, server::Response& re
     }
     else {
         response.set_status(server::status_2XX::ACCEPTED);
-        response.set_body(psme::rest::endpoint::task_service_utils::call_task_get(monitored_task.get_uuid()).get_body());
+        response.set_body(
+            psme::rest::endpoint::task_service_utils::call_task_get(monitored_task.get_uuid()).get_body());
         psme::rest::endpoint::utils::set_location_header(request, response, request.get_url());
     }
 }

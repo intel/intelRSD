@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -98,28 +98,30 @@ endpoint::SystemChangeTPMState::~SystemChangeTPMState() {}
 
 
 void endpoint::SystemChangeTPMState::post(const server::Request& request, server::Response& response) {
-
+    static const constexpr char TRANSACTION_NAME[] = "PostSystemChangeTpmState";
     const auto& json = JsonValidator::validate_request_body<schema::ChangeTPMStatePostSchema>(request);
 
-    auto system = model::Find<agent_framework::model::System>(request.params[PathParam::SYSTEM_ID]).get();
+    auto system = model::find<agent_framework::model::System>(request.params).get();
     agent_framework::model::attribute::Attributes attributes{};
 
     attributes.set_value(agent_framework::model::literals::TrustedModule::DEVICE_ENABLED, json::Json{});
-    if (json.is_member(constants::System::DEVICE_ENABLED)) {
+    if (json.count(constants::System::DEVICE_ENABLED)) {
         auto device_enabled = json[constants::System::DEVICE_ENABLED];
         if (device_enabled.is_boolean()) {
-            attributes.set_value(agent_framework::model::literals::TrustedModule::DEVICE_ENABLED, device_enabled.as_bool());
+            attributes.set_value(agent_framework::model::literals::TrustedModule::DEVICE_ENABLED,
+                                 device_enabled.get<bool>());
         }
     }
 
-    if (json.is_member(constants::System::CLEAR_OWNERSHIP)) {
-        auto clear_ownership = json[constants::System::CLEAR_OWNERSHIP].as_bool();
-        attributes.set_value(agent_framework::model::literals::TrustedModule::CLEAR_OWNERSHIP, clear_ownership);
+    if (json.count(constants::System::CLEAR_OWNERSHIP)) {
+        attributes.set_value(agent_framework::model::literals::TrustedModule::CLEAR_OWNERSHIP,
+                             json[constants::System::CLEAR_OWNERSHIP]
+        );
     }
 
     std::string interface_type{};
-    if (json.is_member(constants::System::INTERFACE_TYPE)) {
-        interface_type = json[constants::System::INTERFACE_TYPE].as_string();
+    if (json.count(constants::System::INTERFACE_TYPE)) {
+        interface_type = json[constants::System::INTERFACE_TYPE].get<std::string>();
     }
 
     auto tpm = get_tpm_by_interface_type(system, interface_type);
@@ -148,7 +150,6 @@ void endpoint::SystemChangeTPMState::post(const server::Request& request, server
             auto response_renderer = [system, request](json::Json) -> server::Response {
                 Response promised_response{};
                 promised_response.set_status(server::status_2XX::NO_CONTENT);
-                psme::rest::endpoint::utils::set_location_header(request, promised_response, psme::rest::endpoint::utils::get_component_url(Component::System, system.get_uuid()));
 
                 return promised_response;
             };
@@ -156,37 +157,35 @@ void endpoint::SystemChangeTPMState::post(const server::Request& request, server
             auto completion_notifier = [system, agent_id](const std::string& set_tpm_task_uuid) {
                 auto lambda_agent_manager = psme::core::agent::AgentManager::get_instance();
 
-                auto task = agent_framework::module::get_manager<agent_framework::model::Task>().get_entry_reference(
-                    set_tpm_task_uuid);
-                if (task->get_state() == agent_framework::model::enums::TaskState::Completed) {
-                    agent_framework::model::Task::Messages messages{
-                        agent_framework::model::attribute::Message{"Base.1.0.0.Success", "Successfully Completed Request",
-                                                                   agent_framework::model::enums::Health::OK,
-                                                                   "None", agent_framework::model::attribute::Oem{},
-                                                                   agent_framework::model::attribute::Message::RelatedProperties{
-                                                                       "#/Id"},
-                                                                   agent_framework::model::attribute::Message::MessageArgs{}}};
-                    task->set_messages(messages);
+                {
+                    auto task = agent_framework::module::get_manager<agent_framework::model::Task>()
+                        .get_entry_reference(set_tpm_task_uuid);
+                    if (task->get_state() == agent_framework::model::enums::TaskState::Completed) {
+                        task->set_messages(task_service_utils::build_success_message());
+                    }
                 }
 
                 psme::rest::model::handler::HandlerManager::get_instance()->get_handler(
                     agent_framework::model::enums::Component::System)->
                     load(lambda_agent_manager->get_agent(agent_id),
-                         system.get_parent_uuid(), agent_framework::model::enums::Component::Manager, system.get_uuid(), true);
+                         system.get_parent_uuid(), agent_framework::model::enums::Component::Manager,
+                         system.get_uuid(), true);
             };
 
             MonitorContentBuilder::get_instance()->add_builder(task_uuid, response_renderer);
-            CommonComponents::get_instance()->get_task_manager().get_entry_reference(
-                task_uuid)->add_completion_notifier(std::bind(completion_notifier, task_uuid));
+            {
+                CommonComponents::get_instance()->get_task_manager()
+                    .get_entry_reference(task_uuid)->add_completion_notifier(std::bind(completion_notifier, task_uuid));
+            }
 
-            std::string task_monitor_url = PathBuilder(
-                utils::get_component_url(agent_framework::model::enums::Component::Task, task_uuid)).append(
-                Monitor::MONITOR).build();
+            std::string task_monitor_url =
+                PathBuilder(utils::get_component_url(agent_framework::model::enums::Component::Task, task_uuid))
+                    .append(Monitor::MONITOR).build();
             psme::rest::endpoint::utils::set_location_header(request, response, task_monitor_url);
             response.set_body(psme::rest::endpoint::task_service_utils::call_task_get(task_uuid).get_body());
         };
 
-        gami_agent->execute_in_transaction(set_system_attributes);
+        gami_agent->execute_in_transaction(TRANSACTION_NAME, set_system_attributes);
     }
 
     response.set_status(server::status_2XX::ACCEPTED);

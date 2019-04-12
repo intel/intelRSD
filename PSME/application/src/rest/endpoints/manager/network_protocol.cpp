@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,70 +41,67 @@ constexpr const char ENABLED[] = "enabled";
 constexpr const char TTL[] = "ttl";
 constexpr const char ANNOUNCE_INTERVAL_SECONDS[] = "announce-interval-seconds";
 
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#ManagerNetworkProtocol.ManagerNetworkProtocol";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#ManagerNetworkProtocol.v1_0_0.ManagerNetworkProtocol";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Manager Network Protocol";
     r[Common::DESCRIPTION] = "Manager Network Protocol description";
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
-    r[NetworkProtocol::HOST_NAME] = json::Value::Type::NIL;
-    r[NetworkProtocol::FQDN] = json::Value::Type::NIL;
-    r[NetworkProtocol::HTTP][NetworkProtocol::PROTOCOL_ENABLED] = json::Value::Type::NIL;
-    r[NetworkProtocol::HTTP][NetworkProtocol::PORT] = json::Value::Type::NIL;
-    r[NetworkProtocol::HTTPS][NetworkProtocol::PROTOCOL_ENABLED] = json::Value::Type::NIL;
-    r[NetworkProtocol::HTTPS][NetworkProtocol::PORT] = json::Value::Type::NIL;
-    r[NetworkProtocol::IPMI][NetworkProtocol::PROTOCOL_ENABLED] = json::Value::Type::NIL;
-    r[NetworkProtocol::IPMI][NetworkProtocol::PORT] = json::Value::Type::NIL;
-    r[NetworkProtocol::SSH][NetworkProtocol::PROTOCOL_ENABLED] = json::Value::Type::NIL;
-    r[NetworkProtocol::SSH][NetworkProtocol::PORT] = json::Value::Type::NIL;
-    r[NetworkProtocol::SNMP][NetworkProtocol::PROTOCOL_ENABLED] = json::Value::Type::NIL;
-    r[NetworkProtocol::SNMP][NetworkProtocol::PORT] = json::Value::Type::NIL;
-    r[NetworkProtocol::VIRTUAL_MEDIA][NetworkProtocol::PROTOCOL_ENABLED] = json::Value::Type::NIL;
-    r[NetworkProtocol::VIRTUAL_MEDIA][NetworkProtocol::PORT] = json::Value::Type::NIL;
-    r[NetworkProtocol::SSDP][NetworkProtocol::PROTOCOL_ENABLED] = json::Value::Type::NIL;
-    r[NetworkProtocol::SSDP][NetworkProtocol::PORT] = json::Value::Type::NIL;
-    r[NetworkProtocol::SSDP][NetworkProtocol::NOTIFY_IPV6_SCOPE] = json::Value::Type::NIL;
-    r[NetworkProtocol::SSDP][NetworkProtocol::NOTIFY_MULTICAST_INTERVAL] = json::Value::Type::NIL;
-    r[NetworkProtocol::SSDP][NetworkProtocol::NOTIFY_TTL] = json::Value::Type::NIL;
-    r[NetworkProtocol::TELNET][NetworkProtocol::PROTOCOL_ENABLED] = json::Value::Type::NIL;
-    r[NetworkProtocol::TELNET][NetworkProtocol::PORT] = json::Value::Type::NIL;
-    r[NetworkProtocol::KVMIP][NetworkProtocol::PROTOCOL_ENABLED] = json::Value::Type::NIL;
-    r[NetworkProtocol::KVMIP][NetworkProtocol::PORT] = json::Value::Type::NIL;
-    r[Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
+    r[NetworkProtocol::HOST_NAME] = json::Json::value_t::null;
+    r[NetworkProtocol::FQDN] = json::Json::value_t::null;
+    r[NetworkProtocol::HTTP][NetworkProtocol::PROTOCOL_ENABLED] = json::Json::value_t::null;
+    r[NetworkProtocol::HTTP][NetworkProtocol::PORT] = json::Json::value_t::null;
+    r[NetworkProtocol::HTTPS][NetworkProtocol::PROTOCOL_ENABLED] = json::Json::value_t::null;
+    r[NetworkProtocol::HTTPS][NetworkProtocol::PORT] = json::Json::value_t::null;
+    r[NetworkProtocol::IPMI][NetworkProtocol::PROTOCOL_ENABLED] = json::Json::value_t::null;
+    r[NetworkProtocol::IPMI][NetworkProtocol::PORT] = json::Json::value_t::null;
+    r[NetworkProtocol::SSH][NetworkProtocol::PROTOCOL_ENABLED] = json::Json::value_t::null;
+    r[NetworkProtocol::SSH][NetworkProtocol::PORT] = json::Json::value_t::null;
+    r[NetworkProtocol::SNMP][NetworkProtocol::PROTOCOL_ENABLED] = json::Json::value_t::null;
+    r[NetworkProtocol::SNMP][NetworkProtocol::PORT] = json::Json::value_t::null;
+    r[NetworkProtocol::VIRTUAL_MEDIA][NetworkProtocol::PROTOCOL_ENABLED] = json::Json::value_t::null;
+    r[NetworkProtocol::VIRTUAL_MEDIA][NetworkProtocol::PORT] = json::Json::value_t::null;
+    r[NetworkProtocol::SSDP][NetworkProtocol::PROTOCOL_ENABLED] = json::Json::value_t::null;
+    r[NetworkProtocol::SSDP][NetworkProtocol::PORT] = json::Json::value_t::null;
+    r[NetworkProtocol::SSDP][NetworkProtocol::NOTIFY_IPV6_SCOPE] = json::Json::value_t::null;
+    r[NetworkProtocol::SSDP][NetworkProtocol::NOTIFY_MULTICAST_INTERVAL] = json::Json::value_t::null;
+    r[NetworkProtocol::SSDP][NetworkProtocol::NOTIFY_TTL] = json::Json::value_t::null;
+    r[NetworkProtocol::TELNET][NetworkProtocol::PROTOCOL_ENABLED] = json::Json::value_t::null;
+    r[NetworkProtocol::TELNET][NetworkProtocol::PORT] = json::Json::value_t::null;
+    r[NetworkProtocol::KVMIP][NetworkProtocol::PROTOCOL_ENABLED] = json::Json::value_t::null;
+    r[NetworkProtocol::KVMIP][NetworkProtocol::PORT] = json::Json::value_t::null;
+    r[Common::OEM] = json::Json::value_t::object;
 
     return r;
 }
 
-json::Value read_protocols_for_drawer_manager() {
-    json::Value r{};
+void read_protocols_for_drawer_manager(json::Json& r) {
     r[constants::NetworkProtocol::HTTP][constants::NetworkProtocol::PROTOCOL_ENABLED] = true;
     r[constants::NetworkProtocol::HTTPS][constants::NetworkProtocol::PROTOCOL_ENABLED] = true;
 
     const auto connectors = configuration::Configuration::get_instance().to_json()[SERVER][CONNECTORS];
     for (const auto& connector : connectors) {
-        if (connector[USE_SSL].as_bool()) {
+        if (connector.value(USE_SSL, bool{})) {
             r[constants::NetworkProtocol::HTTPS][constants::NetworkProtocol::PORT] =
-                connector[PORT].as_uint();
+                connector.value(PORT, std::uint16_t{});
         }
         else {
             r[constants::NetworkProtocol::HTTP][constants::NetworkProtocol::PORT] =
-                connector[PORT].as_uint();
+                connector.value(PORT, std::uint16_t{});
         }
     }
-
-    return r;
 }
 
-void read_ssdp_properties_from_config(json::Value& r) {
-    const json::Value config = configuration::Configuration::get_instance().to_json();
-    auto& ssdp_config = config[SSDP_SERVICE];
-    if (ssdp_config[ENABLED].as_bool()) {
+void read_ssdp_properties_from_config(json::Json& r) {
+    const json::Json config = configuration::Configuration::get_instance().to_json();
+    const auto& ssdp_config = config.value(SSDP_SERVICE, json::Json::object());
+    if (ssdp_config.value(ENABLED, bool{})) {
         r[NetworkProtocol::SSDP][NetworkProtocol::PROTOCOL_ENABLED] = true;
         r[NetworkProtocol::SSDP][NetworkProtocol::PORT] = DEFAULT_SSDP_PORT;
         r[NetworkProtocol::SSDP][NetworkProtocol::NOTIFY_TTL] = ssdp_config[TTL];
@@ -140,7 +137,7 @@ void endpoint::NetworkProtocol::get(const server::Request& req, server::Response
         {NetworkServiceName::KVMIP, constants::NetworkProtocol::KVMIP}
     };
 
-    auto manager = psme::rest::model::Find<agent_framework::model::Manager>(req.params[PathParam::MANAGER_ID]).get();
+    auto manager = psme::rest::model::find<agent_framework::model::Manager>(req.params).get();
 
     for (const auto& service: manager.get_network_services()){
         r[service_name_to_rest_literal[service.get_name()]][constants::NetworkProtocol::PROTOCOL_ENABLED] = service.get_enabled();
@@ -149,7 +146,7 @@ void endpoint::NetworkProtocol::get(const server::Request& req, server::Response
 
     if (ManagerInfoType::EnclosureManager == manager.get_manager_type() ||
         ManagerInfoType::RackManager == manager.get_manager_type()) {
-        r += read_protocols_for_drawer_manager();
+        read_protocols_for_drawer_manager(r);
     }
 
     if (endpoint::utils::is_manager_for_drawer_or_enclosure(manager.get_uuid())) {

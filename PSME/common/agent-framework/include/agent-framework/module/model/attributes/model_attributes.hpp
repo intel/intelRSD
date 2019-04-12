@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,10 +47,11 @@
 #include "oem.hpp"
 #include "pci_device.hpp"
 #include "region.hpp"
+#include "interleave_set.hpp"
+#include "memory_set.hpp"
 #include "serial_console.hpp"
 #include "status.hpp"
 #include "subcomponent_entry.hpp"
-#include "target_lun.hpp"
 #include "usb_device.hpp"
 #include "graphical_console.hpp"
 #include "command_shell.hpp"
@@ -63,12 +64,16 @@
 #include "wildcard.hpp"
 #include "calculation_parameters.hpp"
 #include "metric_definition_entry.hpp"
-#include "on_package_memory.hpp"
+#include "integrated_memory.hpp"
 #include "fpga.hpp"
 #include "ip_transport_detail.hpp"
 #include "capacity.hpp"
 #include "capacity_source.hpp"
 #include "replica_info.hpp"
+#include "fpga_reconfiguration_slot.hpp"
+#include "security_capabilities.hpp"
+#include "power_management_policy.hpp"
 #include "qos_application_protocol.hpp"
 #include "qos_priority_group_mapping.hpp"
 #include "qos_bandwidth_allocation.hpp"
+#include "performance_configuration.hpp"

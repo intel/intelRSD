@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,42 +16,50 @@
 #
 # </license_header>
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.4)
 project(Configuration CXX)
 
+# TODO: change flag when all unnecessary usages are removed  - required in GenerateConfigHeader.cmake
 set(CONFIGURATION_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     CACHE PATH "Configuration include dir path"
 )
 
-set(CONFIGURATION_LIBRARIES
-    configuration -lcrypt
-    CACHE PATH "Configuration libraries"
+add_library(configuration STATIC
+    src/schema_errors.cpp
+    src/schema_property.cpp
+    src/schema_reader.cpp
+    src/schema_validator.cpp
+    src/utils.cpp
+    src/json_path.cpp
+    src/configuration.cpp
+
+    src/validators/validator.cpp
+    src/validators/max.cpp
+    src/validators/min.cpp
+    src/validators/morethan.cpp
+    src/validators/anyof.cpp
+    src/validators/url.cpp
+    src/validators/type.cpp
+    src/validators/address.cpp
 )
 
-include_directories(
-    ${JSONCXX_INCLUDE_DIRS}
-    ${LOGGER_INCLUDE_DIRS}
+target_link_libraries(configuration
+    PUBLIC
+    json
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    PRIVATE
+    logger
+    utils
+    ${SAFESTRING_LIBRARIES}
 )
 
-include_directories(SYSTEM
+target_include_directories(configuration
+    PUBLIC
+    include
+)
+
+target_include_directories(configuration SYSTEM
+    PRIVATE
     ${SAFESTRING_INCLUDE_DIRS}
 )
-
-add_subdirectory(src)
-
-add_library(configuration STATIC
-    src/configuration.cpp
-    $<TARGET_OBJECTS:config-validator>
-    $<TARGET_OBJECTS:config-validators>
-)
-
-install(TARGETS configuration
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-)
-
-install(DIRECTORY include/configuration DESTINATION include)

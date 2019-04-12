@@ -2,7 +2,7 @@
  * @brief Provides class for stabilizing compute agent resource tree
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@
 
 
 #include<string>
+#include "agent-framework/module/common_components.hpp"
 
 
 
@@ -104,6 +105,16 @@ void update_storage_subsystem_in_relations(const std::string& storage_subsystem_
 
 
 /*!
+ * Update all relations in the model involving processor
+ *
+ * @param processor_persistent_uuid Processor UUID before tree stabilization
+ * @param processor_persistent_uuid Processor UUID after tree stabilization
+ * */
+void update_processor_in_relations(const std::string& processor_temporary_uuid,
+                                   const std::string& processor_persistent_uuid);
+
+
+/*!
  * Update all relations in the model involving PCIe device
  *
  * @param pcie_device_temporary_uuid PCIe device UUID before tree stabilization
@@ -116,11 +127,17 @@ void update_pcie_device_in_relations(const std::string& pcie_device_temporary_uu
 /*!
  * Update all relations in the model involving PCIe function
  *
+ * @tparam Device type of the device supported by PNC agent (Drive, Processor)
  * @param pcie_function_temporary_uuid PCIe function UUID before tree stabilization
  * @param pcie_function_persistent_uuid PCIe function UUID after tree stabilization
  * */
+template<typename Device>
 void update_pcie_function_in_relations(const std::string& pcie_function_temporary_uuid,
-                                       const std::string& pcie_function_persistent_uuid);
+                                       const std::string& pcie_function_persistent_uuid) {
+    agent_framework::module::get_m2m_manager<Device, agent_framework::model::PcieFunction>().update_child(
+        pcie_function_temporary_uuid,
+        pcie_function_persistent_uuid);
+}
 
 }
 }

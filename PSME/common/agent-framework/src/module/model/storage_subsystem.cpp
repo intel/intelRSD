@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ StorageSubsystem::~StorageSubsystem() { }
 
 
 json::Json StorageSubsystem::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::StorageSubsystem::STATUS] = get_status().to_json();
     result[literals::StorageSubsystem::COLLECTIONS] = get_collections().to_json();
     result[literals::StorageSubsystem::OEM] = get_oem().to_json();

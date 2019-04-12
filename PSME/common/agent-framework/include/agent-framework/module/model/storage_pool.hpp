@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -168,7 +168,7 @@ public:
      * @brief Gets block size bytes
      * @return block_size bytes
      * */
-    OptionalField<std::uint64_t> get_block_size_bytes() const {
+    const OptionalField<std::uint64_t>& get_block_size_bytes() const {
         return m_block_size_bytes;
     }
 
@@ -177,9 +177,17 @@ public:
      * @brief Sets block size bytes
      * @param[in] block_size_bytes of type uint64_t
      */
-    void set_block_size_bytes(OptionalField<std::uint64_t> block_size_bytes) {
+    void set_block_size_bytes(const OptionalField<std::uint64_t>& block_size_bytes) {
         m_block_size_bytes = block_size_bytes;
     }
+
+    /*!
+     * @brief Checks if storage pool has available capacity to allocate new bytes.
+     * @param storage_pool Storage pool object
+     * @param requested_capacity_bytes Capacity bytes to check
+     * @return Returns true if requested capacity could be allocated, false otherwise.
+     * */
+    static bool can_allocate_bytes(const StoragePool& pool, std::int64_t requested_capacity_bytes);
 
 
 private:

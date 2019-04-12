@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,8 +79,8 @@ TEST(AddLogicalDriveTest, PositiveExecute) {
     MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
                     enums::LogicalDriveMode::JBOD, "TestMaster", true, true, true};
     AddLogicalDrive::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::LogicalDrive::TYPE] = "LVM";
     params[literals::LogicalDrive::MODE] = "JBOD";
@@ -103,8 +103,8 @@ TEST(AddLogicalDriveTest, NegativeTypeNotFound) {
     MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
                     enums::LogicalDriveMode::JBOD, "TestMaster", true, true, true};
     AddLogicalDrive::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::LogicalDrive::TYPE] = "CEPH";
     params[literals::LogicalDrive::MODE] = "JBOD";
@@ -121,8 +121,8 @@ TEST(AddLogicalDriveTest, NegativeModeNotFound) {
     MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
                     enums::LogicalDriveMode::JBOD, "TestMaster", true, true, true};
     AddLogicalDrive::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::LogicalDrive::TYPE] = "LVM";
     params[literals::LogicalDrive::MODE] = "LV";
@@ -139,8 +139,8 @@ TEST(AddLogicalDriveTest, NegativeMasterNotFound) {
     MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
                     enums::LogicalDriveMode::JBOD, "TestMaster", true, true, true};
     AddLogicalDrive::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::LogicalDrive::TYPE] = "LVM";
     params[literals::LogicalDrive::MODE] = "JBOD";
@@ -157,8 +157,8 @@ TEST(AddLogicalDriveTest, NegativeSnapshotNotFound) {
     MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
                     enums::LogicalDriveMode::JBOD, "TestMaster", true, true, true};
     AddLogicalDrive::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::LogicalDrive::TYPE] = "LVM";
     params[literals::LogicalDrive::MODE] = "JBOD";
@@ -175,8 +175,8 @@ TEST(AddLogicalDriveTest, NegativeProtectedNotFound) {
     MyAddLogicalDrive command{enums::LogicalDriveType::LVM,
                     enums::LogicalDriveMode::JBOD, "TestMaster", true, true, true};
     AddLogicalDrive::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::LogicalDrive::TYPE] = "LVM";
     params[literals::LogicalDrive::MODE] = "JBOD";

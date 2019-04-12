@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file rmm/main.cpp
  */
 
@@ -38,6 +36,7 @@
 
 #include "agent-framework/eventing/utils.hpp"
 #include "agent-framework/command/command_server.hpp"
+#include "agent-framework/logger_loader.hpp"
 #include "database/database.hpp"
 
 #include "json-rpc/connectors/http_server_connector.hpp"
@@ -62,8 +61,8 @@ static constexpr unsigned int DEFAULT_SERVER_PORT = 7791;
 static constexpr unsigned int MONITOR_THREAD_INTERVAL_SECONDS = 10;
 static constexpr unsigned int DISCOVERY_SLEEP_TIME_SECONDS = 1;
 
-const json::Value& init_configuration(int argc, const char** argv);
-bool check_configuration(const json::Value& json);
+const json::Json& init_configuration(int argc, const char** argv);
+bool check_configuration(const json::Json& json);
 
 namespace {
 
@@ -81,18 +80,18 @@ int main(int argc, const char* argv[]) {
     std::uint16_t server_port = DEFAULT_SERVER_PORT;
 
     /* Initialize configuration */
-    const json::Value& configuration = ::init_configuration(argc, argv);
+    const json::Json& configuration = ::init_configuration(argc, argv);
     if (!::check_configuration(configuration)) {
         Configuration::cleanup();
         LoggerFactory::cleanup();
         return 2;
     }
 
-    LoggerLoader loader(configuration);
+    logger_cpp::LoggerLoader loader(configuration);
     loader.load(LoggerFactory::instance());
 
-    server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
-    database::Database::set_default_location(configuration["database"]["location"].as_string());
+    server_port = configuration.value("server", json::Json::object()).value("port", std::uint16_t{});
+    database::Database::set_default_location(configuration.value("database", json::Json::object()).value("location", std::string{}));
 
     agent::rmm::discovery::helpers::DiscoveryContext dc{};
     dc.certificate_manager = std::make_shared<agent::rmm::CertificateManager>();
@@ -161,7 +160,7 @@ int main(int argc, const char* argv[]) {
     return 0;
 }
 
-const json::Value& init_configuration(int argc, const char** argv) {
+const json::Json& init_configuration(int argc, const char** argv) {
     log_info("rmm-agent", agent_framework::generic::Version::build_info());
     auto& basic_config = Configuration::get_instance();
     basic_config.set_default_configuration(DEFAULT_CONFIGURATION);
@@ -176,8 +175,8 @@ const json::Value& init_configuration(int argc, const char** argv) {
     return basic_config.to_json();
 }
 
-bool check_configuration(const json::Value& json) {
-    json::Value json_schema;
+bool check_configuration(const json::Json& json) {
+    json::Json json_schema = json::Json();
     if (configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema)) {
         log_info("rmm-agent", "JSON Schema load!");
 

@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 #
 # </license_header>
 
-set(SOURCES
-    discovery_manager.cpp
-    discovery_worker.cpp
-    discovery_target.cpp
-    discovery_initiator.cpp
+target_sources(psme-gpt-nvme PRIVATE
+    src/discovery/discovery_manager.cpp
+    src/discovery/discovery_worker.cpp
+    src/discovery/discovery_target.cpp
+    src/discovery/discovery_initiator.cpp
 )
-
-add_library(nvme-discovery-impl OBJECT ${SOURCES})

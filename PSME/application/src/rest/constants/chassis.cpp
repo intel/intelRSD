@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,10 +20,11 @@
 
 #include "psme/rest/constants/constants.hpp"
 
+
+
 namespace psme {
 namespace rest {
 namespace constants {
-
 
 namespace Chassis {
 const char CHASSIS_TYPE[] = "ChassisType";
@@ -32,7 +33,7 @@ const char LOCATION[] = "Location";
 const char PARENT_ID[] = "ParentId";
 const char CONTAINS[] = "Contains";
 const char COMPUTER_SYSTEMS[] = "ComputerSystems";
-const char SWITCHES[] = "Switches";
+const char ETHERNET_SWITCHES[] = "EthernetSwitches";
 const char MANAGERS_IN_CHASSIS[] = "ManagersInChassis";
 const char POWERED_BY[] = "PoweredBy";
 const char COOLED_BY[] = "CooledBy";
@@ -111,7 +112,7 @@ const char READING_VOLTS[] = "ReadingVolts";
 const char READING_VOLTS_PATH[] = "/ReadingVolts";
 }
 
-namespace PncDrive {
+namespace Drive {
 const char SECURE_ERASE[] = "#Drive.SecureErase";
 const char SECURE_ERASE_ENDPOINT[] = "Drive.SecureErase";
 const char CAPABLE_SPEED[] = "CapableSpeedGbs";
@@ -127,6 +128,7 @@ const char INFO_FORMAT[] = "InfoFormat";
 const char ERASE_ON_DETACH[] = "EraseOnDetach";
 const char DRIVE_ERASED[] = "DriveErased";
 const char FIRMWARE_VERSION[] = "FirmwareVersion";
+const char LATENCY_TRACKING_ENABLED[] = "LatencyTrackingEnabled";
 const char STATUS_INDICATOR[] = "StatusIndicator";
 const char REVISION[] = "Revision";
 const char FAILURE_PREDICTED[] = "FailurePredicted";
@@ -138,6 +140,11 @@ const char BLOCK_SIZE_BYTES[] = "BlockSizeBytes";
 const char PREDICTED_MEDIA_LIFE_LEFT[] = "PredictedMediaLifeLeftPercent";
 const char PCIE_FUNCTION[] = "PCIeFunction";
 const char USED_BY[] = "UsedBy";
+const char INTERFACE[] = "Interface";
+const char CAPACITY[] = "CapacityGiB";
+const char TYPE[] = "Type";
+const char RPM[] = "RPM";
+const char BUS_INFO[] = "BusInfo";
 }
 
 namespace PcieDevice {
@@ -175,6 +182,7 @@ const char AVAILABLE_SPARE_PERCENTAGE[] = "AvailableSparePercentage";
 const char PREDICTED_MEDIA_LIFE_USED_PERCENT[] = "PredictedMediaLifeUsedPercent";
 const char UNSAFE_SHUTDOWNS[] = "UnsafeShutdowns";
 const char MEDIA_ERRORS[] = "MediaErrors";
+
 }
 
 }

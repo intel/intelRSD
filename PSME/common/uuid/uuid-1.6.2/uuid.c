@@ -1,8 +1,7 @@
 /*!
  * @brief OSSP UUID library API implementation
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file uuid.c
  */
 
@@ -241,7 +239,7 @@ uuid_rc_t uuid_isnil(const uuid_t *uuid, int *result)
 }
 
 /* compare UUID objects */
-uuid_rc_t uuid_compare(const uuid_t *uuid1, const uuid_t *uuid2, int *result)
+uuid_rc_t uuid_cmp(const uuid_t *uuid1, const uuid_t *uuid2, int *result)
 {
     int r;
 
@@ -404,8 +402,8 @@ static uuid_rc_t uuid_export_bin(const uuid_t *uuid, void *_data_ptr, size_t *da
     return UUID_RC_OK;
 }
 
-/* INTERNAL: check for valid UUID string representation syntax */
-static int uuid_isstr(const char *str, size_t str_len)
+/* check for valid UUID string representation syntax */
+int uuid_isstr(const char *str, size_t str_len)
 {
     int i;
     const char *cp;

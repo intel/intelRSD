@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,27 +18,21 @@
 
 if (NOT GTEST_FOUND)
     return()
-endif()
+endif ()
 
-include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/../..
-        ${CMAKE_CURRENT_SOURCE_DIR}/../include
-)
 
 add_gtest(parser fru_eeprom
-        test_fru_eeprom_parser.cpp
-        test_runner.cpp
-)
+    test_fru_eeprom_parser.cpp
+    test_runner.cpp
+    )
 
 target_link_libraries(${test_target}
-        fru_eeprom
-        ${SAFESTRING_LIBRARIES}
-        ${UUID_LIBRARIES}
-)
+    fru_eeprom
+    )
 
 add_custom_target(unittest_fru_eeprom
-                  make
-)
+    make
+    )
 add_custom_target(unittest_fru_eeprom_run
-                  ctest --output-on-failure
-)
+    ctest --output-on-failure
+    )

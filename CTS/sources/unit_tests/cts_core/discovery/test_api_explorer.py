@@ -35,7 +35,9 @@ class ApiExplorerUnitTest(unittest.TestCase):
     def test_empty_body(self):
         self.api_explorer._get_resource = MagicMock(return_value=(
             Link('link', 'netloc'),
-            RequestStatus.SUCCESS, {}))
+            RequestStatus.SUCCESS,
+            {},
+            None))
 
         with StdoutCapture() as output:
             self.api_explorer.discover("odata_id", None)
@@ -47,7 +49,8 @@ class ApiExplorerUnitTest(unittest.TestCase):
         self.api_explorer._metadata_container = MagicMock()
         self.api_explorer._get_resource = MagicMock(return_value=(Link('link', 'netloc'),
                                                                   RequestStatus.SUCCESS,
-                                                                  dict(a=1)))
+                                                                  dict(a=1),
+                                                                  None))
         self.api_explorer._process_resource = MagicMock(return_value=discovery_container)
 
         self.api_explorer.discover("url", None)
@@ -64,7 +67,7 @@ class ApiExplorerUnitTest(unittest.TestCase):
                     {'@odata.type': 'type.of.second.inner'}
                 ]
             }, None))
-        link, status, body = self.api_explorer._get_resource("/a/b#inner/0")
+        link, status, body, _ = self.api_explorer._get_resource("/a/b#inner/0")
         self.assertEqual(RequestStatus.SUCCESS, status)
         self.assertEqual({'@odata.type': 'type.of.first.inner'}, body)
 
@@ -112,8 +115,8 @@ class ApiExplorerUnitTest(unittest.TestCase):
 
         with mock.patch(
                 'cts_core.discovery.api_explorer.ApiExplorer._get_resource') as get_resource:
-            get_resource.side_effect = [(Link('link', 'netloc'), RequestStatus.SUCCESS, resource),
-                                        (Link('link', 'netloc'), RequestStatus.SUCCESS, referenced)]
+            get_resource.side_effect = [(Link('link', 'netloc'), RequestStatus.SUCCESS, resource, None),
+                                        (Link('link', 'netloc'), RequestStatus.SUCCESS, referenced, None)]
 
             with StdoutCapture() as output:
                 api_explorer.discover("/outer", "N.Outer", discovery_container)
@@ -154,7 +157,7 @@ class ApiExplorerUnitTest(unittest.TestCase):
 
         with mock.patch(
                 'cts_core.discovery.api_explorer.ApiExplorer._get_resource') as get_resource:
-            get_resource.side_effect = [(Link('link', 'netloc'), RequestStatus.SUCCESS, resource)]
+            get_resource.side_effect = [(Link('link', 'netloc'), RequestStatus.SUCCESS, resource, None)]
 
             with StdoutCapture() as output:
                 api_explorer.discover("/outer", "N.Outer", discovery_container)
@@ -213,8 +216,8 @@ class ApiExplorerUnitTest(unittest.TestCase):
 
         with mock.patch(
                 'cts_core.discovery.api_explorer.ApiExplorer._get_resource') as get_resource:
-            get_resource.side_effect = [(Link('link', 'netloc'), RequestStatus.SUCCESS, resource),
-                                        (Link('link', 'netloc'), RequestStatus.SUCCESS, referenced)]
+            get_resource.side_effect = [(Link('link', 'netloc'), RequestStatus.SUCCESS, resource, None),
+                                        (Link('link', 'netloc'), RequestStatus.SUCCESS, referenced, None)]
 
             with StdoutCapture() as output:
                 api_explorer.discover("/outer", "N.Outer", discovery_container)
@@ -252,7 +255,7 @@ class ApiExplorerUnitTest(unittest.TestCase):
 
         with mock.patch(
                 'cts_core.discovery.api_explorer.ApiExplorer._get_resource') as get_resource:
-            get_resource.side_effect = [(Link('link', 'netloc'), RequestStatus.SUCCESS, resource)]
+            get_resource.side_effect = [(Link('link', 'netloc'), RequestStatus.SUCCESS, resource, None)]
 
             with StdoutCapture() as output:
                 api_explorer.discover("/outer", "N.Outer", discovery_container)
@@ -313,7 +316,7 @@ class ApiExplorerUnitTest(unittest.TestCase):
             get_resource.side_effect = [
                 (Link('https://{API_ENDPOINT}/outer'.format(
                     API_ENDPOINT=API_ENDPOINT), 'netloc'),
-                 RequestStatus.SUCCESS, resource)]
+                 RequestStatus.SUCCESS, resource, None)]
 
             with StdoutCapture() as output:
                 api_explorer.discover("/outer", "N.Outer", discovery_container)
@@ -381,7 +384,7 @@ class ApiExplorerUnitTest(unittest.TestCase):
         with mock.patch(
                 'cts_core.discovery.api_explorer.ApiExplorer._get_resource') as get_resource:
             get_resource.side_effect = [(Link('https://{API_ENDPOINT}/outer'.format(
-                API_ENDPOINT=API_ENDPOINT), 'netloc'), RequestStatus.SUCCESS, resource)]
+                API_ENDPOINT=API_ENDPOINT), 'netloc'), RequestStatus.SUCCESS, resource, None)]
 
             with StdoutCapture() as output:
                 api_explorer.discover("/outer", "N.Outer", discovery_container)

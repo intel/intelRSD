@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,10 +28,9 @@ add_subdirectory(database)
 add_subdirectory(ipmi)
 add_subdirectory(json)
 add_subdirectory(json-rpc)
-add_subdirectory(json-cxx)
-add_subdirectory(jsonptr)
 add_subdirectory(configuration)
 add_subdirectory(iscsi)
+add_subdirectory(optional)
 add_subdirectory(agent-framework)
 add_subdirectory(netlink)
 add_subdirectory(smbios)
@@ -40,10 +39,17 @@ add_subdirectory(net)
 add_subdirectory(ssdp)
 add_subdirectory(telemetry)
 add_subdirectory(nvme)
-add_subdirectory(nvmfpp)
 add_subdirectory(crc)
 add_subdirectory(utils)
+add_subdirectory(interface-reader)
 add_subdirectory(sysfs)
 add_subdirectory(nvme-target)
 add_subdirectory(partition)
 add_subdirectory(nvmf-discovery)
+add_subdirectory(spdk)
+add_subdirectory(udev)
+add_subdirectory(pmem)
+add_subdirectory(acpi)
+add_subdirectory(tgt)
+add_subdirectory(lvm)
+add_subdirectory(opaepp)

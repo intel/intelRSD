@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,6 @@
 #include "psme/rest/endpoints/task_service/monitor_content_builder.hpp"
 #include "psme/rest/endpoints/task_service/task_service_utils.hpp"
 
-#include "agent-framework/module/utils/json_transformations.hpp"
 #include "agent-framework/module/requests/storage.hpp"
 #include "agent-framework/module/responses/storage.hpp"
 
@@ -46,49 +45,61 @@ namespace {
 
 using namespace agent_framework::model;
 
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#VolumeCollection.VolumeCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#VolumeCollection.VolumeCollection";
     r[Common::NAME] = "Volume Collection";
     r[Common::DESCRIPTION] = "Volume Collection description";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
 
-attribute::Array<attribute::CapacitySource> read_capacity_sources(const json::Value& json_capacity_sources) {
+
+attribute::Array<attribute::Identifier> get_identifiers(const json::Json& json_identifiers) {
+    attribute::Array<attribute::Identifier> result{};
+    for (const auto& json_identifier : json_identifiers) {
+        attribute::Identifier identifier{};
+        identifier.set_durable_name(json_identifier[Common::DURABLE_NAME]);
+        identifier.set_durable_name_format(json_identifier[Common::DURABLE_NAME_FORMAT]);
+        result.add_entry(std::move(identifier));
+    }
+    return result;
+}
+
+
+attribute::Array<attribute::CapacitySource> read_capacity_sources(const json::Json& json) {
     attribute::Array<attribute::CapacitySource> result{};
-    if (!json_capacity_sources.is_null()) {
-        const auto& array_capacity_sources = json_capacity_sources.as_array();
+    if (json.count(Swordfish::CAPACITY_SOURCES) && !json.value(Swordfish::CAPACITY_SOURCES, json::Json()).is_null()) {
+        const auto& array_capacity_sources = json[Swordfish::CAPACITY_SOURCES];
         for (const auto& json_capacity_source : array_capacity_sources) {
-            if (!json_capacity_source.is_member(Swordfish::PROVIDING_POOLS) ||
-                !json_capacity_source[Swordfish::PROVIDING_POOLS].is_array()) {
+            if (!json_capacity_source.count(Swordfish::PROVIDING_POOLS) ||
+                !json_capacity_source.value(Swordfish::PROVIDING_POOLS, json::Json()).is_array()) {
                 continue;
             }
             attribute::CapacitySource capacity_source{};
-            const auto& array_providing_pools = json_capacity_source[Swordfish::PROVIDING_POOLS].as_array();
+            const auto& array_providing_pools = json_capacity_source[Swordfish::PROVIDING_POOLS];
             for (const auto& json_providing_pool : array_providing_pools) {
-                const auto& providing_pool_url = json_providing_pool[Common::ODATA_ID].as_string();
-                try {
-                    auto params = server::Multiplexer::get_instance()->get_params(providing_pool_url,
-                                                                                  constants::Routes::STORAGE_POOL_PATH);
+                const auto& providing_pool_url = json_providing_pool[Common::ODATA_ID].get<std::string>();
 
-                    Uuid pool_uuid =
-                        model::Find<agent_framework::model::StoragePool>(params[PathParam::STORAGE_POOL_ID])
-                            .via<agent_framework::model::StorageService>(params[PathParam::SERVICE_ID])
-                            .get_uuid();
+                auto params = server::Multiplexer::get_instance()->get_params(providing_pool_url,
+                                                                              constants::Routes::STORAGE_POOL_PATH);
 
+                auto pool_uuid =
+                    model::try_find<agent_framework::model::StorageService, agent_framework::model::StoragePool>(
+                        params).get_uuid();
 
+                if (pool_uuid.has_value()) {
                     capacity_source.add_providing_pool(std::move(pool_uuid));
-
                 }
-                catch (agent_framework::exceptions::NotFound& ex) {
+                else {
                     log_error("rest", "Cannot find pool: " << providing_pool_url);
-                    throw agent_framework::exceptions::InvalidValue(ex.get_message());
+                    throw agent_framework::exceptions::InvalidValue("Cannot find pool: " + providing_pool_url);
                 }
             }
             result.add_entry(std::move(capacity_source));
@@ -97,44 +108,46 @@ attribute::Array<attribute::CapacitySource> read_capacity_sources(const json::Va
     return result;
 }
 
-attribute::Array<enums::AccessCapability> read_access_capabilities(const json::Value& json_access_capabilities) {
-    if (json_access_capabilities.is_null()) {
+
+attribute::Array<enums::AccessCapability> read_access_capabilities(const json::Json& json) {
+    if (!json.count(Swordfish::ACCESS_CAPABILITIES) ||
+        json.value(Swordfish::ACCESS_CAPABILITIES, json::Json()).is_null()) {
         return attribute::Array<enums::AccessCapability>();
     }
     else {
-        return attribute::Array<enums::AccessCapability>::from_json(
-            agent_framework::model::utils::to_json_rpc(json_access_capabilities));
+        return attribute::Array<enums::AccessCapability>::from_json(json[Swordfish::ACCESS_CAPABILITIES]);
     }
 }
 
-attribute::Array<attribute::ReplicaInfo> read_replica_infos(const json::Value& json_replica_infos) {
+
+attribute::Array<attribute::ReplicaInfo> read_replica_infos(const json::Json& json) {
     attribute::Array<attribute::ReplicaInfo> result{};
-    if (!json_replica_infos.is_null()) {
-        const auto& array_replica_infos = json_replica_infos.as_array();
-        for (const auto& json_replica_info : array_replica_infos) {
+    if (json.count(Swordfish::REPLICA_INFOS) && !json.value(Swordfish::REPLICA_INFOS, json::Json()).is_null()) {
+        const auto& json_replica_infos = json[Swordfish::REPLICA_INFOS];
+        for (const auto& json_replica_info : json_replica_infos) {
             attribute::ReplicaInfo replica_info{};
 
-            if (!json_replica_info[ReplicaInfo::REPLICA].is_null()) {
-                const auto& replica_info_url = json_replica_info[ReplicaInfo::REPLICA][Common::ODATA_ID].as_string();
-                try {
-                    auto params = server::Multiplexer::get_instance()->get_params(replica_info_url,
-                                                                                  constants::Routes::VOLUME_PATH);
+            if (!json_replica_info.value(ReplicaInfo::REPLICA, json::Json()).is_null()) {
+                const auto& replica_info_url = json_replica_info[ReplicaInfo::REPLICA][Common::ODATA_ID].get<std::string>();
 
-                    Uuid volume_uuid =
-                        model::Find<agent_framework::model::Volume>(params[PathParam::VOLUME_ID])
-                            .via<agent_framework::model::StorageService>(params[PathParam::SERVICE_ID])
-                            .get_uuid();
+                auto params = server::Multiplexer::get_instance()->get_params(replica_info_url,
+                                                                              constants::Routes::VOLUME_PATH);
 
-                    replica_info.set_replica(std::move(volume_uuid));
+                auto volume_uuid =
+                    model::try_find<agent_framework::model::StorageService, agent_framework::model::Volume>(
+                        params).get_uuid();
+
+                if (volume_uuid.has_value()) {
+                    replica_info.set_replica(std::move(volume_uuid.value()));
                 }
-                catch (agent_framework::exceptions::NotFound& ex) {
+                else {
                     log_error("rest", "Cannot find volume: " << replica_info_url);
-                    throw agent_framework::exceptions::InvalidValue(ex.get_message());
+                    throw agent_framework::exceptions::InvalidValue("Cannot find volume: " + replica_info_url);
                 }
             }
-            if (!json_replica_info[ReplicaInfo::REPLICA_TYPE].is_null()) {
+            if (!json_replica_info.value(ReplicaInfo::REPLICA_TYPE, json::Json()).is_null()) {
                 replica_info.set_replica_type(
-                    enums::ReplicaType::from_string(json_replica_info[ReplicaInfo::REPLICA_TYPE].as_string())
+                    enums::ReplicaType::from_string(json_replica_info[ReplicaInfo::REPLICA_TYPE])
                 );
             }
 
@@ -159,13 +172,13 @@ void VolumeCollection::get(const server::Request& request, server::Response& res
     json[Common::ODATA_ID] = PathBuilder(request).build();
 
     auto storage_service_uuid =
-        model::Find<agent_framework::model::StorageService>(request.params[PathParam::SERVICE_ID]).get_uuid();
+        model::find<agent_framework::model::StorageService>(request.params).get_uuid();
 
     auto keys = agent_framework::module::get_manager<agent_framework::model::Volume>().get_ids(storage_service_uuid);
 
     json[Collection::ODATA_COUNT] = static_cast<std::uint32_t>(keys.size());
     for (const auto& key : keys) {
-        json::Value link(json::Value::Type::OBJECT);
+        json::Json link(json::Json::value_t::object);
         link[Common::ODATA_ID] = PathBuilder(request).append(key).build();
         json[Collection::MEMBERS].push_back(std::move(link));
     }
@@ -173,19 +186,26 @@ void VolumeCollection::get(const server::Request& request, server::Response& res
     set_response(response, json);
 }
 
+
 void VolumeCollection::post(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PostVolumeCollection";
     auto json = JsonValidator::validate_request_body<schema::VolumePostSchema>(request);
 
     auto parent_service =
-        psme::rest::model::Find<agent_framework::model::StorageService>(request.params[PathParam::SERVICE_ID]).get();
+        psme::rest::model::find<agent_framework::model::StorageService>(request.params).get();
+
+    auto identifiers = json.value(Common::IDENTIFIERS, json::Json::array());
 
     agent_framework::model::requests::AddVolume add_volume_request{
         enums::VolumeType::RawDevice,
-        json[Swordfish::CAPACITY_BYTES].as_int64(),
-        ::read_capacity_sources(json[Swordfish::CAPACITY_SOURCES]),
-        ::read_access_capabilities(json[Swordfish::ACCESS_CAPABILITIES]),
-        json[Common::OEM][Common::RACKSCALE][Swordfish::BOOTABLE],
-        ::read_replica_infos(json[Swordfish::REPLICA_INFOS])
+        ::get_identifiers(identifiers),
+        json[Swordfish::CAPACITY_BYTES].get<std::int64_t>(),
+        ::read_capacity_sources(json),
+        ::read_access_capabilities(json),
+        json.value(Common::OEM, json::Json::object())
+            .value(Common::RACKSCALE, json::Json::object())
+            .value(Swordfish::BOOTABLE, OptionalField<bool>()),
+        ::read_replica_infos(json)
     };
 
     auto agent_id = parent_service.get_agent_id();
@@ -210,9 +230,12 @@ void VolumeCollection::post(const server::Request& request, server::Response& re
 
         /* Reload Storage Service resource (on task completion) */
         auto completion_notifier = [agent_id, parent_service](const Uuid& task_uuid) {
-            auto task = agent_framework::module::get_manager<agent_framework::model::Task>().get_entry_reference(task_uuid);
-            if (task->get_state() == agent_framework::model::enums::TaskState::Completed) {
-                task->set_messages(task_service_utils::build_created_message());
+            {
+                auto task = agent_framework::module::get_manager<agent_framework::model::Task>()
+                    .get_entry_reference(task_uuid);
+                if (task->get_state() == agent_framework::model::enums::TaskState::Completed) {
+                    task->set_messages(task_service_utils::build_created_message());
+                }
             }
 
             handler::HandlerManager::get_instance()->
@@ -236,7 +259,8 @@ void VolumeCollection::post(const server::Request& request, server::Response& re
             auto created_volume_id = agent_framework::module::get_manager<Volume>()
                 .get_entry(add_volume_response.get_volume()).get_id();
 
-            endpoint::utils::set_location_header(request, response, PathBuilder(request).append(created_volume_id).build());
+            endpoint::utils::set_location_header(request, response,
+                                                 PathBuilder(request).append(created_volume_id).build());
             response.set_status(server::status_2XX::CREATED);
         }
         else {
@@ -247,8 +271,10 @@ void VolumeCollection::post(const server::Request& request, server::Response& re
             task_handler->load(gami_agent, {}, agent_framework::model::enums::Component::Task, task_uuid, false);
 
             MonitorContentBuilder::get_instance()->add_builder(task_uuid, response_renderer);
-            agent_framework::module::get_manager<agent_framework::model::Task>().get_entry_reference(task_uuid)->
-                add_completion_notifier(std::bind(completion_notifier, task_uuid));
+            {
+                agent_framework::module::get_manager<agent_framework::model::Task>()
+                    .get_entry_reference(task_uuid)->add_completion_notifier(std::bind(completion_notifier, task_uuid));
+            }
 
             auto task_monitor_url =
                 PathBuilder(utils::get_component_url(agent_framework::model::enums::Component::Task, task_uuid))
@@ -260,5 +286,5 @@ void VolumeCollection::post(const server::Request& request, server::Response& re
         }
     };
 
-    gami_agent->execute_in_transaction(add_volume);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, add_volume);
 }

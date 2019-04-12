@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of discovery manager.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file discovery_manager.cpp
  */
 
@@ -36,6 +34,8 @@
 // system includes
 #include <memory>
 
+
+
 using namespace agent::nvme;
 using namespace agent::nvme::loader;
 using namespace agent::nvme::discovery;
@@ -51,7 +51,8 @@ using namespace agent_framework::generic;
 using namespace std;
 
 namespace {
-    static const string GUID_PATH = "/sys/class/dmi/id/product_uuid";
+static const string GUID_PATH = "/sys/class/dmi/id/product_uuid";
+
 
 Uuid create_manager() {
     NvmeStabilizer ns{};
@@ -67,11 +68,12 @@ Uuid create_manager() {
     return manager.get_uuid();
 }
 
+
 Uuid create_fabric(const Uuid& uuid) {
     NvmeStabilizer ns{};
     Fabric fabric{uuid};
     fabric.set_status({enums::State::Enabled, enums::Health::OK});
-    fabric.set_protocol(enums::StorageProtocol::NVMeOverFabrics);
+    fabric.set_protocol(enums::TransportProtocol::NVMeOverFabrics);
     fabric.add_collection({CollectionName::Endpoints, CollectionType::Endpoints});
     fabric.add_collection({CollectionName::Zones, CollectionType::Zones});
     ns.stabilize(fabric);
@@ -79,12 +81,13 @@ Uuid create_fabric(const Uuid& uuid) {
     return fabric.get_uuid();
 }
 
+
 Uuid create_chassis(const Uuid& manager_uuid) {
     /* add chassis */
     NvmeStabilizer ns{};
     Chassis chassis_model{manager_uuid};
-    chassis_model.set_type(enums::ChassisType::Module);
-    chassis_model.set_status(attribute::Status(true));
+    chassis_model.set_type(enums::ChassisType::Enclosure);
+    chassis_model.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     chassis_model.set_location_offset(NvmeConfig::get_instance()->get_location_offset());
     chassis_model.set_parent_id(NvmeConfig::get_instance()->get_parent_id());
     chassis_model.add_collection({CollectionName::Drives, CollectionType::Drives});
@@ -94,6 +97,7 @@ Uuid create_chassis(const Uuid& manager_uuid) {
     get_manager<Chassis>().add_entry(chassis_model);
     return chassis_model.get_uuid();
 }
+
 
 Uuid create_system(const Uuid& manager_uuid, const Uuid& chassis_uuid) {
     NvmeStabilizer ns{};
@@ -118,7 +122,10 @@ Uuid create_system(const Uuid& manager_uuid, const Uuid& chassis_uuid) {
 } // namespace
 
 DiscoveryManager::DiscoveryManager() {}
+
+
 DiscoveryManager::~DiscoveryManager() {}
+
 
 Uuid DiscoveryManager::discover(std::shared_ptr<NvmeAgentContext> context) {
     /* start discovery */
@@ -126,19 +133,12 @@ Uuid DiscoveryManager::discover(std::shared_ptr<NvmeAgentContext> context) {
     Uuid chassis_uuid = ::create_chassis(manager_uuid);
     Uuid system_uuid = ::create_system(manager_uuid, chassis_uuid);
     auto fabric_uuid = ::create_fabric(manager_uuid);
-    unique_ptr<DiscoveryWorker> dw{};
     EndpointReader er{};
     EndpointCreator ec{};
+    DiscoveryTarget dt{context, er, ec};
 
-    if (NvmeConfig::get_instance()->get_is_target()) {
-        dw.reset(new DiscoveryTarget(context, er, ec));
-        log_info("nvme-agent", "Running target discovery");
-    }
-    else {
-        dw.reset(new DiscoveryInitiator());
-        log_info("nvme-agent", "Running initiator discovery");
-    }
-    dw->discover(manager_uuid, fabric_uuid);
+    log_info("nvme-agent", "Running target discovery");
+    dt.discover(manager_uuid, fabric_uuid);
 
     send_add_notifications_for_each<Manager>();
     return manager_uuid;

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ using namespace agent_framework::model;
 using namespace agent_framework::model::responses;
 
 json::Json Attach::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[literals::Attach::VERSION] = get_version();
     value[literals::Attach::IPV4_ADDRESS] = get_ipv4_address();
     value[literals::Attach::PORT] = get_port();

@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  *
  * @brief
  *
- * @header{Filesystem}
  * @file smbios_21_entry_point.cpp
  */
 
@@ -31,7 +29,7 @@ constexpr const char* _DMI_ = "_DMI_";
 }
 
 Smbios21EntryPoint::Smbios21EntryPoint(const std::uint8_t* buf, const size_t buf_size)
-    : m_entry_point(reinterpret_cast<const EntryPointStructure*>(buf)) {
+    : m_entry_point(reinterpret_cast<const EntryPointStructure*>(buf)), m_region_length(uint32_t(buf_size)) {
     if (nullptr == m_entry_point) {
         throw Exception("Invalid SMBIOS entry point");
     }
@@ -77,4 +75,12 @@ std::uint8_t Smbios21EntryPoint::get_revision() const {
 
 std::uint64_t Smbios21EntryPoint::get_struct_table_address() const {
     return m_entry_point->struct_table_address;
+}
+
+std::uint64_t Smbios21EntryPoint::get_struct_table_end_address() const {
+    return Smbios21EntryPoint::get_length();
+}
+
+std::uint32_t Smbios21EntryPoint::get_length() const {
+    return m_region_length;
 }

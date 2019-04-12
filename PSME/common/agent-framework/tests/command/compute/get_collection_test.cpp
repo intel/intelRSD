@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,8 +65,8 @@ TEST(GetCollectionTest, PositiveExecute) {
     MyGetCollection command{"TestModuleId", "TestName"};
     GetCollection::Request request{"", ""};
     GetCollection::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params["component"] = "TestModuleId";
     params["name"] = "TestName";
@@ -86,8 +86,8 @@ TEST(GetCollectionTest, NegativeModuleNotFound) {
     MyGetCollection command{"TestModuleId", "TestName"};
     GetCollection::Request request{"", ""};
     GetCollection::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params["component"] = "OtherTestModuleId";
     params["name"] = "TestName";
@@ -100,8 +100,8 @@ TEST(GetCollectionTest, NegativeNameNotFound) {
     MyGetCollection command{"TestModuleId", "TestName"};
     GetCollection::Request request{"", ""};
     GetCollection::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params["component"] = "TestModuleId";
     params["name"] = "OtherTestName";

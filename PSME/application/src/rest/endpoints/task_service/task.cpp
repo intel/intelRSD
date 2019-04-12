@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,19 +34,19 @@ using namespace psme::rest::error;
 
 namespace {
 
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[constants::Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Task.Task";
-    r[constants::Common::ODATA_ID] = json::Value::Type::NIL;
+    r[constants::Common::ODATA_ID] = json::Json::value_t::null;
     r[constants::Common::ODATA_TYPE] = "#Task.v1_0_0.Task";
-    r[constants::Common::ID] = json::Value::Type::NIL;
+    r[constants::Common::ID] = json::Json::value_t::null;
     r[constants::Common::NAME] = "Task";
     r[constants::Common::DESCRIPTION] = "Task description";
 
-    r[constants::Task::TASK_STATE] = json::Value::Type::NIL;
-    r[constants::Task::TASK_STATUS] = json::Value::Type::NIL;
-    r[constants::Task::MESSAGES] = json::Value::Type::ARRAY;
+    r[constants::Task::TASK_STATE] = json::Json::value_t::null;
+    r[constants::Task::TASK_STATUS] = json::Json::value_t::null;
+    r[constants::Task::MESSAGES] = json::Json::value_t::array;
 
     return r;
 }
@@ -75,8 +75,8 @@ endpoint::Task::~Task() {}
 
 
 void endpoint::Task::get(const server::Request& request, server::Response& response) {
-    json::Value r = make_prototype();
-    auto s = psme::rest::model::Find<agent_framework::model::Task>(request.params[constants::PathParam::TASK_ID]).get();
+    json::Json r = make_prototype();
+    auto s = psme::rest::model::find<agent_framework::model::Task>(request.params).get();
 
     r[constants::Common::ODATA_ID] = PathBuilder(request).build();
     r[constants::Common::ID] = request.params[constants::PathParam::TASK_ID];
@@ -94,13 +94,13 @@ void endpoint::Task::get(const server::Request& request, server::Response& respo
     r[constants::Task::TASK_STATUS] = s.get_status().get_health();
 
     for (const auto& message : s.get_messages()) {
-        json::Value p = json::Value::Type::OBJECT;
+        json::Json p = json::Json::value_t::object;
 
         p[constants::Common::ODATA_TYPE] = "#Message.v1_0_0.Message";
         p[constants::MessageObject::MESSAGE_ID] = message.get_message_id();
         p[constants::MessageObject::MESSAGE] = message.get_content();
-        p[constants::MessageObject::RELATED_PROPERTIES] = json::Value::Type::ARRAY;
-        p[constants::MessageObject::MESSAGE_ARGS] = json::Value::Type::ARRAY;
+        p[constants::MessageObject::RELATED_PROPERTIES] = json::Json::value_t::array;
+        p[constants::MessageObject::MESSAGE_ARGS] = json::Json::value_t::array;
         p[constants::MessageObject::SEVERITY] = message.get_severity();
         p[constants::MessageObject::RESOLUTION] = message.get_resolution();
 
@@ -120,8 +120,8 @@ void endpoint::Task::get(const server::Request& request, server::Response& respo
 
 
 void endpoint::Task::del(const server::Request& request, server::Response& response) {
-    const auto task = psme::rest::model::Find<agent_framework::model::Task>(
-        request.params[constants::PathParam::TASK_ID]).get();
+    const auto task = psme::rest::model::find<agent_framework::model::Task>(
+        request.params).get();
     const auto state = task.get_state();
 
     switch (state.value()) {

@@ -1,7 +1,7 @@
 /*!
  * @brief Definition of Network Device Function endpoint
  *
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file network_device_function.cpp
  */
 
@@ -25,7 +24,8 @@
 #include "psme/rest/validators/schemas/network_device_function.hpp"
 #include "agent-framework/module/requests/common.hpp"
 #include "agent-framework/module/responses/common.hpp"
-#include "agent-framework/module/utils/json_transformations.hpp"
+
+
 
 using namespace psme::rest;
 using namespace psme::rest::constants;
@@ -33,54 +33,53 @@ using namespace psme::rest::validators;
 using namespace agent_framework::module;
 namespace literals = agent_framework::model::literals;
 
-
-
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#NetworkDeviceFunction.NetworkDeviceFunction";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#NetworkDeviceFunction.v1_0_0.NetworkDeviceFunction";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Network Device Function";
     r[Common::DESCRIPTION] = "Network Device Function";
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::DEVICE_ENABLED] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ETHERNET][Common::MAC_ADDRESS] = json::Value::Type::NIL;
-    r[Common::LINKS] = json::Value::Type::OBJECT;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::IP_ADDRESS_TYPE] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::INITIATOR_IP_ADDRESS] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::INITIATOR_NAME] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::INITIATOR_DEFAULT_GATEWAY] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::INITIATOR_NETMASK] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::TARGET_INFO_VIA_DHCP] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::PRIMARY_TARGET_NAME] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::PRIMARY_TARGET_IP_ADDRESS] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::PRIMARY_TARGET_TCP_PORT] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::PRIMARY_LUN] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::PRIMARY_VLAN_ENABLE] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::PRIMARY_VLAN_ID] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::PRIMARY_DNS] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::SECONDARY_TARGET_NAME] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::SECONDARY_TARGET_IP_ADDRESS] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::SECONDARY_TARGET_TCP_PORT] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::SECONDARY_LUN] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::SECONDARY_VLAN_ENABLE] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::SECONDARY_VLAN_ID] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::SECONDARY_DNS] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::IP_MASK_DNS_VIA_DHCP] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::ROUTER_ADVERTISEMENT_ENABLED] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::AUTHENTICATION_METHOD] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::CHAP_USERNAME] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::CHAP_SECRET] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::MUTUAL_CHAP_USERNAME] = json::Value::Type::NIL;
-    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::MUTUAL_CHAP_SECRET] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::DEVICE_ENABLED] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ETHERNET][Common::MAC_ADDRESS] = json::Json::value_t::null;
+    r[Common::LINKS] = json::Json::value_t::object;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::IP_ADDRESS_TYPE] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::INITIATOR_IP_ADDRESS] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::INITIATOR_NAME] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::INITIATOR_DEFAULT_GATEWAY] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::INITIATOR_NETMASK] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::TARGET_INFO_VIA_DHCP] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::PRIMARY_TARGET_NAME] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::PRIMARY_TARGET_IP_ADDRESS] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::PRIMARY_TARGET_TCP_PORT] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::PRIMARY_LUN] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::PRIMARY_VLAN_ENABLE] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::PRIMARY_VLAN_ID] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::PRIMARY_DNS] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::SECONDARY_TARGET_NAME] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::SECONDARY_TARGET_IP_ADDRESS] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::SECONDARY_TARGET_TCP_PORT] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::SECONDARY_LUN] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::SECONDARY_VLAN_ENABLE] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::SECONDARY_VLAN_ID] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::SECONDARY_DNS] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::IP_MASK_DNS_VIA_DHCP] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::ROUTER_ADVERTISEMENT_ENABLED] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::AUTHENTICATION_METHOD] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::CHAP_USERNAME] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::CHAP_SECRET] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::MUTUAL_CHAP_USERNAME] = json::Json::value_t::null;
+    r[NetworkDeviceFunction::ISCSI_BOOT][NetworkDeviceFunction::MUTUAL_CHAP_SECRET] = json::Json::value_t::null;
 
     return r;
 }
+
 
 static const std::map<std::string, std::string> gami_to_rest_attributes = {
     {endpoint::PathBuilder(literals::NetworkDeviceFunction::ETHERNET).append(literals::NetworkDeviceFunction::MAC_ADDRESS).build(),
@@ -139,27 +138,23 @@ static const std::map<std::string, std::string> gami_to_rest_attributes = {
         endpoint::PathBuilder(NetworkDeviceFunction::ISCSI_BOOT).append(NetworkDeviceFunction::MUTUAL_CHAP_SECRET).build()}
 };
 
-agent_framework::model::attribute::Attributes fill_attributes(const json::Value& json) {
+
+agent_framework::model::attribute::Attributes fill_attributes(const json::Json& json) {
     agent_framework::model::attribute::Attributes attributes{};
-    if (json.is_member(NetworkDeviceFunction::ETHERNET) &&
-        json[NetworkDeviceFunction::ETHERNET].is_member(Common::MAC_ADDRESS)) {
+    if (json.count(NetworkDeviceFunction::ETHERNET) &&
+        json[NetworkDeviceFunction::ETHERNET].count(Common::MAC_ADDRESS)) {
         json::Json ethernet = json::Json::object();
-        if (json[NetworkDeviceFunction::ETHERNET][Common::MAC_ADDRESS].is_null()) {
-            ethernet[literals::NetworkDeviceFunction::MAC_ADDRESS] = json::Json{};
-        } else {
-            ethernet[literals::NetworkDeviceFunction::MAC_ADDRESS] = json[NetworkDeviceFunction::ETHERNET][Common::MAC_ADDRESS].as_string();
-        }
+        ethernet[literals::NetworkDeviceFunction::MAC_ADDRESS] = json[NetworkDeviceFunction::ETHERNET][Common::MAC_ADDRESS];
         attributes.set_value(literals::NetworkDeviceFunction::ETHERNET, ethernet);
     }
-    if (json.is_member(NetworkDeviceFunction::ISCSI_BOOT)) {
+    if (json.count(NetworkDeviceFunction::ISCSI_BOOT)) {
 
         json::Json gami_iscsi_boot = json::Json::object();
-        const json::Value& rest_iscsi_boot = json[NetworkDeviceFunction::ISCSI_BOOT];
+        const json::Json& rest_iscsi_boot = json[NetworkDeviceFunction::ISCSI_BOOT];
 
         auto set_property = [&] (const char* rest_literal, const char* gami_literal) {
-            if (rest_iscsi_boot.is_member(rest_literal)) {
-                gami_iscsi_boot[gami_literal] =
-                    agent_framework::model::utils::to_json_rpc(rest_iscsi_boot[rest_literal]);
+            if (rest_iscsi_boot.count(rest_literal)) {
+                gami_iscsi_boot[gami_literal] = rest_iscsi_boot[rest_literal];
             }
         };
 
@@ -197,91 +192,94 @@ agent_framework::model::attribute::Attributes fill_attributes(const json::Value&
 }
 }
 
+
 endpoint::NetworkDeviceFunction::NetworkDeviceFunction(const std::string& path) : EndpointBase(path) {}
+
+
 endpoint::NetworkDeviceFunction::~NetworkDeviceFunction() {}
+
 
 void endpoint::NetworkDeviceFunction::get(const server::Request& req, server::Response& res) {
     auto json = make_prototype();
 
-    auto function = psme::rest::model::Find<agent_framework::model::NetworkDeviceFunction>(
-            req.params[PathParam::NETWORK_DEVICE_FUNCTION_ID]).
-            via<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID]).
-            via<agent_framework::model::NetworkDevice>(req.params[PathParam::NETWORK_INTERFACE_ID]).get();
+    auto function = psme::rest::model::find<agent_framework::model::System, agent_framework::model::NetworkDevice, agent_framework::model::NetworkDeviceFunction>(
+        req.params).get();
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
     json[constants::Common::ID] = req.params[PathParam::NETWORK_DEVICE_FUNCTION_ID];
-    endpoint::status_to_json(function,json);
+    endpoint::status_to_json(function, json);
 
     json[constants::NetworkDeviceFunction::DEVICE_ENABLED] = function.get_device_enabled();
     json[constants::NetworkDeviceFunction::ETHERNET][Common::MAC_ADDRESS] = function.get_mac_address();
-    json[Common::LINKS] = json::Value::Type::OBJECT;
+    json[Common::LINKS] = json::Json::value_t::object;
 
     const auto& iscsi_boot = function.get_iscsi_boot();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::IP_ADDRESS_TYPE] =
-            iscsi_boot.get_ip_address_type().to_string();
+        iscsi_boot.get_ip_address_type().to_string();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::INITIATOR_IP_ADDRESS] =
-            iscsi_boot.get_initiator_address();
+        iscsi_boot.get_initiator_address();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::INITIATOR_NAME] =
-            iscsi_boot.get_initiator_name();
+        iscsi_boot.get_initiator_name();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::INITIATOR_DEFAULT_GATEWAY] =
-            iscsi_boot.get_initiator_default_gateway();
+        iscsi_boot.get_initiator_default_gateway();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::INITIATOR_NETMASK] =
-            iscsi_boot.get_initiator_netmask();
+        iscsi_boot.get_initiator_netmask();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::TARGET_INFO_VIA_DHCP] =
-            iscsi_boot.get_target_info_via_dhcp();
+        iscsi_boot.get_target_info_via_dhcp();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::PRIMARY_TARGET_NAME] =
-            iscsi_boot.get_primary_target_name();
+        iscsi_boot.get_primary_target_name();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::PRIMARY_TARGET_IP_ADDRESS] =
-            iscsi_boot.get_primary_target_address();
+        iscsi_boot.get_primary_target_address();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::PRIMARY_TARGET_TCP_PORT] =
-            iscsi_boot.get_primary_target_port();
+        iscsi_boot.get_primary_target_port();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::PRIMARY_LUN] =
-            iscsi_boot.get_primary_lun();
+        iscsi_boot.get_primary_lun();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::PRIMARY_VLAN_ENABLE] =
-            iscsi_boot.get_primary_vlan_enable();
+        iscsi_boot.get_primary_vlan_enable();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::PRIMARY_VLAN_ID] =
-            iscsi_boot.get_primary_vlan_id();
+        iscsi_boot.get_primary_vlan_id();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::PRIMARY_DNS] =
-            iscsi_boot.get_primary_dns();
+        iscsi_boot.get_primary_dns();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::SECONDARY_TARGET_NAME] =
-            iscsi_boot.get_secondary_target_name();
+        iscsi_boot.get_secondary_target_name();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::SECONDARY_TARGET_IP_ADDRESS] =
-            iscsi_boot.get_secondary_target_address();
+        iscsi_boot.get_secondary_target_address();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::SECONDARY_TARGET_TCP_PORT] =
-            iscsi_boot.get_secondary_target_port();
+        iscsi_boot.get_secondary_target_port();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::SECONDARY_LUN] =
-            iscsi_boot.get_secondary_lun();
+        iscsi_boot.get_secondary_lun();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::SECONDARY_VLAN_ENABLE] =
-            iscsi_boot.get_secondary_vlan_enable();
+        iscsi_boot.get_secondary_vlan_enable();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::SECONDARY_VLAN_ID] =
-            iscsi_boot.get_secondary_vlan_id();
+        iscsi_boot.get_secondary_vlan_id();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::SECONDARY_DNS] =
-            iscsi_boot.get_secondary_dns();
+        iscsi_boot.get_secondary_dns();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::IP_MASK_DNS_VIA_DHCP] =
-            iscsi_boot.get_ip_mask_dns_via_dhcp();
+        iscsi_boot.get_ip_mask_dns_via_dhcp();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::ROUTER_ADVERTISEMENT_ENABLED] =
-            iscsi_boot.get_router_advertisement_enabled();
+        iscsi_boot.get_router_advertisement_enabled();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::AUTHENTICATION_METHOD] =
-            iscsi_boot.get_authentication_method().to_string();
+        iscsi_boot.get_authentication_method().to_string();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::CHAP_USERNAME] =
-            iscsi_boot.get_chap_username();
+        iscsi_boot.get_chap_username();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::CHAP_SECRET] =
-            iscsi_boot.get_chap_secret();
+        iscsi_boot.get_chap_secret();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::MUTUAL_CHAP_USERNAME] =
-            iscsi_boot.get_mutual_chap_username();
+        iscsi_boot.get_mutual_chap_username();
     json[constants::NetworkDeviceFunction::ISCSI_BOOT][constants::NetworkDeviceFunction::MUTUAL_CHAP_SECRET] =
-            iscsi_boot.get_mutual_chap_secret();
+        iscsi_boot.get_mutual_chap_secret();
 
     set_response(res, json);
 }
 
+
 void endpoint::NetworkDeviceFunction::patch(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PatchNetworkDeviceFunction";
+
     const auto& json = JsonValidator::validate_request_body<schema::NetworkDeviceFunctionPatchSchema>(request);
-    auto function = psme::rest::model::Find<agent_framework::model::NetworkDeviceFunction>(
-        request.params[PathParam::NETWORK_DEVICE_FUNCTION_ID]).
-        via<agent_framework::model::System>(request.params[PathParam::SYSTEM_ID]).
-        via<agent_framework::model::NetworkDevice>(request.params[PathParam::NETWORK_INTERFACE_ID]).get();
+    auto function = psme::rest::model::find<agent_framework::model::System, agent_framework::model::NetworkDevice, agent_framework::model::NetworkDeviceFunction>(
+        request.params).get();
 
     auto gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(function.get_agent_id());
     agent_framework::model::attribute::Attributes attributes = fill_attributes(json);
@@ -291,7 +289,8 @@ void endpoint::NetworkDeviceFunction::patch(const server::Request& request, serv
             const auto& set_component_attributes_request =
                 agent_framework::model::requests::SetComponentAttributes{function.get_uuid(), attributes};
             const auto& set_component_attributes_response =
-                gami_agent->execute<agent_framework::model::responses::SetComponentAttributes>(set_component_attributes_request);
+                gami_agent->execute<agent_framework::model::responses::SetComponentAttributes>(
+                    set_component_attributes_request);
 
             const auto& result_statuses = set_component_attributes_response.get_statuses();
             if (!result_statuses.empty()) {
@@ -310,7 +309,7 @@ void endpoint::NetworkDeviceFunction::patch(const server::Request& request, serv
         }
     };
 
-    gami_agent->execute_in_transaction(patch_function);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, patch_function);
 
     get(request, response);
 }

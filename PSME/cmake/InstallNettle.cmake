@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 function(install_nettle)
     include(ConfigurationPackage OPTIONAL)
-    assure_package(nettle 3.3 "https://ftp.gnu.org/gnu/nettle/nettle-3.3.tar.gz" "10f969f78a463704ae73529978148dbe")
+    assure_package(nettle 3.4.1 "https://ftp.gnu.org/gnu/nettle/nettle-3.4.1.tar.gz" "9bdebb0e2f638d3b9d91f7fc264b70c1")
 
     set(CONFIGURE_FLAGS)
 

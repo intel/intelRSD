@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ using namespace agent_framework::model;
 GetAclInfo::GetAclInfo(const std::string& acl): m_acl(acl) {}
 
 json::Json GetAclInfo::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Acl::ACL] = m_acl;
     return value;
 }

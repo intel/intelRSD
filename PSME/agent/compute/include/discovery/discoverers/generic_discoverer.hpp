@@ -1,8 +1,7 @@
 /*!
  * @brief Compute agent generic discoverer interface.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file generic_discoverer.hpp
  */
 
@@ -26,9 +24,11 @@
 #include "agent-framework/module/compute_components.hpp"
 #include "agent-framework/module/chassis_components.hpp"
 #include "smbios/smbios_parser.hpp"
+#include "acpi/acpi_parser.hpp"
 #include "iscsi/iscsi_mdr_parser.hpp"
 #include "ipmi/ipmi_controller.hpp"
 #include "ipmi/utils/sdv/mdr_region_accessor.hpp"
+#include "ipmi/command/generic/enums.hpp"
 
 #include <cstdint>
 #include <vector>
@@ -68,6 +68,15 @@ public:
      */
     void set_up_smbios_data(const std::vector<std::uint8_t>& smbios_data) {
         m_smbios_parser.reset(new smbios::parser::SmbiosParser(smbios_data.data(), smbios_data.size()));
+    }
+
+    /*!
+     * @brief Set up ACPI parser with correct data.
+     * @param acpi_data ACPI raw data blob.
+     */
+    void set_up_acpi_data(const std::vector<std::uint8_t>& acpi_data) {
+        bool auxiliary_string_present = false;
+        m_acpi_parser.reset(new acpi::parser::AcpiParser(acpi_data.data(), acpi_data.size(), auxiliary_string_present));
     }
 
     /*!
@@ -128,7 +137,7 @@ public:
      */
     virtual bool
     discover_pcie_devices(std::vector<agent_framework::model::PcieDevice>& devices,
-                          const std::string& parent_uuid, const std::string& chassis_uuid);
+                          const Uuid& parent_uuid, const Uuid& chassis_uuid);
 
     /*!
      * @brief Perform discovery of PcieFunction objects.
@@ -147,8 +156,7 @@ public:
      * @return True if discovery was successful, false otherwise.
      */
     virtual bool
-    discover_processors(std::vector<agent_framework::model::Processor>& processors,
-                        const std::string& parent_uuid);
+    discover_processors(std::vector<agent_framework::model::Processor>& processors, const Uuid& parent_uuid);
 
 
     /*!
@@ -158,8 +166,25 @@ public:
      * @return True if discovery was successful, false otherwise.
      */
     virtual bool
-    discover_memory(std::vector<agent_framework::model::Memory>& memories, const std::string& parent_uuid);
+    discover_memory(std::vector<agent_framework::model::Memory>& memories, const Uuid& parent_uuid);
 
+    /*!
+     * @brief Perform discovery of memory domain objects.
+     * @param memory_domains Empty vector of memory domain objects, filled by the method with discovered data.
+     * @param parent_uuid Parent UUID.
+     * @return True if discovery was successful, false otherwise.
+     */
+    virtual bool
+    discover_memory_domains(std::vector<agent_framework::model::MemoryDomain>& memory_domains, const Uuid& parent_uuid);
+
+    /*!
+     * @brief Perform discovery of memory chunks objects.
+     * @param memory_chunks Empty vector of memory chunks objects, filled by the method with discovered data.
+     * @param parent_uuid Parent UUID.
+     * @return True if discovery was successful, false otherwise.
+     */
+    virtual bool
+    discover_memory_chunks(std::vector<agent_framework::model::MemoryChunks>& memory_chunks, const Uuid& parent_uuid);
 
     /*!
      * @brief Perform discovery of storage subsystem.
@@ -176,7 +201,7 @@ public:
      * @return True if discovery was successful, false otherwise.
      */
     virtual bool
-    discover_drives(std::vector<agent_framework::model::Drive>& drives, const std::string& parent_uuid);
+    discover_drives(std::vector<agent_framework::model::Drive>& drives, const Uuid& parent_uuid);
 
 
     /*!
@@ -186,7 +211,7 @@ public:
      * @return True if discovery was successful, false otherwise.
      */
     virtual bool discover_network_interfaces(std::vector<agent_framework::model::NetworkInterface>& network_interfaces,
-                                             const std::string& parent_uuid);
+                                             const Uuid& parent_uuid);
 
 
     /*!
@@ -228,7 +253,7 @@ public:
      * @return True if discovery was successful, false otherwise.
      */
     virtual bool discover_trusted_modules(std::vector<agent_framework::model::TrustedModule>& trusted_modules,
-                                          const std::string& parent_uuid);
+                                          const Uuid& parent_uuid);
 
 
     /*!
@@ -264,6 +289,13 @@ protected:
         return m_iscsi_parser;
     }
 
+    /*!
+     * @brief Get ACPI parser object.
+     * @return ACPI parser object.
+     */
+    acpi::parser::AcpiParser::Ptr get_acpi_parser() {
+        return m_acpi_parser;
+    }
 
     /*!
      * @brief Get ipmi controller object.
@@ -295,6 +327,7 @@ private:
     ipmi::IpmiController& m_management_controller;
     ipmi::sdv::MdrRegionAccessorFactory::Ptr m_mdr_accessor_factory;
     smbios::parser::SmbiosParser::Ptr m_smbios_parser{};
+    acpi::parser::AcpiParser::Ptr m_acpi_parser{};
     iscsi::parser::IscsiMdrParser::Ptr m_iscsi_parser{};
 };
 
@@ -320,7 +353,7 @@ public:
      * @param mdr_accessor_factory MdrRegionAccessorFactory
      * @return Pointer to Discoverer for given platform.
      */
-    virtual GenericDiscoverer::Ptr create(std::uint32_t platform_id,
+    virtual GenericDiscoverer::Ptr create(ipmi::command::generic::BmcInterface,
                                           ipmi::IpmiController& ipmi_controller,
                                           ipmi::sdv::MdrRegionAccessorFactory::Ptr mdr_accessor_factory) const;
 };

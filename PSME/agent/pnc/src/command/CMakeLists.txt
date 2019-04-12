@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2016-2018 Intel Corporation
+# Copyright (c) 2016-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 #
 # </license_header>
 
-add_library(pnc-command OBJECT
+add_library(pnc-commands STATIC
     get_manager_info.cpp
     get_collection.cpp
     get_tasks_collection.cpp
@@ -45,6 +45,11 @@ add_library(pnc-command OBJECT
     get_metric_definition_info.cpp
     get_metric_definitions_collection.cpp
     get_metrics.cpp
+    get_processor_info.cpp
+    delete_drive.cpp)
+
+target_link_libraries(pnc-commands PRIVATE
+    agent-framework-discovery
 )
 
-set_psme_command_target_properties(pnc-command)
+set_psme_command_target_properties(pnc-commands)

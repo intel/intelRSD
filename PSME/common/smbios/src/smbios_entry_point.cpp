@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,7 @@ SmbiosEntryPoint::Exception::~Exception() {}
 
 
 SmbiosEntryPoint::Ptr SmbiosEntryPoint::create(const std::uint8_t* buf, const size_t buf_size) {
-    if (buf_size < EPS_REVISION_OFFSET) {
+    if (buf_size <= EPS_REVISION_OFFSET) {
         throw Exception("Entry Point Structure too small");
     }
     switch (buf[EPS_REVISION_OFFSET]) {
@@ -61,6 +61,22 @@ SmbiosEntryPoint::Ptr SmbiosEntryPoint::create(const std::uint8_t* buf, const si
             throw Exception("Unknown Entry Point Structure Version: "
                     + std::to_string(int(buf[EPS_REVISION_OFFSET])));
     }
+}
+
+std::uint64_t SmbiosEntryPoint::get_table_data_offset(const std::string&) const {
+    throw Exception("Method not implemented: get_table_data_offset()");
+}
+
+uint64_t SmbiosEntryPoint::get_table_data_end_offset(const std::string&) const {
+    throw Exception("Method not implemented: get_table_data_end_offset()");
+}
+
+void SmbiosEntryPoint::set_struct_table_address(std::uint64_t) {
+    throw Exception("Method not implemented: set_struct_table_address()");
+}
+
+void SmbiosEntryPoint::set_struct_table_end_address(uint64_t) {
+    throw Exception("Method not implemented: set_struct_table_end_address()");
 }
 
 }

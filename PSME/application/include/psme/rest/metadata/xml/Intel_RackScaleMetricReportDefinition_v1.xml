@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!---->
+<!--################################################################################       -->
+<!--# Redfish Schema:  MetricReportDefinition  v1.2.0-->
+<!--#                                                                                      -->
+<!--# For a detailed change log, see the README file contained in the DSP8010 bundle,      -->
+<!--# available at http://www.dmtf.org/standards/redfish                                   -->
+<!--# Copyright 2014-2016 Distributed Management Task Force, Inc. (DMTF).                  -->
+<!--# For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright -->
+<!--################################################################################       -->
+<!---->
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+
+  <edmx:Reference Uri="Org.OData.Core.V1.xml">
+    <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions_v1.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Org.OData.Measures.V1.xml">
+    <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Resource_v1.xml">
+    <edmx:Include Namespace="Resource"/>
+    <edmx:Include Namespace="Resource.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Schedule_v1.xml">
+    <edmx:Include Namespace="Schedule.v1_1_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Intel_RackScaleMetric_v1.xml">
+    <edmx:Include Namespace="Intel_RackScale.Metric.v1_0_0"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="Intel_RackScaleMetricReport_v1.xml">
+    <edmx:Include Namespace="Intel_RackScale.MetricReport.v1_0_0"/>
+  </edmx:Reference>
+
+  <edmx:DataServices>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Intel_RackScale.MetricReportDefinition">
+
+      <EntityType Name="MetricReportDefinition" BaseType="Resource.v1_0_0.Resource" Abstract="true">
+        <Annotation Term="OData.Description" String="A metric Value."/>
+        <Annotation Term="OData.LongDescription" String="Abstract metric Value."/>
+      </EntityType>
+
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Intel_RackScale.MetricReportDefinition.v1_0_0">
+
+      <EntityType Name="MetricReportDefinition" BaseType="Intel_RackScale.MetricReportDefinition.MetricReportDefinition">
+        <Annotation Term="OData.Description" String="A set of metrics that are collected periodically."/>
+        <Annotation Term="OData.LongDescription"
+                    String="This resource specifies a set of metrics that shall be collected into a metric report."/>
+        <Property Name="Schedule" Type="Schedule.v1_1_0.Schedule">
+          <Annotation Term="OData.Description" String="A schedule for collecting metric values."/>
+          <Annotation Term="OData.LongDescription"
+                      String="If present, A metric values collected starting at each scheduled interval and for the time specified by Duration. No more than Schedule.MaxOccurrences values shall be collected for this metric.  If not present, the corresponding metric values shall be collected when the related metric report is retrieved."/>
+        </Property>
+        <Property Name="MetricReportType" Type="Intel_RackScale.MetricReportDefinition.v1_0_0.MetricReportType">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The collection type for the corresponding metric values."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value shall specify the collection type for the corresponding metric values."/>
+        </Property>
+        <Property Name="CollectionTimeScope" Type="Intel_RackScale.MetricReportDefinition.v1_0_0.CollectionTimeScope">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Time scope for collecting the corresponding metric values."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value shall specify the time scope for collecting the corresponding metric values."/>
+        </Property>
+        <Property Name="ReportActions" Type="Collection(Intel_RackScale.MetricReportDefinition.v1_0_0.ReportActionEnum)"
+                  Nullable="false">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="This property specifies what action is perform when a metric  report is generated."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall specify the action to perform when the metric report is generated. When a metric report is generated, place the metric information in the resource specified by the MetricReport property.  The Volatile property will specify the behavior if MetricReport resource already exists."/>
+        </Property>
+        <Property Name="Volatile" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="Entries in the resulting metric value properties are reused on each scheduled interval."/>
+          <Annotation Term="OData.LongDescription"
+                      String="If the Volatile property is true, the value in the Metric report is overwritten with the latest value.  If the Volatile property is false, metric values are appended to the metric value collection.  Them metric value collection shall have no more than the value of the Schedule.MaxOccurrences property. A managememt application may establish a time series by retrieving the metric value collection and sorting them according to their TimeStamp."/>
+        </Property>
+        <Property Name="Status" Type="Resource.Status" Nullable="false"/>
+
+        <Property Name="Wildcards" Type="Collection(Intel_RackScale.MetricReportDefinition.v1_0_0.Wildcard)">
+          <Annotation Term="OData.Description"
+                      String="Wildcards used to replace values in MetricProperties array property."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The property shall contain an array of wildcards and their replacements strings, which are to appliced to the MetricProperties array property."/>
+        </Property>
+        <NavigationProperty Name="Metrics" Type="Collection(Intel_RackScale.Metric.v1_0_0.Metric)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="A collection of metrics to collect."/>
+          <Annotation Term="OData.LongDescription" String="The value shall be a collection of metrics to collect."/>
+        </NavigationProperty>
+
+        <Property Name="MetricProperties" Type="Collection(Edm.String)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description"
+                      String="A collection of URI that relates to the metric properties that will be included in the metric report."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall list the metric properties to include in the metric report. Each value may contain one or more Wildcard names enclosed in curly braces.  Wildcard value entries shall be substituted for each Wildcard name found.  If two or more wild names are found, the same Wildcard index is used for each in one substitution pass.  After substituting the WildCard values entries, each value shall be a URI for a property in a resource that matches a property to include in the metric report."/>
+          <Annotation Term="OData.IsURL"
+                      String="After processing Wildcard replacement values, each value shall resolve to an OData conformant URI to a property in an entity."/>
+        </Property>
+
+        <NavigationProperty Name="MetricReport" Type="Intel_RackScale.MetricReport.v1_0_0.MetricReport" Nullable="false"
+                            ContainsTarget="true">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="References the related MetricReport."/>
+          <Annotation Term="OData.LongDescription" String="References the related MetricReport."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </EntityType>
+      <ComplexType Name="Wildcard">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Name" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The name of Wildcard."/>
+          <Annotation Term="OData.LongDescription"
+                      String="This property shall contain a name for a Wildcard for a key."/>
+        </Property>
+        <Property Name="Keys" Type="Collection(Edm.String)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="An array of Key values to substitute for the wildcard."/>
+          <Annotation Term="OData.LongDescription"
+                      String="If the value is an empty string, then the server shall substitute every current key.  Each not empty key value shall be substituted for the wildcard."/>
+        </Property>
+      </ComplexType>
+
+      <EnumType Name="CollectionTimeScope">
+        <Annotation Term="OData.Description" String="The time scope of the related metric values."/>
+        <Annotation Term="OData.LongDescription"
+                    String="The time scope of the corresponding metric values. If not present, the time scope was not qualified by the metric designer, or is unknown to the provider."/>
+        <Member Name="Point">
+          <Annotation Term="OData.Description"
+                      String="The corresponding metric values apply to a point in time. On the corresponding metric value instances, TimeStamp shall specify the point in time and Duration shall not be present."/>
+        </Member>
+        <Member Name="Interval">
+          <Annotation Term="OData.Description"
+                      String="The corresponding metric values apply to a time interval. On the corresponding metric value instances, TimeStamp shall specify the end of the time interval and Duration shall specify its duration."/>
+        </Member>
+        <Member Name="StartupInterval">
+          <Annotation Term="OData.Description"
+                      String="The corresponding metric values apply to a time interval that began at the startup of the measured resource (i.e. the Resources associated by Links.MetricDefinitionForResources). On the corresponding metric value instances, TimeStamp shall specify the end of the time interval. If Duration is not present the startup time of the measured resource is unknown. Otherwise, Duration shall specifies the duration between startup of the resource and TimeStamp."/>
+        </Member>
+      </EnumType>
+      <EnumType Name="MetricReportType">
+        <Annotation Term="OData.Description"
+                    String="Indicates when the corresponding metric values are collected by the underlying instrumentation."/>
+        <Annotation Term="OData.LongDescription"
+                    String="The value shall specify when the corresponding metric values are collected by the underlying instrumentation. If not present, the GatheringType is not known."/>
+        <Member Name="OnChange">
+          <Annotation Term="OData.Description"
+                      String="The corresponding metric values shall be updated immediately when the values inside of the measured resource change. The values of OnChange metrics shall reflect the current situation within the resource at any time. An example is the number of logged on users that gets updated immediately as users log on and off."/>
+        </Member>
+        <Member Name="Periodic">
+          <Annotation Term="OData.Description"
+                      String="The corresponding metric values shall be updated periodically. For instance, to a client application, a metric value applying to the current time will appear constant during each scheduled collection interval, and then jumps to the new value at the end of each collection interval."/>
+        </Member>
+        <Member Name="OnRequest">
+          <Annotation Term="OData.Description"
+                      String="The corresponding metric values shall be update each time a client application reads it. The values shall return the current situation within the resource when requeste, however they shall not change unless specifically requested.  For that reason, subscribing for value changes of OnRequest metrics is NOT RECOMMENDED."/>
+        </Member>
+      </EnumType>
+
+      <EnumType Name="ReportActionEnum">
+        <Member Name="Log">
+          <Annotation Term="OData.Description" String="Upon a trigger, record in a log."/>
+        </Member>
+        <Member Name="Transmit">
+          <Annotation Term="OData.Description" String="Upon a trigger send an Alert event."/>
+        </Member>
+      </EnumType>
+
+
+    </Schema>
+
+  </edmx:DataServices>
+</edmx:Edmx>

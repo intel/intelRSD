@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of Nvme Key Generator tests.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file nvme_key_generator_test.cpp
  */
 
@@ -26,11 +24,13 @@
 #include <string>
 #include <algorithm>
 
+
+
 using namespace agent::nvme;
 using namespace agent::nvme::loader;
 using namespace agent_framework::model;
 
-class NvmeKeyGeneratorTest: public ::testing::Test {
+class NvmeKeyGeneratorTest : public ::testing::Test {
 protected:
     NvmeKeyGenerator nkg{};
     const std::string UUID1{"4083549a-49a9-55b8-9269-11567a5e6305"};
@@ -38,14 +38,18 @@ protected:
 public:
     void SetUp() override;
 
+
     virtual ~NvmeKeyGeneratorTest();
 };
 
-NvmeKeyGeneratorTest::~NvmeKeyGeneratorTest() { }
+
+NvmeKeyGeneratorTest::~NvmeKeyGeneratorTest() {}
+
 
 void NvmeKeyGeneratorTest::SetUp() {
     nkg.set_agent_id("nvme_unit_tests");
 }
+
 
 TEST_F(NvmeKeyGeneratorTest, ManagerTest1) {
     Manager manager1{}, manager2{};
@@ -54,6 +58,7 @@ TEST_F(NvmeKeyGeneratorTest, ManagerTest1) {
     ASSERT_EQ(nkg.generate_key(manager1), nkg.generate_key(manager2));
 }
 
+
 TEST_F(NvmeKeyGeneratorTest, ManagerTest2) {
     Manager manager1{}, manager2{};
     manager1.set_ipv4_address("192.168.0.1");
@@ -61,10 +66,12 @@ TEST_F(NvmeKeyGeneratorTest, ManagerTest2) {
     ASSERT_NE(nkg.generate_key(manager1), nkg.generate_key(manager2));
 }
 
+
 TEST_F(NvmeKeyGeneratorTest, ChassisTest1) {
     Chassis chassis1{}, chassis2{};
     ASSERT_EQ(nkg.generate_key(chassis1), nkg.generate_key(chassis2));
 }
+
 
 TEST_F(NvmeKeyGeneratorTest, ChassisTest2) {
     Chassis chassis1{}, chassis2{};
@@ -74,10 +81,12 @@ TEST_F(NvmeKeyGeneratorTest, ChassisTest2) {
     ASSERT_NE(key1, key2);
 }
 
+
 TEST_F(NvmeKeyGeneratorTest, FabricTest1) {
     Fabric fabric1{}, fabric2{};
     ASSERT_EQ(nkg.generate_key(fabric1), nkg.generate_key(fabric2));
 }
+
 
 TEST_F(NvmeKeyGeneratorTest, FabricTest2) {
     Fabric fabric1{}, fabric2{};
@@ -88,10 +97,12 @@ TEST_F(NvmeKeyGeneratorTest, FabricTest2) {
     ASSERT_NE(key1, key2);
 }
 
+
 TEST_F(NvmeKeyGeneratorTest, SystemTest1) {
     System system1{}, system2{};
     ASSERT_EQ(nkg.generate_key(system1), nkg.generate_key(system2));
 }
+
 
 TEST_F(NvmeKeyGeneratorTest, SystemTest2) {
     System system1{}, system2{};
@@ -102,10 +113,12 @@ TEST_F(NvmeKeyGeneratorTest, SystemTest2) {
     ASSERT_NE(key1, key2);
 }
 
+
 TEST_F(NvmeKeyGeneratorTest, StorageServiceTest1) {
     StorageService ss1{}, ss2{};
     ASSERT_EQ(nkg.generate_key(ss1), nkg.generate_key(ss2));
 }
+
 
 TEST_F(NvmeKeyGeneratorTest, StorageServiceTest2) {
     StorageService ss1{}, ss2{};
@@ -116,12 +129,14 @@ TEST_F(NvmeKeyGeneratorTest, StorageServiceTest2) {
     ASSERT_NE(key1, key2);
 }
 
+
 TEST_F(NvmeKeyGeneratorTest, NetworkInterfaceTest1) {
     NetworkInterface ni1{}, ni2{};
     ni1.set_mac_address("aa:bb:cc:dd:ee:ff");
     ni2.set_mac_address("aa:bb:cc:dd:ee:ff");
     ASSERT_EQ(nkg.generate_key(ni1), nkg.generate_key(ni2));
 }
+
 
 TEST_F(NvmeKeyGeneratorTest, NetworkInterfaceTest2) {
     NetworkInterface ni1{}, ni2{};
@@ -130,47 +145,54 @@ TEST_F(NvmeKeyGeneratorTest, NetworkInterfaceTest2) {
     ASSERT_NE(nkg.generate_key(ni1), nkg.generate_key(ni2));
 }
 
+
 TEST_F(NvmeKeyGeneratorTest, DriveTest1) {
     Drive d1{}, d2{};
-    d1.add_identifier({"/dev/nvme31", enums::IdentifierType::SystemPath});
-    d2.add_identifier({"/dev/nvme31", enums::IdentifierType::SystemPath});
+    d1.set_name("nvme31");
+    d2.set_name("nvme31");
     ASSERT_EQ(nkg.generate_key(d1), nkg.generate_key(d2));
 }
 
+
 TEST_F(NvmeKeyGeneratorTest, DriveTest2) {
     Drive d1{}, d2{};
-    d1.add_identifier({"/dev/nvme31", enums::IdentifierType::SystemPath});
-    d2.add_identifier({"/dev/nvme33", enums::IdentifierType::SystemPath});
+    d1.set_name("nvme31");
+    d2.set_name("nvme33");
     ASSERT_NE(nkg.generate_key(d1), nkg.generate_key(d2));
 }
 
+
 TEST_F(NvmeKeyGeneratorTest, StoragePoolTest1) {
     StoragePool sp1{}, sp2{};
-    sp1.add_identifier({"/dev/nvme31", enums::IdentifierType::SystemPath});
-    sp2.add_identifier({"/dev/nvme31", enums::IdentifierType::SystemPath});
+    sp1.set_name("nvme31");
+    sp2.set_name("nvme31");
     ASSERT_EQ(nkg.generate_key(sp1), nkg.generate_key(sp2));
 }
 
+
 TEST_F(NvmeKeyGeneratorTest, StoragePoolTest2) {
     StoragePool sp1{}, sp2{};
-    sp1.add_identifier({"/dev/nvme31", enums::IdentifierType::SystemPath});
-    sp2.add_identifier({"/dev/nvme33", enums::IdentifierType::SystemPath});
+    sp1.set_name("nvme31");
+    sp2.set_name("nvme33");
     ASSERT_NE(nkg.generate_key(sp1), nkg.generate_key(sp2));
 }
 
+
 TEST_F(NvmeKeyGeneratorTest, VolumeTest1) {
     Volume v1{}, v2{};
-    v1.add_identifier({"/dev/nvme31", enums::IdentifierType::SystemPath});
-    v2.add_identifier({"/dev/nvme31", enums::IdentifierType::SystemPath});
+    v1.set_name("nvme31");
+    v2.set_name("nvme31");
     ASSERT_EQ(nkg.generate_key(v1), nkg.generate_key(v2));
 }
 
+
 TEST_F(NvmeKeyGeneratorTest, VolumeTest2) {
     Volume v1{}, v2{};
-    v1.add_identifier({"/dev/nvme31", enums::IdentifierType::SystemPath});
-    v2.add_identifier({"/dev/nvme33", enums::IdentifierType::SystemPath});
+    v1.set_name("nvme31");
+    v2.set_name("nvme33");
     ASSERT_NE(nkg.generate_key(v1), nkg.generate_key(v2));
 }
+
 
 TEST_F(NvmeKeyGeneratorTest, EndpointTestSameNqn) {
     Endpoint e1{}, e2{};
@@ -179,6 +201,7 @@ TEST_F(NvmeKeyGeneratorTest, EndpointTestSameNqn) {
     ASSERT_EQ(nkg.generate_key(e1), nkg.generate_key(e2));
 }
 
+
 TEST_F(NvmeKeyGeneratorTest, EndpointTestDifferentNqn) {
     Endpoint e1{}, e2{};
     e1.add_identifier({"nqnjlkjsdfoijoweirj", enums::IdentifierType::NQN});
@@ -186,10 +209,12 @@ TEST_F(NvmeKeyGeneratorTest, EndpointTestDifferentNqn) {
     ASSERT_NE(nkg.generate_key(e1), nkg.generate_key(e2));
 }
 
+
 TEST_F(NvmeKeyGeneratorTest, EndpointTestNoKey) {
     Endpoint e{};
     ASSERT_THROW(nkg.generate_key(e), agent_framework::KeyValueMissingError);
 }
+
 
 TEST_F(NvmeKeyGeneratorTest, EndpointTestSameNqnButDifferentRole) {
     Endpoint e1{}, e2{};

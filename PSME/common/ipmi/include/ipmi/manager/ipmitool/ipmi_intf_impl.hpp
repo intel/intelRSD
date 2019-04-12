@@ -4,8 +4,7 @@
  * Class directly uses ipmitool library by the means of its structs.
  * This is only wrapper to the library.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file ipmitool/ipmi_intf_impl.hpp
  */
 

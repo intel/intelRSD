@@ -1,8 +1,7 @@
 /*!
  * @brief Port metrics endpoint
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file port_metrics.cpp
  */
 
 #include "psme/rest/endpoints/fabric/port_metrics.hpp"
 
+
+
 using namespace psme::rest;
 using namespace psme::rest::constants;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#PortMetrics.PortMetrics";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#PortMetrics.v1_0_0.PortMetrics";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Port Metrics";
     r[Common::DESCRIPTION] = "Fabric Port Metrics";
 
-    r[constants::Common::HEALTH] = json::Value::Type::NIL;
+    r[constants::Common::HEALTH] = json::Json::value_t::null;
 
     return r;
 }
@@ -48,13 +48,13 @@ endpoint::PortMetrics::~PortMetrics() {}
 
 
 void endpoint::PortMetrics::get(const server::Request& request, server::Response& response) {
-    auto port_uuid = psme::rest::model::Find<agent_framework::model::Port>(request.params[PathParam::PORT_ID])
-        .via<agent_framework::model::Fabric>(request.params[PathParam::FABRIC_ID])
-        .via<agent_framework::model::Switch>(request.params[PathParam::SWITCH_ID]).get_uuid();
+    auto port_uuid = psme::rest::model::find<agent_framework::model::Fabric, agent_framework::model::Switch, agent_framework::model::Port>(
+        request.params).get_uuid();
 
     auto json = ::make_prototype();
     json[Common::ODATA_ID] = PathBuilder(request).build();
-    json[Common::ID] = "Port " + request.params[PathParam::PORT_ID] + " Metrics";
+    json[Common::ID] = constants::Common::METRICS;
+    json[Common::NAME] = "Port " + request.params[PathParam::PORT_ID] + " Metrics";
 
     utils::populate_metrics(json, port_uuid);
 

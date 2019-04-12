@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,8 @@
 
 
 
+#include "agent-framework/module/utils/optional_field.hpp"
+#include "agent-framework/module/utils/uuid.hpp"
 #include "gas/global_address_space_registers.hpp"
 #include "gas/mrpc/port_binding_info.hpp"
 #include "gas/mrpc/partition_binding_info.hpp"
@@ -59,7 +61,7 @@ public:
     GasTool& operator=(const GasTool&) { return *this; }
 
 
-    /*! Default desctructor */
+    /*! Default destructor */
     virtual ~GasTool();
 
 
@@ -96,11 +98,11 @@ public:
      * @brief Get partition binding info
      *
      * @param gas Global Address Space Registers reference
-     * @param zone_id id of the partition/zone on the pcie switch
+     * @param partition_id id of the partition/zone on the pcie switch
      * @return Partition binding info
      * */
     virtual gas::mrpc::PartitionBindingInfo get_partition_binding_info(
-        const gas::GlobalAddressSpaceRegisters& gas, uint8_t zone_id) const;
+        const gas::GlobalAddressSpaceRegisters& gas, uint8_t partition_id) const;
 
 
     /*!
@@ -204,23 +206,23 @@ public:
 
 
     /*!
-     * @brief Binds drive to the managament partition
+     * @brief Binds device to the managament partition
      * @param[in] mtool Model tool used to perform some operations
      * @param[in] gas GAS registers instance
-     * @param[in] drive_uuid Uuid of the drive to be bound
+     * @param[in] device_uuid Uuid of the device to be bound
      * */
-    virtual void bind_drive_to_mgmt_partition(ModelToolPtr mtool, gas::GlobalAddressSpaceRegisters& gas,
-                                              const std::string& drive_uuid) const;
+    virtual void bind_device_to_mgmt_partition(ModelToolPtr mtool, gas::GlobalAddressSpaceRegisters& gas,
+                                               const Uuid& device_uuid) const;
 
 
     /*!
-     * @brief Unbinds drive from the managament partition
+     * @brief Unbinds device from the managament partition
      * @param[in] mtool Model tool used to perform some operations
      * @param[in] gas GAS registers instance
-     * @param[in] drive_uuid Uuid of the drive to be bound
+     * @param[in] device_uuid Uuid of the device to be bound
      * */
-    virtual void unbind_drive_from_mgmt_partition(ModelToolPtr mtool, gas::GlobalAddressSpaceRegisters& gas,
-                                                  const std::string& drive_uuid) const;
+    virtual void unbind_device_from_mgmt_partition(ModelToolPtr mtool, gas::GlobalAddressSpaceRegisters& gas,
+                                                   const Uuid& device_uuid) const;
 
 
     /*!
@@ -239,6 +241,15 @@ public:
      * */
     virtual void check_port_binding_result(const gas::GlobalAddressSpaceRegisters& gas, uint8_t partition_id,
                                            uint8_t bridge_id) const;
+
+    /*!
+     * @brief Gets Partition ID for specified zone. Zone has to contain one Initiator Endpoint to return Partition ID.
+     * @param gas[in] GAS registers instance
+     * @param zone_uuid[in] UUID of Zone to get Partition ID for
+     * @return Partition ID associated with Zone if successful, empty OptionalField if fails (eg. if there is no Initiator Endpoint in the Zone).
+     */
+    virtual OptionalField<std::uint8_t> get_partition_id_by_zone(const agent::pnc::gas::GlobalAddressSpaceRegisters& gas, const Uuid& zone_uuid) const;
+
 };
 
 using GasToolPtr = std::shared_ptr<GasTool>;

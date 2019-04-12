@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,6 +96,7 @@ enum Cmd : std::uint8_t {
 enum class BootOverrideTarget : std::uint8_t {
     None,
     Hdd,
+    RemoteDrive,
     Pxe,
     Other
 };
@@ -198,6 +199,13 @@ enum ManufacturerId : std::uint32_t {
     MANUFACTURER_ID_QUANTA = 0x001C4C,
     MANUFACTURER_ID_LAST,
     MANUFACTURER_ID_UNKNOWN,
+};
+
+enum class BmcInterface : std::uint16_t {
+    RSA_1_2,
+    RSD_2_2,
+    RSD_2_4,
+    UNKNOWN,
 };
 
 }

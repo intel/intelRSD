@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -157,6 +157,19 @@ enum class MemoryTypeEnum : uint8_t {
 };
 
 /*!
+ * @brief Memory Device - Type Detail
+ */
+enum class MemoryTypeDetailEnum : uint16_t {
+    RESERVED = 0x01, // BIT0
+    OTHER = 0x02, // BIT1
+    UNKNOWN = 0x04, // BIT2
+    // ... several types
+    SYNCHRONOUS = 0x80, // BIT7
+    NON_VOLATILE = 0x1000, // BIT12
+    LRDIMM = 0x8000 // BIT15
+};
+
+/*!
  * @brief Memory Device
  *
  */
@@ -215,7 +228,7 @@ enum class MemoryDeviceExtendedType : uint8_t {
 enum class MemoryDeviceExtendedMedia : uint8_t {
     DRAM = 0x00,
     NAND = 0x01,
-    PROPRIETARY = 0x02
+    PROPRIETARY = 0x03
 };
 
 /*!

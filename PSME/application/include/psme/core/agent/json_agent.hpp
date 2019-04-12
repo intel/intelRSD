@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@
 #include "logger/logger_factory.hpp"
 
 #include <memory>
+#include <atomic>
 #include <mutex>
 
 /*! Forward declaration */
@@ -43,12 +44,13 @@ public:
     using FunctionType = std::function<void(void)>;
 
     static const unsigned REMOVE_AGENT_AFTER_SECONDS = 60;
+
     JsonAgent(const std::string& gami_id,
-              const std::string& ipv4address,
+              const std::string& ipv4_address,
               const int port);
 
     JsonAgent(const std::string& gami_id,
-              const std::string& ipv4address,
+              const std::string& ipv4_address,
               const int port,
               const std::string& version,
               const std::string& vendor,
@@ -96,9 +98,10 @@ public:
     /*!
      * Execute function within transaction guard
      *
-     * @param[in] function callable object
+     * @param[in] transaction_type String representing transaction type identifier, for example: "PatchSystem"
+     * @param[in] function Callable object
      * */
-    void execute_in_transaction(const FunctionType& function);
+    void execute_in_transaction(const std::string& transaction_type, const FunctionType& function);
 
     /*! @brief Destructor. */
     ~JsonAgent();
@@ -114,12 +117,12 @@ private:
     /*!
      * @brief Create connection URL from IPv4 address and port
      *
-     * @param ipv4address agent IPv4 address
+     * @param ipv4_address agent IPv4 address
      * @param port agent port
      *
-     * @return  Connection URL
+     * @return Connection URL
      */
-    std::string make_connection_url(const std::string& ipv4address, const int port) const;
+    std::string make_connection_url(const std::string& ipv4_address, const int port) const;
 
     std::experimental::optional<std::chrono::time_point<std::chrono::system_clock>> m_connection_error_observed_at{};
     json_rpc::AbstractClientConnectorPtr m_connector{};
@@ -127,6 +130,7 @@ private:
     RpcClient m_client;
     std::mutex m_single_request_mutex{};
     std::mutex m_transaction_mutex{};
+    std::atomic<std::uint64_t> m_transaction_id{};
 };
 
 using JsonAgentSPtr = std::shared_ptr<JsonAgent>;

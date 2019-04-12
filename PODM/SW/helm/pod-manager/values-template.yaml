@@ -1,0 +1,35 @@
+global:
+  registry: ''
+  registry_secret: ''
+  southbound_security:
+    enabled: false
+    manifest_verification:
+      enabled: false
+      trusted_certs_directory: 'trusted-certs'
+  #db user password (random, if not set)
+  #databasePassword:
+secretName: "pod-manager-secret"
+podm-gateway:
+  image:
+    tag: "{{ APP_VERSION }}"
+resource-manager:
+  image:
+    tag: "{{ APP_VERSION }}"
+service-registry:
+  image:
+    tag: "{{ APP_VERSION }}"
+service-detector:
+  image:
+    tag: "{{ APP_VERSION }}"
+node-composer:
+  applicationProperties:
+    discovery:
+      interval-seconds: 60
+  image:
+    tag: "{{ APP_VERSION }}"
+event-service:
+  image:
+    tag: "{{ APP_VERSION }}"
+aaa-service:
+  image:
+    tag: "{{ APP_VERSION }}"

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,8 +28,10 @@
 
 #include "agent-framework/module/requests/common.hpp"
 #include "agent-framework/module/requests/storage/add_volume.hpp"
+#include "agent-framework/module/requests/storage/add_storage_pool.hpp"
 #include "agent-framework/module/requests/storage/delete_volume.hpp"
 #include "agent-framework/module/requests/storage/get_storage_service_info.hpp"
 #include "agent-framework/module/requests/storage/get_storage_pool_info.hpp"
 #include "agent-framework/module/requests/storage/get_volume_info.hpp"
+#include "agent-framework/module/requests/storage/delete_storage_pool.hpp"
 

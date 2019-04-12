@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ UsbDevice::UsbDevice() { }
 UsbDevice::~UsbDevice() { }
 
 json::Json attribute::UsbDevice::to_json() const {
-    json::Json json;
+    json::Json json = json::Json();
     json[literals::UsbDevice::DEVICE_ID] = get_device_id();
     json[literals::UsbDevice::VENDOR_ID] = get_vendor_id();
     return json;

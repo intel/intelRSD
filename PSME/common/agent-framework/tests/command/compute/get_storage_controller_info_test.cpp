@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,8 +73,8 @@ TEST(GetStorageControllerInfoTest, PositiveExecute) {
     MyGetStorageControllerInfo command{"TestControllerId"};
     GetStorageControllerInfo::Request request{""};
     GetStorageControllerInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::StorageController::CONTROLLER] = "TestControllerId";
 
@@ -103,8 +103,8 @@ TEST(GetStorageControllerInfoTest, NegativeModuleNotFound) {
     MyGetStorageControllerInfo command{"TestControllerId"};
     GetStorageControllerInfo::Request request{""};
     GetStorageControllerInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::StorageController::CONTROLLER] = "OtherTestControllerId";
 

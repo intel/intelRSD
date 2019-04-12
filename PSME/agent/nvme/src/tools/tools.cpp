@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of Tools class.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file tools.cpp
  */
 
 #include "tools/tools.hpp"
-#include "tools/nvme_transport.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include "agent-framework/module/storage_components.hpp"
 
-#include <stdexcept>
-#include <algorithm>
+
 
 using namespace agent::nvme::tools;
 using namespace agent_framework::model;
@@ -42,6 +38,7 @@ static inline bool is_in_role(const Endpoint& endpoint, const enums::EntityRole&
     return false;
 }
 
+
 Uuid get_endpoint_uuid(const Uuid& volume_uuid) {
     for (const auto& endpoint : get_manager<Endpoint>().get_entries()) {
         for (const auto& entity : endpoint.get_connected_entities()) {
@@ -56,21 +53,26 @@ Uuid get_endpoint_uuid(const Uuid& volume_uuid) {
 
 }
 
+
 bool agent::nvme::tools::is_target(const Endpoint& endpoint) {
     return ::is_in_role(endpoint, enums::EntityRole::Target);
 }
+
 
 bool agent::nvme::tools::is_initiator(const Endpoint& endpoint) {
     return ::is_in_role(endpoint, enums::EntityRole::Initiator);
 }
 
+
 bool agent::nvme::tools::is_volume_in_endpoint(const Uuid& uuid) {
     return !get_endpoint_uuid(uuid).empty();
 }
 
-bool agent::nvme::tools::is_volume_in_endpoint(const agent_framework::model::Volume& volume) {
+
+bool agent::nvme::tools::is_volume_in_endpoint(const Volume& volume) {
     return is_volume_in_endpoint(volume.get_uuid());
 }
+
 
 bool agent::nvme::tools::is_volume_shared(const Uuid& uuid) {
     auto endpoint_uuid = get_endpoint_uuid(uuid);
@@ -96,9 +98,11 @@ bool agent::nvme::tools::is_volume_shared(const Uuid& uuid) {
     return false;
 }
 
-bool agent::nvme::tools::is_volume_shared(const agent_framework::model::Volume& volume) {
+
+bool agent::nvme::tools::is_volume_shared(const Volume& volume) {
     return is_volume_shared(volume.get_uuid());
 }
+
 
 void agent::nvme::tools::convert_to_subnqn(std::string& nqn) {
     // NQN format: nqn.2014-08.org.nvmexpress:uuid:ffffffff-ffff-ffff-ffff-ffffffffffff
@@ -115,54 +119,16 @@ void agent::nvme::tools::convert_to_subnqn(std::string& nqn) {
     }
 }
 
-void agent::nvme::tools::disconnect_from_target(const Endpoint& target) {
-    log_debug("nvme-agent", "Disconnecting from target " + target.get_uuid());
-    try {
-        NvmeTransport::disconnect(target);
-    }
-    catch (const std::exception& e) {
-        log_error("nvme-agent", std::string("Unable to disconnect from target '") + target.get_uuid() +
-                  "' with error: " + e.what());
-    }
-}
-
-void agent::nvme::tools::disconnect_all_targets(const Uuid& zone) {
-    for (const auto& endpoint : get_m2m_manager<Zone, Endpoint>().get_children(zone)) {
-        auto target = get_manager<Endpoint>().get_entry(endpoint);
-        if (is_target(target)) {
-            disconnect_from_target(target);
-        }
-    }
-}
-
-std::string agent::nvme::tools::get_drive_name(const StoragePool& pool) {
-    std::string drive_path{};
-    try {
-        drive_path = attribute::Identifier::get_system_path(pool);
-    }
-    catch (const std::logic_error&) {
-        THROW(exceptions::NvmeError, "nvme-agent", "Device path is empty for the pool");
-    }
-    return get_name_from_path(drive_path);
-}
-
-std::string agent::nvme::tools::get_name_from_path(const std::string& path) {
-    auto pos = path.rfind("/");
-    if (pos == std::string::npos) {
-        THROW(exceptions::NvmeError, "nvme-agent", "System path format error");
-    }
-    return path.substr(pos + 1);
-}
 
 void agent::nvme::tools::update_storage_pool_consumed_capacity(const Uuid& storage_pool_uuid) {
     auto volume_uuids = get_m2m_manager<StoragePool, Volume>().get_children(storage_pool_uuid);
-    uint64_t consumed_capacity_bytes{};
+    int64_t consumed_capacity_bytes{};
     for (const auto& volume_uuid : volume_uuids) {
         auto volume = get_manager<Volume>().get_entry(volume_uuid);
         if (volume.get_capacity().get_allocated_bytes().has_value()) {
             // check for overlap
-            if (std::numeric_limits<uint64_t>().max() - consumed_capacity_bytes < volume.get_capacity().get_allocated_bytes()) {
-                consumed_capacity_bytes = std::numeric_limits<uint64_t>().max();
+            if (consumed_capacity_bytes + volume.get_capacity().get_allocated_bytes() < 0) {
+                consumed_capacity_bytes = std::numeric_limits<int64_t>::max();
                 log_error("nvme-agent", "Total capacity consumed by volumes overlaps max value");
                 break;
             }
@@ -175,22 +141,25 @@ void agent::nvme::tools::update_storage_pool_consumed_capacity(const Uuid& stora
     storage_pool_ref->set_capacity(cap);
 }
 
+
 template<>
 void agent::nvme::tools::clear_initiator_filter(std::shared_ptr<NvmeAgentContext> ctx, const Uuid& zone) {
-    attribute::Array<Uuid> endpoints = agent_framework::module::get_m2m_manager<Zone, Endpoint>().get_children(zone);
+    attribute::Array<Uuid> endpoints = get_m2m_manager<Zone, Endpoint>().get_children(zone);
     clear_initiator_filter(ctx, endpoints);
 }
 
+
 template<>
 void agent::nvme::tools::clear_initiator_filter(std::shared_ptr<NvmeAgentContext> ctx,
-    const attribute::Array<Uuid>& endpoints) {
+                                                const attribute::Array<Uuid>& endpoints) {
     set_initiator_filter(ctx, endpoints, true);
 }
 
+
 template<>
 void agent::nvme::tools::set_initiator_filter(std::shared_ptr<NvmeAgentContext> ctx,
-    const attribute::Array<Uuid>& endpoints,
-    bool clear_filter) {
+                                              const attribute::Array<Uuid>& endpoints,
+                                              bool clear_filter) {
     std::vector<Endpoint> endpoints_vector{};
     for (const auto& endpoint_uuid : endpoints) {
         endpoints_vector.push_back(get_manager<Endpoint>().get_entry(endpoint_uuid));
@@ -198,8 +167,9 @@ void agent::nvme::tools::set_initiator_filter(std::shared_ptr<NvmeAgentContext> 
     set_initiator_filter(ctx, endpoints_vector, clear_filter);
 }
 
+
 template<>
 void agent::nvme::tools::set_initiator_filter(std::shared_ptr<NvmeAgentContext> ctx,
-    const std::vector<Uuid>& endpoints, bool clear_filter) {
+                                              const std::vector<Uuid>& endpoints, bool clear_filter) {
     set_initiator_filter(ctx, attribute::Array<Uuid>{endpoints}, clear_filter);
 }

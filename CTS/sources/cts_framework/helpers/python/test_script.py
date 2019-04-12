@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,9 +68,8 @@ class TestScript(object):
             self.type = parameter_type
             self.is_required = is_required
             self.default_value = parameter_default_value
-            self.min=min
-            self.max=max
-
+            self.min = min
+            self.max = max
 
     def __init__(self, configuration):
         self.configuration = configuration
@@ -280,7 +279,6 @@ class TestScript(object):
                         can_run = False
 
         return can_run
-
 
     @classmethod
     def parse(cls, test_script_parser):

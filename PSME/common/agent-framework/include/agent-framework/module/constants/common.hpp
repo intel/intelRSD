@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,23 +63,22 @@ public:
     static constexpr const char OEM[] = "oem";
 };
 
-/* @brief Used for Collections in each resource object */
+/*! @brief Used for Collections in each resource object */
 class Collections {
 public:
     static constexpr const char COLLECTIONS[] = "collections";
     static constexpr const char NAME[] = "name";
     static constexpr const char TYPE[] = "type";
-    static constexpr const char SLOT_MASK[] = "slotMask";
 };
 
-/* @brief Used for requests of getCollection methods */
+/*! @brief Used for requests of getCollection methods */
 class Collection {
 public:
     static constexpr const char COMPONENT[] = "component";
     static constexpr const char NAME[] = "name";
 };
 
-/* @brief Used for responses of getCollectionMethod */
+/*! @brief Used for responses of getCollectionMethod */
 class SubcomponentEntry {
 public:
     static constexpr const char SUBCOMPONENT[] = "subcomponent";
@@ -101,15 +100,7 @@ public:
     static constexpr const char CODE[] = "code";
 };
 
-/*!
- * @brief Class consisting of literals for Components model objects
- */
-class Components {
-public:
-    static constexpr const char MANAGER[] = "manager";
-};
-
-/* @brief Used for getManagersCollections */
+/*! @brief Used for getManagersCollections */
 class ManagerEntry {
 public:
     static constexpr const char MANAGER[] = "manager";
@@ -268,11 +259,14 @@ public:
 class Drive {
 public:
     static constexpr const char DRIVE[] = "drive";
+    static constexpr const char NAME[] = "name";
+    static constexpr const char DESCRIPTION[] = "description";
     static constexpr const char STATUS[] = "status";
     static constexpr const char INTERFACE[] = "interface";
     static constexpr const char TYPE[] = "type";
     static constexpr const char RPM[] = "rpm";
     static constexpr const char FIRMWARE_VERSION[] = "firmwareVersion";
+    static constexpr const char LATENCY_TRACKING_ENABLED[] = "latencyTrackingEnabled";
     static constexpr const char CAPACITY[] = "capacityGB";
     static constexpr const char FRU_INFO[] = "fruInfo";
     static constexpr const char INDICATOR_LED[] = "indicatorLED";
@@ -336,6 +330,7 @@ public:
     static constexpr const char ROLE[] = "role";
     static constexpr const char ENTITY[] = "entity";
     static constexpr const char IDENTIFIERS[] = "identifiers";
+    static constexpr const char LUN[] = "lun";
 };
 
 class Transport {
@@ -426,6 +421,7 @@ public:
     static constexpr const char OEM[] = "oem";
     static constexpr const char FABRIC[] = "fabric";
     static constexpr const char ENDPOINTS[] = "endpoints";
+    static constexpr const char TASK[] = "task";
 };
 
 /*!
@@ -433,6 +429,8 @@ public:
  */
 class Endpoint {
 public:
+    static constexpr const char NAME[] = "name";
+    static constexpr const char DESCRIPTION[] = "description";
     static constexpr const char ENDPOINT[] = "endpoint";
     static constexpr const char FABRIC[] = "fabric";
     static constexpr const char PROTOCOL[] = "protocol";
@@ -447,6 +445,8 @@ public:
     static constexpr const char NQN_FORMAT[] = "nqn.2014-08.org.nvmexpress:uuid:";
     static constexpr const char TARGET[] = "Target";
     static constexpr const char INITIATOR[] = "Initiator";
+    static constexpr const char PORTS[] = "ports";
+    static constexpr const char OEM_PROTOCOL[] = "oemProtocol";
 };
 
 /*!
@@ -458,6 +458,7 @@ public:
     static constexpr const char CONSUMED_BYTES[] = "consumedBytes";
     static constexpr const char GUARANTEED_BYTES[] = "guaranteedBytes";
     static constexpr const char PROVISIONED_BYTES[] = "provisionedBytes";
+    static constexpr const char IS_THIN_PROVISIONED[] = "isThinProvisioned";
 };
 
 /*!

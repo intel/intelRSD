@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,7 +64,7 @@ enum class FpgaHssiConfiguration : uint8_t {
 /*!
  * @brief FPGA On Package Memory Technology
  */
-enum class OnPackageMemoryTechnology : uint8_t {
+enum class IntegratedMemoryTechnology : uint8_t {
     NONE = 0x00,
     EDRAM = 0x01,
     HBM = 0x02,
@@ -97,9 +97,9 @@ struct FPGA_DEVICE {
     uint8_t fpga_pcie_device_identifier;
     uint8_t fpga_pcie_function_identifier;
     uint32_t thermal_design_power;
-    OnPackageMemoryTechnology memory_technology;
-    uint32_t on_package_memory_capacity;
-    uint16_t on_package_memory_speed;
+    IntegratedMemoryTechnology memory_technology;
+    uint32_t integrated_memory_capacity;
+    uint16_t integrated_memory_speed;
 
 };
 
@@ -137,9 +137,9 @@ struct FPGA_DEVICE_OEM {
     uint8_t fpga_pcie_device_identifier;
     uint8_t fpga_pcie_function_identifier;
     uint32_t thermal_design_power;
-    OnPackageMemoryTechnology memory_technology;
-    uint32_t on_package_memory_capacity;
-    uint16_t on_package_memory_speed;
+    IntegratedMemoryTechnology memory_technology;
+    uint32_t integrated_memory_capacity;
+    uint16_t integrated_memory_speed;
 };
 
 /*!

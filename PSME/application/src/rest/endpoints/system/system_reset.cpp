@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ using namespace agent_framework::model;
 namespace {
 
 static const std::map<std::string, std::string> gami_to_rest_attributes = {
-    {agent_framework::model::literals::Manager::RESET, constants::Common::RESET_TYPE}
+    {agent_framework::model::literals::System::RESET, constants::Common::RESET_TYPE}
 };
 
 }
@@ -57,17 +57,18 @@ endpoint::SystemReset::~SystemReset() {}
 
 
 void endpoint::SystemReset::post(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PostSystemReset";
 
     // Gets necessary data from model and does not block system reference
-    auto system = model::Find<agent_framework::model::System>(request.params[PathParam::SYSTEM_ID]).get();
+    auto system = model::find<agent_framework::model::System>(request.params).get();
 
     const auto& agent_id = system.get_agent_id();
     const auto& system_uuid = system.get_uuid();
 
     const auto& json = JsonValidator::validate_request_body<schema::ResetPostSchema>(request);
     agent_framework::model::attribute::Attributes attributes{};
-    const auto& reset_type = json[constants::Common::RESET_TYPE].as_string();
-    attributes.set_value(agent_framework::model::literals::System::POWER_STATE, reset_type);
+    const auto& reset_type = json[constants::Common::RESET_TYPE].get<std::string>();
+    attributes.set_value(agent_framework::model::literals::System::RESET, reset_type);
 
     agent_framework::model::requests::SetComponentAttributes set_component_attributes_request{system_uuid, attributes};
 
@@ -102,21 +103,25 @@ void endpoint::SystemReset::post(const server::Request& request, server::Respons
             auto completion_notifier = [system, agent_id](const std::string& set_task_uuid) {
                 auto agent_manager = psme::core::agent::AgentManager::get_instance();
 
-                auto task = agent_framework::module::get_manager<agent_framework::model::Task>()
-                    .get_entry_reference(set_task_uuid);
-                if (task->get_state() == enums::TaskState::Completed) {
-                    task->set_messages(psme::rest::endpoint::task_service_utils::build_success_message());
+                {
+                    auto task = agent_framework::module::get_manager<agent_framework::model::Task>()
+                        .get_entry_reference(set_task_uuid);
+                    if (task->get_state() == enums::TaskState::Completed) {
+                        task->set_messages(psme::rest::endpoint::task_service_utils::build_success_message());
+                    }
                 }
 
                 psme::rest::model::handler::HandlerManager::get_instance()->get_handler(enums::Component::System)
-                    ->load(
-                        agent_manager->get_agent(agent_id),
-                        system.get_parent_uuid(), enums::Component::Manager,
-                        system.get_uuid(),
-                        true);
+                    ->load(agent_manager->get_agent(agent_id),
+                           system.get_parent_uuid(), enums::Component::Manager,
+                           system.get_uuid(),
+                           true);
             };
-            CommonComponents::get_instance()->get_task_manager().get_entry_reference(task_uuid)->
-                add_completion_notifier([task_uuid, completion_notifier]() { completion_notifier(task_uuid); });
+
+            {
+                CommonComponents::get_instance()->get_task_manager().get_entry_reference(task_uuid)->
+                    add_completion_notifier([task_uuid, completion_notifier]() { completion_notifier(task_uuid); });
+            }
 
             std::string task_monitor_url = PathBuilder(
                 utils::get_component_url(enums::Component::Task, task_uuid)).append(Monitor::MONITOR).build();
@@ -128,6 +133,6 @@ void endpoint::SystemReset::post(const server::Request& request, server::Respons
         }
     };
 
-    gami_agent->execute_in_transaction(set_system_attributes);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, set_system_attributes);
 
 }

@@ -1,8 +1,7 @@
 /*!
  * @brief eAPI Client class implementation.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file agent/network/src/hal/eos_eapi/eapi_client.cpp
  */
 
@@ -22,7 +20,7 @@
 #include "hal/eos_eapi/get_switch_running_configuration.hpp"
 #include "hal/eos_eapi/show_priority_flow_control.hpp"
 #include "hal/eos_eapi/show_priority_flow_control_parser.hpp"
-#include "agent-framework/logger_ext.hpp"
+#include "logger/logger.hpp"
 #include "agent-framework/exceptions/exception.hpp"
 
 
@@ -48,7 +46,7 @@ void EapiClient::stop() {
 }
 
 json::Json EapiClient::eapi_request(const EapiCommand& command) const {
-    json::Json eapi_json_request;
+    json::Json eapi_json_request = json::Json();
     eapi_json_request["version"] = "latest";
     for(const auto& cmd : command.serialize()) {
         eapi_json_request["cmds"].push_back(cmd);

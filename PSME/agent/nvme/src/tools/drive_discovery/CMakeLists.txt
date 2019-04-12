@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,15 +16,13 @@
 #
 # </license_header>
 
-set(SOURCES
-    base_drive_reader.cpp
-    drive_reader.cpp
-    base_drive_handler_factory.cpp
-    drive_handler_factory.cpp
-    base_drive_handler.cpp
-    single_namespace_drive_handler.cpp
-    single_namespace_non_nvme_drive_handler.cpp
-    non_functional_drive_handler.cpp
+target_sources(psme-gpt-nvme PRIVATE
+    src/tools/drive_discovery/base_drive_reader.cpp
+    src/tools/drive_discovery/drive_reader.cpp
+    src/tools/drive_discovery/base_drive_handler_factory.cpp
+    src/tools/drive_discovery/drive_handler_factory.cpp
+    src/tools/drive_discovery/base_drive_handler.cpp
+    src/tools/drive_discovery/single_namespace_drive_handler.cpp
+    src/tools/drive_discovery/single_namespace_non_nvme_drive_handler.cpp
+    src/tools/drive_discovery/non_functional_drive_handler.cpp
 )
-
-add_library(nvme-tools-drive-discovery OBJECT ${SOURCES})

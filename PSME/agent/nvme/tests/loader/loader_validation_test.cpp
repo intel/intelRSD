@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of validation tests.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file loader_validation_test.cpp
  */
 
@@ -22,19 +20,18 @@
 
 #include "loader/loader.hpp"
 #include "configuration_full.hpp"
-#include "json/value.hpp"
-#include "json/deserializer.hpp"
+#include "json-wrapper/json-wrapper.hpp"
+
 
 using namespace agent::nvme::loader;
 
 class NvmeLoaderConfigFieldValidationTest: public ::testing::Test {
 protected:
     NvmeLoader loader{};
-    json::Value config;
-    json::Deserializer deserializer{};
+    json::Json config = json::Json();
 public:
     void SetUp() {
-        deserializer << NVME_FULL_CONFIGURATION;
+        config = json::Json::parse(NVME_FULL_CONFIGURATION);
     }
 
     virtual ~NvmeLoaderConfigFieldValidationTest();
@@ -44,7 +41,6 @@ NvmeLoaderConfigFieldValidationTest::~NvmeLoaderConfigFieldValidationTest() { }
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadFullConfiguration_LoadShouldBePositive) {
-    deserializer >> config;
 
     bool is_loaded = loader.load(config);
 
@@ -53,9 +49,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutAgent_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["agent"] = json::Value::Type::NIL;
+    config["agent"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -64,9 +58,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutAgentVendor_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["agent"]["vendor"] = json::Value::Type::NIL;
+    config["agent"]["vendor"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -75,9 +67,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutAgentCapabilities_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["agent"]["capabilities"] = json::Value::Type::NIL;
+    config["agent"]["capabilities"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -86,9 +76,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutServer_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["server"] = json::Value::Type::NIL;
+    config["server"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -97,9 +85,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutServerPort_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["server"]["port"] = json::Value::Type::NIL;
+    config["server"]["port"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -108,9 +94,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutRegistration_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["registration"]= json::Value::Type::NIL;
+    config["registration"]= json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -119,9 +103,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutRegistrationIpv4_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["registration"]["ipv4"] = json::Value::Type::NIL;
+    config["registration"]["ipv4"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -130,9 +112,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutRegistrationPort_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["registration"]["port"] = json::Value::Type::NIL;
+    config["registration"]["port"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -141,9 +121,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutRegistrationInterval_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["registration"]["interval"] = json::Value::Type::NIL;
+    config["registration"]["interval"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -152,9 +130,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithManagerWithoutLogger_LoadShouldBePositive) {
-    deserializer >> config;
-
-    config["logger"] = json::Value::Type::NIL;
+    config["logger"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -163,9 +139,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithoutManagers_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["managers"] = json::Value::Type::NIL;
+    config["managers"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -174,9 +148,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithZeroManagers_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["managers"] = json::Value::Type::ARRAY;
+    config["managers"] = json::Json::value_t::array;
 
     bool is_loaded = loader.load(config);
 
@@ -185,9 +157,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithManagerWithoutIpv4_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["managers"].as_array().front()["ipv4"] = json::Value::Type::NIL;
+    config["managers"].front()["ipv4"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -196,9 +166,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithManagerWithoutlocation_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["managers"].as_array().front()["locationOffset"] = json::Value::Type::NIL;
+    config["managers"].front()["locationOffset"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -207,9 +175,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithManagerWithoutParent_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["managers"].as_array().front()["parentId"] = json::Value::Type::NIL;
+    config["managers"].front()["parentId"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -218,20 +184,7 @@ TEST_F(NvmeLoaderConfigFieldValidationTest,
 
 TEST_F(NvmeLoaderConfigFieldValidationTest,
        LoadConfigurationWithManagerWithoutNicDriver_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["managers"].as_array().front()["nic-drivers"] = json::Value::Type::NIL;
-
-    bool is_loaded = loader.load(config);
-
-    ASSERT_FALSE(is_loaded);
-}
-
-TEST_F(NvmeLoaderConfigFieldValidationTest,
-       LoadConfigurationWithManagerWithoutTarget_LoadShouldBeNegative) {
-    deserializer >> config;
-
-    config["managers"].as_array().front()["is-target"] = json::Value::Type::NIL;
+    config["managers"].front()["nic-drivers"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 

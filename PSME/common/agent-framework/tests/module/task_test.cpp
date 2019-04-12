@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +45,7 @@ public:
     virtual void TearDown();
 
 
-    json::Json task_json{};
+    json::Json task_json = json::Json();
 };
 
 
@@ -62,7 +62,7 @@ void TaskTest::SetUp() {
     task_json[literals::Task::STATUS] = status.to_json();
     task_json[literals::Task::MESSAGES] = json::Json::array();
 
-    json::Json message{};
+    json::Json message = json::Json();
     message[literals::Message::MESSAGE_ID] = "Base.1.0.BadColor";
     message[literals::Message::MESSAGE_CONTENT] = "Cannot repaint the submarine";
     message[literals::Message::RELATED_PROPERTIES] = json::Json::array();

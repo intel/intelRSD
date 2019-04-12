@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,28 +29,28 @@ using namespace psme::rest;
 using namespace psme::rest::constants;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Power.Power";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#Power.v1_1_0.Power";
     r[Common::ID] = "Power";
     r[Common::NAME] = "Power";
     r[Common::DESCRIPTION] = "Power";
 
-    r[PowerZone::POWER_CONTROL] = json::Value::Type::ARRAY;
-    r[PowerZone::VOLTAGES] = json::Value::Type::ARRAY;
-    r[PowerZone::POWER_SUPPLIES] = json::Value::Type::ARRAY;
-    r[Common::REDUNDANCY] = json::Value::Type::ARRAY;
+    r[PowerZone::POWER_CONTROL] = json::Json::value_t::array;
+    r[PowerZone::VOLTAGES] = json::Json::value_t::array;
+    r[PowerZone::POWER_SUPPLIES] = json::Json::value_t::array;
+    r[Common::REDUNDANCY] = json::Json::value_t::array;
 
     r[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.Power";
-    r[Common::OEM][Common::RACKSCALE][PowerZone::INPUT_AC_POWER_WATTS] = json::Value::Type::NIL;
+    r[Common::OEM][Common::RACKSCALE][PowerZone::INPUT_AC_POWER_WATTS] = json::Json::value_t::null;
 
-    json::Value action{};
-    action[Common::TARGET] = json::Value::Type::NIL;
-    action[PowerZone::STATE_ALLOWABLE_VALUES] = json::Value::Type::ARRAY;
-    action[PowerZone::MEMBER_ID_ALLOWABLE_VALUES] = json::Value::Type::ARRAY;
+    json::Json action = json::Json();
+    action[Common::TARGET] = json::Json::value_t::null;
+    action[PowerZone::STATE_ALLOWABLE_VALUES] = json::Json::value_t::array;
+    action[PowerZone::MEMBER_ID_ALLOWABLE_VALUES] = json::Json::value_t::array;
 
     r[Common::OEM][Common::RACKSCALE][Common::ACTIONS]
         [PowerZone::HASH_INTEL_OEM_REQUEST_POWER_SUPPLY_STATE_CHANGE] = std::move(action);
@@ -59,108 +59,108 @@ json::Value make_prototype() {
 }
 
 
-json::Value make_power_control_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_power_control_prototype() {
+    json::Json r(json::Json::value_t::object);
 
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
-    r[Common::MEMBER_ID] = json::Value::Type::NIL;
-    r[Common::NAME] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
+    r[Common::MEMBER_ID] = json::Json::value_t::null;
+    r[Common::NAME] = json::Json::value_t::null;
 
-    r[PowerZone::POWER_CONSUMED_WATTS] = json::Value::Type::NIL;
-    r[PowerZone::POWER_REQUESTED_WATTS] = json::Value::Type::NIL;
-    r[PowerZone::POWER_AVAILABLE_WATTS] = json::Value::Type::NIL;
-    r[PowerZone::POWER_CAPACITY_WATTS] = json::Value::Type::NIL;
-    r[PowerZone::POWER_ALLOCATED_WATTS] = json::Value::Type::NIL;
+    r[PowerZone::POWER_CONSUMED_WATTS] = json::Json::value_t::null;
+    r[PowerZone::POWER_REQUESTED_WATTS] = json::Json::value_t::null;
+    r[PowerZone::POWER_AVAILABLE_WATTS] = json::Json::value_t::null;
+    r[PowerZone::POWER_CAPACITY_WATTS] = json::Json::value_t::null;
+    r[PowerZone::POWER_ALLOCATED_WATTS] = json::Json::value_t::null;
 
-    r[PowerZone::POWER_METRICS][PowerZone::INTERVAL_IN_MIN] = json::Value::Type::NIL;
-    r[PowerZone::POWER_METRICS][PowerZone::MIN_CONSUMED_WATTS] = json::Value::Type::NIL;
-    r[PowerZone::POWER_METRICS][PowerZone::MAX_CONSUMED_WATTS] = json::Value::Type::NIL;
-    r[PowerZone::POWER_METRICS][PowerZone::AVERAGE_CONSUMED_WATTS] = json::Value::Type::NIL;
+    r[PowerZone::POWER_METRICS][PowerZone::INTERVAL_IN_MIN] = json::Json::value_t::null;
+    r[PowerZone::POWER_METRICS][PowerZone::MIN_CONSUMED_WATTS] = json::Json::value_t::null;
+    r[PowerZone::POWER_METRICS][PowerZone::MAX_CONSUMED_WATTS] = json::Json::value_t::null;
+    r[PowerZone::POWER_METRICS][PowerZone::AVERAGE_CONSUMED_WATTS] = json::Json::value_t::null;
 
-    r[PowerZone::POWER_LIMIT][PowerZone::LIMIT_IN_WATTS] = json::Value::Type::NIL;
-    r[PowerZone::POWER_LIMIT][PowerZone::LIMIT_EXCEPTION] = json::Value::Type::NIL;
-    r[PowerZone::POWER_LIMIT][PowerZone::CORRECTION_IN_MS] = json::Value::Type::NIL;
+    r[PowerZone::POWER_LIMIT][PowerZone::LIMIT_IN_WATTS] = json::Json::value_t::null;
+    r[PowerZone::POWER_LIMIT][PowerZone::LIMIT_EXCEPTION] = json::Json::value_t::null;
+    r[PowerZone::POWER_LIMIT][PowerZone::CORRECTION_IN_MS] = json::Json::value_t::null;
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    r[Common::RELATED_ITEM] = json::Value::Type::ARRAY;
-    r[Common::OEM] = json::Value::Type::OBJECT;
-
-    return r;
-}
-
-
-json::Value make_voltage_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
-
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
-    r[Common::MEMBER_ID] = json::Value::Type::NIL;
-    r[Common::NAME] = json::Value::Type::NIL;
-
-    r[ChassisSensor::SENSOR_NUMBER] = json::Value::Type::NIL;
-    r[ChassisSensor::READING_VOLTS] = json::Value::Type::NIL;
-
-    r[ChassisSensor::UPPER_THRESHOLD_NON_CRITICAL] = json::Value::Type::NIL;
-    r[ChassisSensor::UPPER_THRESHOLD_CRITICAL] = json::Value::Type::NIL;
-    r[ChassisSensor::UPPER_THRESHOLD_FATAL] = json::Value::Type::NIL;
-
-    r[ChassisSensor::LOWER_THRESHOLD_NON_CRITICAL] = json::Value::Type::NIL;
-    r[ChassisSensor::LOWER_THRESHOLD_CRITICAL] = json::Value::Type::NIL;
-    r[ChassisSensor::LOWER_THRESHOLD_FATAL] = json::Value::Type::NIL;
-
-    r[ChassisSensor::MIN_READING_RANGE] = json::Value::Type::NIL;
-    r[ChassisSensor::MAX_READING_RANGE] = json::Value::Type::NIL;
-    r[ChassisSensor::PHYSICAL_CONTEXT] = json::Value::Type::NIL;
-
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
-
-    r[Common::RELATED_ITEM] = json::Value::Type::ARRAY;
+    r[Common::RELATED_ITEM] = json::Json::value_t::array;
+    r[Common::OEM] = json::Json::value_t::object;
 
     return r;
 }
 
 
-json::Value make_power_supply_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_voltage_prototype() {
+    json::Json r(json::Json::value_t::object);
 
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
+    r[Common::MEMBER_ID] = json::Json::value_t::null;
+    r[Common::NAME] = json::Json::value_t::null;
+
+    r[ChassisSensor::SENSOR_NUMBER] = json::Json::value_t::null;
+    r[ChassisSensor::READING_VOLTS] = json::Json::value_t::null;
+
+    r[ChassisSensor::UPPER_THRESHOLD_NON_CRITICAL] = json::Json::value_t::null;
+    r[ChassisSensor::UPPER_THRESHOLD_CRITICAL] = json::Json::value_t::null;
+    r[ChassisSensor::UPPER_THRESHOLD_FATAL] = json::Json::value_t::null;
+
+    r[ChassisSensor::LOWER_THRESHOLD_NON_CRITICAL] = json::Json::value_t::null;
+    r[ChassisSensor::LOWER_THRESHOLD_CRITICAL] = json::Json::value_t::null;
+    r[ChassisSensor::LOWER_THRESHOLD_FATAL] = json::Json::value_t::null;
+
+    r[ChassisSensor::MIN_READING_RANGE] = json::Json::value_t::null;
+    r[ChassisSensor::MAX_READING_RANGE] = json::Json::value_t::null;
+    r[ChassisSensor::PHYSICAL_CONTEXT] = json::Json::value_t::null;
+
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
+
+    r[Common::RELATED_ITEM] = json::Json::value_t::array;
+
+    return r;
+}
+
+
+json::Json make_power_supply_prototype() {
+    json::Json r(json::Json::value_t::object);
+
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#Power.v1_1_0.PowerSupply";
-    r[Common::MEMBER_ID] = json::Value::Type::NIL;
-    r[Common::NAME] = json::Value::Type::NIL;
+    r[Common::MEMBER_ID] = json::Json::value_t::null;
+    r[Common::NAME] = json::Json::value_t::null;
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    r[PowerZone::POWER_SUPPLY_TYPE] = json::Value::Type::NIL;
-    r[PowerZone::LINE_INPUT_VOLTAGE_TYPE] = json::Value::Type::NIL;
-    r[PowerZone::LINE_INPUT_VOLTAGE] = json::Value::Type::NIL;
-    r[PowerZone::POWER_CAPACITY_WATTS] = json::Value::Type::NIL;
-    r[PowerZone::LAST_POWER_OUTPUT_WATTS] = json::Value::Type::NIL;
+    r[PowerZone::POWER_SUPPLY_TYPE] = json::Json::value_t::null;
+    r[PowerZone::LINE_INPUT_VOLTAGE_TYPE] = json::Json::value_t::null;
+    r[PowerZone::LINE_INPUT_VOLTAGE] = json::Json::value_t::null;
+    r[PowerZone::POWER_CAPACITY_WATTS] = json::Json::value_t::null;
+    r[PowerZone::LAST_POWER_OUTPUT_WATTS] = json::Json::value_t::null;
 
-    r[Common::MODEL] = json::Value::Type::NIL;
-    r[Common::MANUFACTURER] = json::Value::Type::NIL;
-    r[Common::FIRMWARE_VERSION] = json::Value::Type::NIL;
-    r[Common::SERIAL_NUMBER] = json::Value::Type::NIL;
-    r[Common::PART_NUMBER] = json::Value::Type::NIL;
+    r[Common::MODEL] = json::Json::value_t::null;
+    r[Common::MANUFACTURER] = json::Json::value_t::null;
+    r[Common::FIRMWARE_VERSION] = json::Json::value_t::null;
+    r[Common::SERIAL_NUMBER] = json::Json::value_t::null;
+    r[Common::PART_NUMBER] = json::Json::value_t::null;
 
-    r[PowerZone::SPARE_PART_NUMBER] = json::Value::Type::NIL;
-    r[PowerZone::INPUT_RANGES] = json::Value::Type::ARRAY;
+    r[PowerZone::SPARE_PART_NUMBER] = json::Json::value_t::null;
+    r[PowerZone::INPUT_RANGES] = json::Json::value_t::array;
 
-    r[Common::REDUNDANCY] = json::Value::Type::ARRAY;
-    r[Common::RELATED_ITEM] = json::Value::Type::ARRAY;
+    r[Common::REDUNDANCY] = json::Json::value_t::array;
+    r[Common::RELATED_ITEM] = json::Json::value_t::array;
 
-    r[Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::OEM] = json::Json::value_t::object;
 
     return r;
 }
 
 
-void fill_related_items(const agent_framework::model::PowerZone& power_zone, json::Value& r) {
+void fill_related_items(const agent_framework::model::PowerZone& power_zone, json::Json& r) {
     // Find all chassis powered by current power zone
     auto powered_chassis = agent_framework::module::get_manager<agent_framework::model::Chassis>()
         .get_keys([power_zone](const agent_framework::model::Chassis& ch) {
@@ -168,7 +168,7 @@ void fill_related_items(const agent_framework::model::PowerZone& power_zone, jso
         });
 
     for (const auto& chassis_uuid : powered_chassis) {
-        json::Value related_item{};
+        json::Json related_item = json::Json();
         related_item[Common::ODATA_ID] = endpoint::utils::get_component_url(
             agent_framework::model::enums::Component::Chassis, chassis_uuid);
 
@@ -179,7 +179,7 @@ void fill_related_items(const agent_framework::model::PowerZone& power_zone, jso
 
 void fill_voltages(const agent_framework::model::PowerZone& power_zone,
                    const std::vector<agent_framework::model::Metric>& voltage_readings,
-                   const std::string& power_url, json::Value& json_response) {
+                   const std::string& power_url, json::Json& json_response) {
     for (std::size_t voltage_index = 0; voltage_index < voltage_readings.size(); ++voltage_index) {
         const auto& voltage = voltage_readings[voltage_index];
         const auto definition = agent_framework::module::get_manager<agent_framework::model::MetricDefinition>()
@@ -213,7 +213,7 @@ void fill_voltages(const agent_framework::model::PowerZone& power_zone,
 void fill_power_controls(const agent_framework::model::PowerZone& power_zone,
                          const std::vector<agent_framework::model::Metric>& dc_power_consumed_metrics,
                          const std::string& power_url,
-                         json::Value& json_response) {
+                         json::Json& json_response) {
     auto control = ::make_power_control_prototype();
     control[Common::ODATA_ID] =
         endpoint::PathBuilder(power_url + Common::HASH)
@@ -239,7 +239,7 @@ void fill_power_controls(const agent_framework::model::PowerZone& power_zone,
 }
 
 
-void fill_power_supplies(const std::vector<std::string>& power_zones, const std::string& power_url, json::Value& r) {
+void fill_power_supplies(const std::vector<std::string>& power_zones, const std::string& power_url, json::Json& r) {
     for (std::size_t power_zone_index = 0; power_zone_index < power_zones.size(); ++power_zone_index) {
         auto power_zone = agent_framework::module::get_manager<agent_framework::model::PowerZone>()
             .get_entry(power_zones[power_zone_index]);
@@ -279,8 +279,8 @@ void fill_power_supplies(const std::vector<std::string>& power_zones, const std:
     }
 }
 
-void fill_actions(const std::vector<std::string>& power_zones, const std::string& power_url, json::Value& r) {
-    json::Value state_change_action{};
+void fill_actions(const std::vector<std::string>& power_zones, const std::string& power_url, json::Json& r) {
+    json::Json state_change_action = json::Json();
     state_change_action[Common::TARGET] =
         endpoint::PathBuilder(power_url)
             .append(Common::OEM)
@@ -289,12 +289,12 @@ void fill_actions(const std::vector<std::string>& power_zones, const std::string
             .append(PowerZone::INTEL_OEM_REQUEST_POWER_SUPPLY_STATE_CHANGE)
             .build();
 
-    state_change_action[PowerZone::STATE_ALLOWABLE_VALUES] = json::Value::Type::ARRAY;
+    state_change_action[PowerZone::STATE_ALLOWABLE_VALUES] = json::Json::value_t::array;
     for (const auto& state : endpoint::Power::get_state_allowable_values()) {
         state_change_action[PowerZone::STATE_ALLOWABLE_VALUES].push_back(state);
     }
 
-    state_change_action[PowerZone::MEMBER_ID_ALLOWABLE_VALUES] = json::Value::Type::ARRAY;
+    state_change_action[PowerZone::MEMBER_ID_ALLOWABLE_VALUES] = json::Json::value_t::array;
     for (const auto& power_zone_uuid : power_zones) {
         auto power_zone = agent_framework::module::get_manager<agent_framework::model::PowerZone>()
             .get_entry(power_zone_uuid);
@@ -330,7 +330,7 @@ const std::vector<std::string>& endpoint::Power::get_state_allowable_values() {
 
 
 void endpoint::Power::get(const server::Request& request, server::Response& response) {
-    auto chassis = model::Find<agent_framework::model::Chassis>(request.params[PathParam::CHASSIS_ID]).get();
+    auto chassis = model::find<agent_framework::model::Chassis>(request.params).get();
 
     const auto& url = request.get_url();
     auto r = make_prototype();

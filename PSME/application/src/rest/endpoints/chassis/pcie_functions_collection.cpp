@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,19 +26,38 @@ using namespace psme::rest::endpoint;
 using namespace psme::rest::constants;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#PCIeFunctionCollection.PCIeFunctionCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#PCIeFunctionCollection.PCIeFunctionCollection";
     r[Common::DESCRIPTION] = "Collection of PCIe Functions";
     r[Common::NAME] = "PCIe Function Collection";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
+
+
+auto find_pci_devices_ids(const psme::rest::server::Request& req) {
+
+    // the devices are under the same manager as the chassis from the URL
+    auto chassis_manager_uuid= psme::rest::model::find<agent_framework::model::Chassis>(
+        req.params).get_one()->get_parent_uuid();
+
+    auto chassis_manager_id = agent_framework::module::get_manager<agent_framework::model::Manager>().get_entry(chassis_manager_uuid).get_id();
+
+    auto params_copy = req.params;
+    params_copy[PathParam::MANAGER_ID] = std::to_string(chassis_manager_id);
+
+    const auto device_uuid = psme::rest::model::find<agent_framework::model::Manager, agent_framework::model::PcieDevice>(
+        params_copy).get_uuid();
+
+    return agent_framework::module::get_manager<agent_framework::model::PcieFunction>().get_ids(device_uuid);
+}
+
 }
 
 
@@ -53,21 +72,12 @@ void PcieFunctionsCollection::get(const server::Request& req, server::Response& 
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
-    // the devices are under the same manager as the chassis from the URL
-    auto chassis_manager_uuid = psme::rest::model::Find<agent_framework::model::Chassis>(
-        req.params[PathParam::CHASSIS_ID]).get_one()->get_parent_uuid();
-
-    const auto device_uuid =
-        psme::rest::model::Find<agent_framework::model::PcieDevice>(req.params[PathParam::DEVICE_ID]).via(
-            chassis_manager_uuid).get_uuid();
-
-    auto function_ids =
-        agent_framework::module::get_manager<agent_framework::model::PcieFunction>().get_ids(device_uuid);
+    auto function_ids = find_pci_devices_ids(req);
 
     json[Collection::ODATA_COUNT] = uint32_t(function_ids.size());
 
     for (const auto& id : function_ids) {
-        json::Value link(json::Value::Type::OBJECT);
+        json::Json link(json::Json::value_t::object);
         link[Common::ODATA_ID] = endpoint::PathBuilder(req)
             .append(id)
             .build();

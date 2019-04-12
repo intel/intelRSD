@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,7 @@ Toolset::Toolset(const Toolset& rhs) {
     i2c_tool = rhs.i2c_tool;
     gas_tool = rhs.gas_tool;
     map_tool = rhs.map_tool;
+    oob_fpga_tool = rhs.oob_fpga_tool;
 }
 
 Toolset::~Toolset() {}
@@ -43,5 +44,6 @@ Toolset Toolset::get() {
     t.i2c_tool = std::make_shared<I2cTool>();
     t.gas_tool = std::make_shared<GasTool>();
     t.map_tool = std::make_shared<MapTool>();
+    t.oob_fpga_tool = std::make_shared<OobFpgaTool>();
     return t;
 }

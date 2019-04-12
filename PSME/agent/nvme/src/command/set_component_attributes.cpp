@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of SetComponentAttributes command.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file set_component_attributes.cpp
  */
 
 #include "nvme_agent_commands.hpp"
 #include "command/set_chassis_attributes.hpp"
 #include "command/set_volume_attributes.hpp"
+#include "command/set_drive_attributes.hpp"
 #include "agent-framework/module/common_components.hpp"
+
+
 
 using namespace agent::nvme;
 using namespace agent_framework::module;
@@ -32,7 +33,6 @@ namespace {
 
 bool resource_is_unchangeable(const Uuid& uuid) {
     return get_manager<Manager>().entry_exists(uuid) ||
-           get_manager<Drive>().entry_exists(uuid) ||
            get_manager<StorageService>().entry_exists(uuid) ||
            get_manager<StoragePool>().entry_exists(uuid) ||
            get_manager<NetworkInterface>().entry_exists(uuid) ||
@@ -41,6 +41,7 @@ bool resource_is_unchangeable(const Uuid& uuid) {
            get_manager<Endpoint>().entry_exists(uuid) ||
            get_manager<System>().entry_exists(uuid);
 }
+
 
 void set_component_attributes(SetComponentAttributes::ContextPtr context, const SetComponentAttributes::Request& req,
                               SetComponentAttributes::Response& res) {
@@ -58,6 +59,9 @@ void set_component_attributes(SetComponentAttributes::ContextPtr context, const 
     }
     else if (get_manager<Chassis>().entry_exists(uuid)) {
         command::set_chassis_attributes(context, uuid, attributes, res);
+    }
+    else if (get_manager<Drive>().entry_exists(uuid)) {
+        command::set_drive_attributes(context, uuid, attributes, res);
     }
     else if (resource_is_unchangeable(uuid)) {
         THROW(InvalidValue, "nvme-agent", "Operation not available for this component.");

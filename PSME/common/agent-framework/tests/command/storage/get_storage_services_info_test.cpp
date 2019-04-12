@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,8 +54,8 @@ TEST(GetStorageServicesInfoTest, PositiveExecute) {
     MyGetStorageServicesInfo command{TEST_SERVICES};
     GetStorageServicesInfo::Request request{""};
     GetStorageServicesInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[SERVICES] = TEST_SERVICES;
 
@@ -68,8 +68,8 @@ TEST(GetStorageServicesInfoTest, NegativeServicesNotFound) {
     MyGetStorageServicesInfo command{TEST_SERVICES};
     GetStorageServicesInfo::Request request{""};
     GetStorageServicesInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[SERVICES] = "OtherTestServices";
 

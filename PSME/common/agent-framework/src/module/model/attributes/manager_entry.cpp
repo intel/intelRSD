@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ ManagerEntry::ManagerEntry() { }
 ManagerEntry::~ManagerEntry() { }
 
 json::Json ManagerEntry::to_json() const {
-    json::Json entry;
+    json::Json entry = json::Json();
     entry[literals::ManagerEntry::MANAGER] = get_manager();
     return entry;
 }

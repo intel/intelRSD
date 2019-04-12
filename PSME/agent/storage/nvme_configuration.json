@@ -1,0 +1,43 @@
+{
+    "service" : "lvm-nvme",
+    "agent": {
+        "vendor" : "Intel Corporation",
+        "capabilities" : [ "NVMe" ]
+    },
+    "server": {
+        "port": 7782
+    },
+    "registration": {
+        "ipv4": "127.0.0.1",
+        "port": 8383,
+        "interval": 3
+    },
+    "managers": [
+        {
+            "nic-drivers": ["ixgbe", "i40e", "mlx5_core", "mlx4_core"],
+            "rdma-port": 4420
+        }
+    ],
+    "database": {
+        "location": "/var/opt/psme/lvm-nvme",
+        "retries": 10,
+        "retry-interval-sec": 5,
+        "checking-interval-sec": 5
+    },
+    "loggers" : [
+        {
+            "name" : "storage-agent",
+            "level" : "INFO",
+            "timeformat" : "DATE_NS",
+            "color" : true,
+            "output" : true,
+            "tagging" : true,
+            "moredebug" : false,
+            "streams" : [
+                {
+                    "type": "STDOUT"
+                }
+            ]
+        }
+    ]
+}

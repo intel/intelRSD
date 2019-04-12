@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,6 +82,13 @@ static const constexpr char PROPERTY_VALUE_FORMAT_ERROR_RESOLUTION[] = "Correct 
 static const constexpr char SERVICE_TEMPORARILY_UNAVAILABLE_MESSAGE[] = "The service is temporarily unavailable. Retry in %d seconds.";
 static const constexpr char SERVICE_TEMPORARILY_UNAVAILABLE_RESOLUTION[] = "Wait for the indicated retry duration and retry the operation.";
 
+/* List of messages and resolutions for Intel RackScale-defined error objects */
+static const constexpr char PROPERTY_NOT_MODIFIABLE_MESSAGE[] = "The service is unable to modify the property %s even though metadata specifies it as writeable.";
+static const constexpr char PROPERTY_NOT_MODIFIABLE_RESOLUTION[] = "Remove the unmodifiable property from the request body and resubmit the request.";
+
+static const constexpr char PROPERTY_VALUE_RESTRICTED_MESSAGE[] = "The value %s for property %s is not within restrictions imposed by the Service.";
+static const constexpr char PROPERTY_VALUE_RESTRICTED_RESOLUTION[] = "Correct the value for the property in the request body and resubmit the request.";
+
 
 const MessageObject create_message_object(const std::string& redfish_code, const std::string& message,
                                           Severity severity, const std::string& resolution = {},
@@ -127,8 +134,10 @@ const MessageObject create_message_object_from_gami_code(ErrorCode gami_error_co
         case ErrorCode::ISCSI:
         case ErrorCode::LVM:
         case ErrorCode::NVME:
+        case ErrorCode::SPDK:
         case ErrorCode::PCIE_FABRIC:
         case ErrorCode::CHASSIS:
+        case ErrorCode::FPGAOF:
         case ErrorCode::CERTIFICATE:
             redfish_code = ServerError::INTERNAL_ERROR;
             severity = Severity::Critical;
@@ -610,7 +619,7 @@ ServerError ErrorFactory::create_not_implemented_error(const std::string& messag
 
 
 ServerError ErrorFactory::create_error_from_set_component_attributes_results(
-    Array <GamiResultStatus> statuses, const std::map<std::string, std::string>& fields_map) {
+    Array<GamiResultStatus> statuses, const std::map<std::string, std::string>& fields_map) {
 
     auto error = create_internal_error();
     for (const auto& status : statuses) {
@@ -634,6 +643,49 @@ ServerError ErrorFactory::create_error_from_set_component_attributes_results(
 }
 
 
+ServerError ErrorFactory::create_property_not_modifiable_error(const std::string& property,
+                                                        const std::string& message,
+                                                        const std::vector<std::string>& related_properties) {
+
+    auto server_error = create_error(BAD_REQUEST, ServerError::PROPERTY_NOT_MODIFIABLE,
+                                     ::PROPERTY_NOT_MODIFIABLE_MESSAGE, property.c_str());
+    if (!message.empty()) {
+        server_error.add_extended_message(
+            ::create_message_object(
+                ServerError::PROPERTY_NOT_MODIFIABLE,
+                message,
+                Severity::Warning,
+                ::PROPERTY_NOT_MODIFIABLE_RESOLUTION,
+                related_properties
+            )
+        );
+    }
+    return server_error;
+}
+
+
+ServerError ErrorFactory::create_property_value_restricted_error(const std::string& property,
+                                                        const std::string& property_value,
+                                                        const std::string& message,
+                                                        const std::vector<std::string>& related_properties) {
+
+    auto server_error = create_error(BAD_REQUEST, ServerError::PROPERTY_VALUE_RESTRICTED,
+                                     ::PROPERTY_VALUE_RESTRICTED_MESSAGE, property_value.c_str(), property.c_str());
+    if (!message.empty()) {
+        server_error.add_extended_message(
+            ::create_message_object(
+                ServerError::PROPERTY_VALUE_RESTRICTED,
+                message,
+                Severity::Warning,
+                ::PROPERTY_VALUE_RESTRICTED_RESOLUTION,
+                related_properties
+            )
+        );
+    }
+    return server_error;
+}
+
+
 ServerError ErrorFactory::create_error_from_gami_exception(const GamiException& exception) {
     const auto& gami_error_code = exception.get_error_code();
     const auto& message = exception.get_message();
@@ -653,8 +705,10 @@ ServerError ErrorFactory::create_error_from_gami_exception(const GamiException& 
         case ErrorCode::ISCSI:
         case ErrorCode::LVM:
         case ErrorCode::NVME:
+        case ErrorCode::SPDK:
         case ErrorCode::PCIE_FABRIC:
         case ErrorCode::CHASSIS:
+        case ErrorCode::FPGAOF:
         case ErrorCode::CERTIFICATE:
         default:
             server_error = create_internal_error();

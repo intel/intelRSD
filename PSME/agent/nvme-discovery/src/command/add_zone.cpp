@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of AddZone command.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file add_zone.cpp
  */
 
@@ -81,7 +79,7 @@ void throw_if_nqn_not_present(const Endpoint& endpoint) {
     }
     catch (const std::logic_error&) {
         THROW(exceptions::NvmeError, "nvme-discovery-agent",
-              "Unable to read nqn from endpoint.");
+              "Unable to read NQN from endpoint.");
     }
 
     if (nqn.empty()) {

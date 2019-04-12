@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,8 +69,8 @@ TEST(GetEthernetSwitchInfoTest, PositiveExecute) {
     MyGetEthernetSwitchInfo command{"8d2c1ac0-2f82-11e5-8333-0002a5d5c51b"};
     GetEthernetSwitchInfo::Request request{""};
     GetEthernetSwitchInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::EthernetSwitch::SWITCH] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51b";
 
@@ -102,8 +102,8 @@ TEST(GetEthernetSwitchInfoTest, NegativeComponentNotFound) {
     MyGetEthernetSwitchInfo command{"8d2c1ac0-2f82-11e5-8333-0002a5d5c51b"};
     GetEthernetSwitchInfo::Request request{""};
     GetEthernetSwitchInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::EthernetSwitch::SWITCH] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51c";
 

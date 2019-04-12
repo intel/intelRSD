@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@ class ChassisLoader : public agent_framework::module::loader::Loader {
 public:
     ~ChassisLoader();
 
-    bool load(const json::Value&) override;
+    bool load(const json::Json&) override;
 };
 
 }

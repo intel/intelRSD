@@ -1,8 +1,7 @@
 /*!
  * @brief WorkerThread.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file generic/worker_thread.hpp
  */
 
@@ -59,7 +57,7 @@ public:
      * @brief Constructor
      * @param name Worker's name
      */
-    WorkerThread(const std::string& name = "worker") : m_name(name), m_worker {
+    WorkerThread(const std::string& name = "Worker") : m_name(name), m_worker {
         [this] {
             log_info("worker", m_name << " started.");
             while (!m_stop.load(std::memory_order_acquire)) {
@@ -72,7 +70,7 @@ public:
                     }
                 }
                 catch (const StopProcessing&) {
-                    log_info("worker", task.get_name() << " requests to stop");
+                    log_info("worker", task.get_name() << " requests to stop.");
                 }
             }
             log_info("worker", m_name << " finished.");

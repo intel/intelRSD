@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,13 +39,8 @@
 #include "agent-framework/module/chassis_components.hpp"
 #include "agent-framework/module/storage_components.hpp"
 #include "agent-framework/module/pnc_components.hpp"
+
 #include <vector>
-
-
-
-namespace json {
-class Value;
-}
 
 namespace psme {
 namespace rest {
@@ -216,7 +211,7 @@ uint32_t mb_to_mib(uint32_t quantity_in_mb);
  *
  * @return the quantity in B
  */
-uint64_t gb_to_b(double quantity_in_gb);
+int64_t gb_to_b(double quantity_in_gb);
 
 
 /*!
@@ -252,14 +247,14 @@ bool has_resource_capability(const T& resource, const std::string& capability) {
         get_agent(resource.get_agent_id())->has_capability(capability);
 }
 
-void string_array_to_json(json::Value& json, const agent_framework::model::attribute::Array<std::string>& array);
+void string_array_to_json(json::Json& json, const agent_framework::model::attribute::Array<std::string>& array);
 
 /*!
  * @brief Populates metric values for given component.
  * @param[in,out] component_json JSON representation of component.
  * @param component_uuid Component uuid.
  */
-void populate_metrics(json::Value& component_json, const std::string& component_uuid);
+void populate_metrics(json::Json& component_json, const std::string& component_uuid);
 
 
 /*!
@@ -267,7 +262,7 @@ void populate_metrics(json::Value& component_json, const std::string& component_
  * @param[in,out] component_json JSON representation of component.
  * @param metrics selected metrics for populating endpoints
  */
-void populate_metrics(json::Value& component_json, const std::vector<agent_framework::model::Metric>& metrics);
+void populate_metrics(json::Json& component_json, const std::vector<agent_framework::model::Metric>& metrics);
 
 
 /*!
@@ -289,6 +284,22 @@ std::vector<agent_framework::model::Metric> get_metrics(const T& resource,
                    && metric.get_name() == metric_name;
         }
     );
+}
+
+
+/*!
+ * @brief Fill JSON with resource name and description (if applicable)
+ * @param[in] resource Resource
+ * @param[in,out] json JSON value sent as a GET response
+ */
+template <typename T>
+void fill_name_and_description(const T& resource, json::Json& json) {
+    if (resource.get_name().has_value()) {
+        json[constants::Common::NAME] = resource.get_name();
+    }
+    if (resource.get_description().has_value()) {
+        json[constants::Common::DESCRIPTION] = resource.get_description();
+    }
 }
 
 }

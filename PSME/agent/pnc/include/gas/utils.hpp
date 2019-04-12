@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,8 @@ static constexpr std::uint16_t PM85X6_MAX_PARTITIONS_NUMBER = 48;
 static constexpr std::uint8_t PM85X6_SEEPROM_DATA_SIZE_BYTES = 79;
 /*! Host cable eeprom size */
 static constexpr std::uint16_t HOST_CABLE_EEPROM_DATA_SIZE_BYTES = 256;
-
+/*! I2C MF3 slave address */
+static constexpr std::uint8_t I2C_MF3_BMC_SLAVE_ADDRESS = 0x10;
 /*! PM85X6 TWI Ports */
 enum PM85X6TwiPort : std::uint8_t {
     PORT0 = 0,
@@ -79,7 +80,8 @@ enum PM85X6TwiDeviceAddress : std::uint16_t {
     NVME_VPD = 0x00a6,
     SMART = 0x00d4,
     DRIVE_PRESENCE = 0x0040,
-    MF3_FRU_EEPROM = 0x00a2
+    MF3_FRU_EEPROM = 0x00a2,
+    FPGA_RUSHCREEK_SLAVE_ADDRESS = 0x00ce
 };
 
 /*! PM85X6 TWI register with NVMe drives presence*/

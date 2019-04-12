@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,6 +43,21 @@ class Request;
  **/
 std::string build_location_header(const Request& request,
                         const bool scheme_secure,
+                        const std::string& resource_path,
+                        const std::uint16_t port = 0);
+
+/*!
+ * @brief Builds Location header string.
+ *
+ * @param host_header Http host header containing hostname or hostname and port number.
+ * @param scheme_secure Scheme selector: http or https.
+ * @param resource_path Path to resource.
+ * @param port Optional port value, if not provided will be the one of HOST header (if any)
+ *
+ * @return location header value
+ **/
+std::string build_location_header(const std::string& host_header,
+                        bool scheme_secure,
                         const std::string& resource_path,
                         const std::uint16_t port = 0);
 

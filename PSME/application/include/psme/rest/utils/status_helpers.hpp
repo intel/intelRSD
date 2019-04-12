@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -122,7 +122,7 @@ protected:
  * @param v the json value sent as a GET response
  */
 template <typename T>
-void status_to_json(const T& resource, json::Value& v){
+void status_to_json(const T& resource, json::Json& v) {
     auto& status = resource.get_status();
     v[constants::Common::STATUS][constants::Common::STATE] = status.get_state().to_string();
     v[constants::Common::STATUS][constants::Common::HEALTH] = status.get_health();

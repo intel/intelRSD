@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,13 +29,11 @@
 #pragma once
 
 #include "validator.hpp"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 #include <algorithm>
 #include <vector>
 #include <sstream>
 #include <iterator>
-
-namespace json { class Value; }
 
 namespace configuration {
 
@@ -57,7 +55,7 @@ std::string join(const T& values, const char* delimiter = " ") {
 }
 
 template <typename T>
-class AnyOfValidator : public Validator<json::Value> {
+class AnyOfValidator : public Validator<json::Json> {
 public:
     /*!
      * @brief Construct AnyOfValidator for given parameters
@@ -72,7 +70,7 @@ public:
      * @param value JSON object
      * @return On success true is returned, otherwise false
      */
-    virtual bool is_valid(const json::Value& value) const override;
+    virtual bool is_valid(const json::Json& value) const override;
 
     /*!
      * @brief Get anyof error message
@@ -94,14 +92,14 @@ public:
      * @param value JSON value to check
      * @return On success true, otherwise false
      */
-    bool check_type(const json::Value& value) const;
+    bool check_type(const json::Json& value) const;
 
     /*!
      * @brief Get value of template type
      * @param value JSON object
-     * @return Value
+     * @return json
      */
-    T get_value(const json::Value& value) const;
+    T get_value(const json::Json& value) const;
 
 private:
 
@@ -110,7 +108,7 @@ private:
 };
 
 template <typename T>
-bool AnyOfValidator<T>::is_valid(const json::Value& value) const {
+bool AnyOfValidator<T>::is_valid(const json::Json& value) const {
     if (!check_type(value)) {
         return false;
     }
@@ -125,33 +123,33 @@ std::string AnyOfValidator<T>::get_error() const {
 }
 
 template<>
-bool AnyOfValidator<int>::check_type(const json::Value& value) const {
+bool AnyOfValidator<int>::check_type(const json::Json& value) const {
     return value.is_number();
 }
 
 template<>
-bool AnyOfValidator<double>::check_type(const json::Value& value) const {
+bool AnyOfValidator<double>::check_type(const json::Json& value) const {
     return value.is_number();
 }
 
 template<>
-bool AnyOfValidator<std::string>::check_type(const json::Value& value) const {
+bool AnyOfValidator<std::string>::check_type(const json::Json& value) const {
     return value.is_string();
 }
 
 template<>
-int AnyOfValidator<int>::get_value(const json::Value& value) const {
-    return value.as_int();
+int AnyOfValidator<int>::get_value(const json::Json& value) const {
+    return value.get<int>();
 }
 
 template<>
-double AnyOfValidator<double>::get_value(const json::Value& value) const {
-    return value.as_double();
+double AnyOfValidator<double>::get_value(const json::Json& value) const {
+    return value.get<double>();
 }
 
 template<>
-std::string AnyOfValidator<std::string>::get_value(const json::Value& value) const {
-    return value.as_string();
+std::string AnyOfValidator<std::string>::get_value(const json::Json& value) const {
+    return value.get<std::string>();
 }
 
 }

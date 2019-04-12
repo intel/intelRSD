@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file nvme/abstract_nvme_interface.hpp
  */
 
@@ -85,6 +83,30 @@ public:
     virtual LogPageFirmware get_firmware_log(const std::string& target, uint32_t namespace_id) const = 0;
 
     /*!
+     * @brief Returns the IO queues metrics log for the requested namespace.
+     * @param target Target device.
+     * @param namespace_id ID of the namespace.
+     * @return IO queues log
+     */
+    virtual LogPageIOQueues get_ioq_log(const std::string& target, std::uint32_t namespace_id) const = 0;
+
+    /*!
+     * @brief Get the write latency histogram log page for the namespace.
+     * @param target Target device.
+     * @param namespace_id ID of the namespace.
+     * @return Write latency log.
+     */
+    virtual LogPageLatencyStats get_write_latency_histogram(const std::string& target, std::uint32_t namespace_id) const = 0;
+
+    /*!
+     * @brief Get the read latency histogram log page for the namespace.
+     * @param target Target device.
+     * @param namespace_id ID of the namespace.
+     * @return Read latency log.
+     */
+    virtual LogPageLatencyStats get_read_latency_histogram(const std::string& target, std::uint32_t namespace_id) const = 0;
+
+    /*!
      * @brief Identifies the NVMe controller
      * @param target Target device
      * @param controller_id Id of the controller, 0 by default
@@ -154,6 +176,7 @@ public:
 
     /*!
      * @brief Creates a namespace
+     * @param target Target device
      * @param size Size of the namespace
      * @param capacity Capacity of the namespace
      * @param is_private Is it a private (single controller) namespace
@@ -161,9 +184,34 @@ public:
      */
     virtual uint32_t create_namespace(const std::string& target, uint64_t size, uint64_t capacity, bool is_private) const = 0;
 
-protected:
 
-    std::shared_ptr<AbstractNvmeInvoker> m_invoker;
+    /*!
+     * @brief Check if device supports latency tracking.
+     * @param[in] target Target device.
+     * @param[in] namespace_id Namespace ID.
+     * @return Returns 1 if device supports latency tracking, 0 otherwise.
+     */
+    virtual std::uint32_t get_latency_tracking_feature(const std::string& target, std::uint32_t namespace_id) = 0;
+
+
+    /*!
+     * @brief Request enabling latency tracking feature.
+     * @param[in] target Target device.
+     * @param[in] namespace_id Namespace ID.
+     */
+    virtual void enable_latency_tracking_feature(const std::string& target, std::uint32_t namespace_id) = 0;
+
+
+    /*!
+     * @brief Request disabling latency tracking feature.
+     * @param[in] target Target device.
+     * @param[in] namespace_id Namespace ID.
+     */
+    virtual void disable_latency_tracking_feature(const std::string& target, std::uint32_t namespace_id) = 0;
+
+
+protected:
+    std::shared_ptr<AbstractNvmeInvoker> m_invoker{};
 
 };
 

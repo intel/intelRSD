@@ -1,7 +1,7 @@
 /*!
  * @brief Definition of function processing Set Component Attributes command on Network Device Function
  *
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file set_network_device_function_attributes.cpp
  */
 
@@ -183,221 +182,6 @@ DeviceFunctionContextContainer get_ndf_context_vector(const NetworkDeviceFunctio
     return ret;
 }
 
-void clear_data(ManagementController& mc) {
-    request::SetOobResetBootOptions request{};
-    response::SetOobResetBootOptions response{};
-
-    request.set_params_ready(true);
-    try {
-        mc.send(request, response);
-    }
-    catch (const ipmi::ResponseError& response_error) {
-        THROW(IpmiError, "compute-agent", std::string("Error Sending SetOobClearBootOptions On CC: ")
-                                          + response_error.what());
-    }
-}
-
-
-void send_control_data(ManagementController& mc, const NetworkDeviceFunction& function) {
-
-    ipmi::command::sdv::request::SetOobControlBootOptions request{};
-    ipmi::command::sdv::response::SetOobControlBootOptions response{};
-
-    request.set_bios_enabled(function.get_device_enabled());
-    request.set_params_ready(true);
-    try {
-        mc.send(request, response);
-    }
-    catch (const ipmi::ResponseError& response_error) {
-        THROW(IpmiError, "compute-agent", std::string("Error Sending SetOobControlBootOptions On CC: ")
-                                          + response_error.what());
-    }
-}
-
-
-void send_initiator_data(ManagementController& mc, const NetworkDeviceFunction& function, Heap& heap) {
-    const auto& iscsi_boot = function.get_iscsi_boot();
-    request::SetOobInitiatorBootOptions request{};
-    response::SetOobInitiatorBootOptions response{};
-
-    const auto& initiator_name = iscsi_boot.get_initiator_name();
-    request.set_offset(uint16_t(heap.size()));
-    request.set_length(uint16_t(initiator_name.size()));
-    heap.insert(heap.end(), initiator_name.begin(), initiator_name.end());
-
-    try {
-        mc.send(request, response);
-    }
-    catch (const ipmi::ResponseError& response_error) {
-        THROW(IpmiError, "compute-agent", std::string("Error Sending SetOobInitiatorBootOptions On CC: ")
-                                          + response_error.what());
-    }
-}
-
-
-void send_nic_data(ManagementController& mc, const NetworkDeviceFunction& function) {
-    const auto& iscsi_boot = function.get_iscsi_boot();
-    request::SetOobNicBootOptions request{};
-    response::SetOobNicBootOptions response{};
-
-    if (iscsi_boot.get_ip_address_type() == enums::IPAddressType::IPv6) {
-        request.set_dhcp_ip_version(ipmi::command::sdv::request::SetOobNicBootOptions::IPVersion::IPV6);
-    }
-    else {
-        request.set_dhcp_ip_version(ipmi::command::sdv::request::SetOobNicBootOptions::IPVersion::IPV4);
-    }
-
-    const auto dhcp_enabled = iscsi_boot.get_ip_mask_dns_via_dhcp();
-    request.set_dhcp_enabled(dhcp_enabled);
-
-    if (!dhcp_enabled) {
-        request.set_address(iscsi_boot.get_initiator_address());
-        request.set_subnet(iscsi_boot.get_initiator_netmask());
-
-        if (iscsi_boot.get_initiator_default_gateway().has_value()) {
-            request.set_gateway(iscsi_boot.get_initiator_default_gateway());
-        }
-        if (iscsi_boot.get_primary_dns().has_value()) {
-            request.set_primary_dns(iscsi_boot.get_primary_dns());
-        }
-        if (iscsi_boot.get_secondary_dns().has_value()) {
-            request.set_secondary_dns(iscsi_boot.get_secondary_dns());
-        }
-    }
-
-    request.set_vlan_enabled(iscsi_boot.get_primary_vlan_enable());
-    if (iscsi_boot.get_primary_vlan_id().has_value()) {
-        request.set_vlan(uint16_t(iscsi_boot.get_primary_vlan_id()));
-    }
-    if (function.get_mac_address().has_value()) {
-        request.set_mac(function.get_mac_address());
-    }
-
-    try {
-        mc.send(request, response);
-    }
-    catch (const ipmi::ResponseError& response_error) {
-        THROW(IpmiError, "compute-agent", std::string("Error Sending SetOobNicBootOptions On CC: ")
-                                          + response_error.what());
-    }
-    catch (std::runtime_error& error) {
-        THROW(IpmiError, "compute-agent", error.what());
-    }
-}
-
-
-void send_target_data(ManagementController& mc, const NetworkDeviceFunction& function, Heap& heap) {
-    const auto& iscsi_boot = function.get_iscsi_boot();
-    request::SetOobTargetBootOptions request{};
-    response::SetOobTargetBootOptions response{};
-
-    const auto target_via_dhcp = iscsi_boot.get_target_info_via_dhcp();
-    request.set_dhcp_enabled(target_via_dhcp);
-
-    if (!target_via_dhcp) {
-        if (iscsi_boot.get_primary_target_name().has_value()) {
-            const auto& target_name = iscsi_boot.get_primary_target_name().value();
-            request.set_name_offset(uint16_t(heap.size()));
-            request.set_name_length(uint16_t(target_name.size()));
-            heap.insert(heap.end(), target_name.begin(), target_name.end());
-        }
-        if (iscsi_boot.get_primary_target_address().has_value()) {
-            request.set_address(iscsi_boot.get_primary_target_address());
-        }
-        if (iscsi_boot.get_primary_target_port().has_value()) {
-            request.set_port(uint16_t(iscsi_boot.get_primary_target_port()));
-        }
-        if (iscsi_boot.get_primary_lun().has_value()) {
-            request.set_lun(iscsi_boot.get_primary_lun());
-        }
-    }
-
-    const auto chap_type = iscsi_boot.get_authentication_method();
-    using ChapType = request::SetOobTargetBootOptions::ChapType;
-    switch (chap_type) {
-        case enums::FunctionAuthenticationMethod::None : request.set_chap_type(ChapType::None); break;
-        case enums::FunctionAuthenticationMethod::CHAP : request.set_chap_type(ChapType::OneWayChap); break;
-        case enums::FunctionAuthenticationMethod::MutualCHAP : request.set_chap_type(ChapType::MutualChap); break;
-        default:
-            throw std::runtime_error{"Tried to send an unknown authentication type " + std::to_string(chap_type)};
-    }
-
-    if (iscsi_boot.get_chap_username().has_value()) {
-        const auto& chap_username = iscsi_boot.get_chap_username().value();
-        request.set_chap_name_offset(uint16_t(heap.size()));
-        request.set_chap_name_length(uint16_t(chap_username.size()));
-        heap.insert(heap.end(), chap_username.begin(), chap_username.end());
-    }
-
-    if (iscsi_boot.get_chap_secret().has_value()) {
-        const auto& chap_secret = iscsi_boot.get_chap_secret().value();
-        request.set_chap_secret_offset(uint16_t(heap.size()));
-        request.set_chap_secret_length(uint16_t(chap_secret.size()));
-        heap.insert(heap.end(), chap_secret.begin(), chap_secret.end());
-    }
-
-    if (iscsi_boot.get_mutual_chap_username().has_value()) {
-        const auto& mutual_chap_username = iscsi_boot.get_mutual_chap_username().value();
-        request.set_mutual_chap_name_offset(uint16_t(heap.size()));
-        request.set_mutual_chap_name_length(uint16_t(mutual_chap_username.size()));
-        heap.insert(heap.end(), mutual_chap_username.begin(), mutual_chap_username.end());
-    }
-
-    if (iscsi_boot.get_mutual_chap_secret().has_value()) {
-        const auto& mutual_chap_secret = iscsi_boot.get_mutual_chap_secret().value();
-        request.set_mutual_chap_secret_offset(uint16_t(heap.size()));
-        request.set_mutual_chap_secret_length(uint16_t(mutual_chap_secret.size()));
-        heap.insert(heap.end(), mutual_chap_secret.begin(), mutual_chap_secret.end());
-    }
-
-    try {
-        mc.send(request, response);
-    }
-    catch (const ipmi::ResponseError& response_error) {
-        THROW(IpmiError, "compute-agent", std::string("Error Sending SetOobTargetBootOptions On CC: ")
-                                          + response_error.what());
-    }
-    catch (std::runtime_error& error) {
-        THROW(IpmiError, "compute-agent", error.what());
-    }
-}
-
-
-void send_heap_data(ManagementController& mc, const NetworkDeviceFunction&, Heap& heap) {
-    int MAX_BLOCK_SIZE = ipmi::command::sdv::request::SetOobHeapBootOptions::MAX_BLOCK_SIZE;
-    auto send_oob_heap_chunk = [&](uint16_t offset, uint16_t length) {
-        request::SetOobHeapBootOptions request{};
-        response::SetOobHeapBootOptions response{};
-        request.set_offset(offset);
-        request.set_data({heap.begin() + offset, heap.begin() + offset + length});
-
-        try {
-            mc.send(request, response);
-        }
-        catch (const ipmi::ResponseError& response_error) {
-            THROW(IpmiError, "compute-agent", std::string("Error Sending SetOobHeapBootOptions On CC: ")
-                                              + response_error.what());
-        }
-    };
-
-    if (heap.empty()) {
-        return;
-    }
-
-    size_t blocks = heap.size() / MAX_BLOCK_SIZE;
-    size_t delta = heap.size() % MAX_BLOCK_SIZE;
-
-    for (size_t block = 0; block < blocks; block++) {
-        auto offset = block * MAX_BLOCK_SIZE;
-        send_oob_heap_chunk(uint16_t(offset), uint16_t(MAX_BLOCK_SIZE));
-    }
-
-    if (delta > 0) {
-        auto offset = blocks * MAX_BLOCK_SIZE;
-        send_oob_heap_chunk(uint16_t(offset), uint16_t(heap.size() - offset));
-    }
-}
-
 
 bool is_unsupported(const std::string& attribute) {
     static std::set<std::string> unsupported{
@@ -505,16 +289,7 @@ enums::PlatformType get_platform_from_chassis(const std::string& network_device_
 void send_iscsi_oob_parameters(const NetworkDeviceFunction& function, ManagementController& mc) {
     const enums::PlatformType platform = get_platform_from_chassis(function.get_parent_uuid());
 
-    if (platform == enums::PlatformType::GRANTLEY) {
-        Heap heap{};
-        clear_data(mc);
-        send_initiator_data(mc, function, heap);
-        send_nic_data(mc, function);
-        send_target_data(mc, function, heap);
-        send_heap_data(mc, function, heap);
-        send_control_data(mc, function);
-    }
-    else if (platform == enums::PlatformType::PURLEY) {
+    if (platform == enums::PlatformType::PURLEY) {
         ipmi::IpmiInterface::ByteBuffer data{};
         iscsi::builder::IscsiMdrBuilder::build(data, get_ndf_context_vector(function),
             request::SetOobInitiatorBootOptions::PURLEY_DEFAULT_WAIT_TIME,
@@ -540,10 +315,7 @@ void send_iscsi_oob_parameters(const NetworkDeviceFunction& function, Management
 void send_clear_iscsi_oob_parameters(const NetworkDeviceFunction& function, ManagementController& mc) {
     const enums::PlatformType platform = get_platform_from_chassis(function.get_parent_uuid());
 
-    if (platform == enums::PlatformType::GRANTLEY) {
-        clear_data(mc);
-    }
-    else if (platform == enums::PlatformType::PURLEY) {
+    if (platform == enums::PlatformType::PURLEY) {
         // writing only the version structure clears iSCSI boot options
         ipmi::IpmiInterface::ByteBuffer data{};
         iscsi::builder::IscsiMdrBuilder::clear(data, get_ndf_context_vector(function));

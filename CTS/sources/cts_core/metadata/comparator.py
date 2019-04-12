@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,20 +21,18 @@
  *
  * @section DESCRIPTION
 """
-from tempfile import NamedTemporaryFile
-
 import itertools
-
-from cts_core.commons.error import cts_error, cts_warning
 from cStringIO import StringIO
+from tempfile import NamedTemporaryFile
 
 THIS = False
 OTHER = True
 
+
 class Comparator:
     EQUAL = 0
     NON_EQUAL = 1
-    COLUMN_WIDTH=60
+    COLUMN_WIDTH = 60
     FMT = "{0:%s}|  {1:%s}\n" % (COLUMN_WIDTH, COLUMN_WIDTH)
 
     def __init__(self, level=0):
@@ -42,6 +40,9 @@ class Comparator:
         self.right_file = StringIO()
         self._result = Comparator.EQUAL
         self._level = level
+
+        self.left_ext_file = StringIO()
+        self.right_ext_file = StringIO()
 
     @property
     def result(self):
@@ -62,12 +63,13 @@ class Comparator:
 
         return left, right
 
-    def _format_row(self, left, right):
+    @staticmethod
+    def _format_row(left, right):
         left = "" if left is None else left
         right = "" if right is None else right
         return Comparator.FMT.format(left, right)
 
-    def getside_by_side(self, label=None, label_other=None):
+    def get_side_by_side(self, label=None, label_other=None):
         left = self.left_file.getvalue().split('\n')
         right = self.right_file.getvalue().split('\n')
 
@@ -94,8 +96,14 @@ class Comparator:
         return "  " * self._level
 
     def message(self, column, fmt, **kwargs):
+        extended = self.left_ext_file if column == THIS else self.right_ext_file
+        extended.write(fmt + "\n")
+
         outlet = self.left_file if column == THIS else self.right_file
-        msg = (self.indent + fmt.format(**kwargs))[:Comparator.COLUMN_WIDTH]
+        try:
+            msg = (self.indent + fmt.format(**kwargs))[:Comparator.COLUMN_WIDTH]
+        except IndexError:
+            msg = (self.indent + fmt)[:Comparator.COLUMN_WIDTH]
         outlet.write(msg + "\n")
 
     def merge_result(self, *other_comparators):
@@ -104,4 +112,7 @@ class Comparator:
                 self._result = Comparator.NON_EQUAL
                 self.left_file.write(comparator.left_file.getvalue())
                 self.right_file.write(comparator.right_file.getvalue())
+
+                self.left_ext_file.write(comparator.left_ext_file.getvalue())
+                self.right_ext_file.write(comparator.right_ext_file.getvalue())
         return self

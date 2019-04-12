@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ Redfish::Redfish(const std::string& path) : EndpointBase(path) {}
 Redfish::~Redfish() {}
 
 void Redfish::get(const Request&, Response& res) {
-    json::Value r(json::Value::Type::OBJECT);
+    json::Json r(json::Json::value_t::object);
     r[constants::Redfish::V1] = constants::PathParam::BASE_URL;
     set_response(res, r);
 }

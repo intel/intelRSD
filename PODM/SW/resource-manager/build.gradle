@@ -1,0 +1,170 @@
+/*
+ * Copyright (c) 2018-2019 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+apply from: "../buildscripts/wrapper.gradle"
+
+buildscript {
+    ext {
+        simulatorsVersion = '1.0-SNAPSHOT'
+        springBootVersion = '2.0.0.RELEASE'
+        springIntegrationCore = '5.0.4.RELEASE'
+        dependencyManagementPluginVersion = '1.0.4.RELEASE'
+        gradleVersionsPluginVersion = '0.17.0'
+        asciidoctorGradlePluginVersion = '1.5.3' //DO NOT UPDATE, newer versions have problems with diagram generation
+
+        springPlatformBomVersion = 'Cairo-RC1'
+        springCloudVersion = 'Finchley.M8'
+
+        springIntegrationHazelcastVersion = '1.0.0.RELEASE'
+        podmSpringHazelcastVersion = '1.0-SNAPSHOT'
+        podmServiceDockerPluginVersion = '1.0-SNAPSHOT'
+        podmCommonVersion = '1.0-SNAPSHOT'
+
+        guavaVersion = '24.1-jre'
+        antlrVersion = '4.7'
+        hibernateVersion = '5.2.15.Final'
+        assertjVersion = '3.8.0'
+        kotlinVersion = '1.2.70'
+        asciidoctorJVersion = '1.5.6'
+        asciidoctorJDiagramVersion = '1.5.8'
+        mockitoVersion = '2.0.2-beta'
+        jacocoVersion = '0.8.2'
+        jacocoCounter = 'LINE'
+    }
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath("io.spring.gradle:dependency-management-plugin:${dependencyManagementPluginVersion}")
+        classpath("com.github.ben-manes:gradle-versions-plugin:${gradleVersionsPluginVersion}")
+        classpath("org.asciidoctor:asciidoctor-gradle-plugin:${asciidoctorGradlePluginVersion}")
+    }
+}
+
+task createDockerfile {
+    dependsOn(":runner:createDockerfile")
+}
+
+task buildDockerImage {
+    dependsOn(":runner:buildDockerImage")
+}
+
+task pushDockerImage {
+    dependsOn(":runner:pushDockerImage")
+}
+
+apply plugin: 'com.github.ben-manes.versions'
+apply plugin: 'org.asciidoctor.convert'
+
+subprojects {
+    buildscript {
+        repositories {
+            mavenCentral()
+            jcenter()
+            maven { url "https://plugins.gradle.org/m2/" }
+        }
+        dependencies {
+            classpath("io.spring.gradle:dependency-management-plugin:${dependencyManagementPluginVersion}")
+        }
+    }
+
+    repositories {
+        mavenCentral()
+        maven { url 'https://repo.spring.io/libs-milestone' }
+        maven { url 'http://repo.spring.io/milestone' }
+        maven { url 'http://sndyuk.github.com/maven' }
+    }
+
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'jacoco'
+
+    sourceCompatibility = 1.8
+
+    jacoco {
+        toolVersion = "${jacocoVersion}"
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled true
+            csv.enabled false
+        }
+    }
+
+    build.dependsOn jacocoTestReport
+
+    dependencyManagement {
+        imports {
+            mavenBom("io.spring.platform:platform-bom:${springPlatformBomVersion}")
+            mavenBom("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
+        }
+    }
+
+    apply from: "../../buildscripts/checkstyle.gradle"
+
+    dependencies {
+        compileOnly("org.projectlombok:lombok")
+        annotationProcessor("org.projectlombok:lombok")
+    }
+
+    test {
+        useTestNG() {
+            testLogging {
+                showStandardStreams = false
+                //event to log on gradle output
+                events = ["skipped", "passed", "failed"]
+                exceptionFormat = "full"
+                showExceptions = true
+                showCauses = true
+                showStackTraces = false
+            }
+        }
+    }
+}
+
+task buildAll
+task cleanAll
+task testAll
+
+task test {
+}
+
+subprojects {
+    buildAll.dependsOn("${it.path}:build")
+    cleanAll.dependsOn("${it.path}:clean")
+    testAll.dependsOn("${it.path}:test")
+}
+
+dependencies {
+    asciidoctor "org.asciidoctor:asciidoctorj-diagram:${asciidoctorJDiagramVersion}"
+}
+
+asciidoctor {
+    requires = ['asciidoctor-diagram']
+    backends = ['html5']
+}
+
+asciidoctorj {
+    version = asciidoctorJVersion
+}
+
+task integrationTestsReport() {
+    dependsOn(":runner:generateSingleIntegrationsTestsReport")
+}
+integrationTestsReport.onlyIf { true }

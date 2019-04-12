@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,17 +49,15 @@ public:
     ~PncDiscoveryExceptionNoConfiguration();
 };
 
-/*! Thrown when no I2c drive data can be read - possibly the device is not a drive */
-class PncDiscoveryExceptionDriveNotFound final : public std::exception {
+/*! Thrown when no device data can be read - possibly the device is not of specified type */
+class PncDiscoveryExceptionDeviceNotFound final : public std::exception {
 public:
 
-    PncDiscoveryExceptionDriveNotFound() = default;
-    PncDiscoveryExceptionDriveNotFound(const PncDiscoveryExceptionDriveNotFound&) = default;
-    ~PncDiscoveryExceptionDriveNotFound();
-
-    /*! Model object built in the failed discovery process - sometimes still useful */
-    agent_framework::model::Drive drive{};
+    PncDiscoveryExceptionDeviceNotFound() = default;
+    PncDiscoveryExceptionDeviceNotFound(const PncDiscoveryExceptionDeviceNotFound&) = default;
+    ~PncDiscoveryExceptionDeviceNotFound();
 };
+
 
 }
 }

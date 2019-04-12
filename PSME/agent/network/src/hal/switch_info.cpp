@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,15 +25,13 @@
  *
  * @brief Switch parameters
  * */
+
 #include "hal/switch_info.hpp"
 
 #include <safe-string/safe_lib.hpp>
-
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <memory>
 #include <agent-framework/exceptions/exception.hpp>

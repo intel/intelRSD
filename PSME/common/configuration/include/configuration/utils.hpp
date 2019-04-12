@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,9 +27,13 @@
  * */
 
 #pragma once
+
+
+
+#include "json-wrapper/json-wrapper.hpp"
 #include <string>
 
-namespace json { class Value; }
+
 
 namespace configuration {
 
@@ -38,14 +42,14 @@ namespace configuration {
 * @param filename Filename
 * @param root JSON object
 */
-void file_to_json(const std::string& filename, json::Value& root);
+void file_to_json(const std::string& filename, json::Json& root);
 
 /*!
 * @brief Write JSON object to file
 * @param filename Filename
 * @param root JSON object
 */
-void json_to_file(const std::string& filename, json::Value& root);
+void json_to_file(const std::string& filename, json::Json& root);
 
 /*!
  * @brief Convert JSON string to JSON object
@@ -53,22 +57,14 @@ void json_to_file(const std::string& filename, json::Value& root);
  * @param root JSON object
  * @return On success true, otherwise false
  */
-bool string_to_json(const std::string& json_string, json::Value& root);
+bool string_to_json(const std::string& json_string, json::Json& root);
 
 /*!
  * @brief Convert JSON object to string
  * @param value JSON object
  * @return JSON string
  */
-std::string json_value_to_string(const json::Value& value);
-
-/*!
- * @brief Decrypt configuration string value
- * @param[in] key Decryption key (max 8 chars)
- * @param[in] message Hex encoded encrypted string to be decrypted
- * @return Decrypted string
- */
-std::string decrypt(const std::string& key, const std::string& message);
+std::string json_value_to_string(const json::Json& value);
 
 }
 

@@ -2,7 +2,7 @@
  * @brief Provides class for one resource tree stabilization based on key generator.
  *
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,9 @@
 #include "log_helpers.hpp"
 #include "key_value_missing_error.hpp"
 #include "agent-framework/module/model/resource.hpp"
+
+#include "agent-framework/module/model/model_common.hpp"
+#include "agent-framework/module/model/model_storage.hpp"
 
 #include <string>
 #include <utility>
@@ -65,7 +68,7 @@ public:
      * */
     template<class T, class ...Args>
     const Uuid dry_stabilize(T resource, const Args& ...args) const {
-        resource.set_unique_key(KeyGenerator::generate_key(resource, args...));
+        resource.set_unique_key(KeyGenerator{}.generate_key(resource, args...));
         resource.make_persistent_uuid(); /* Persistent UUID for a copy */
         return resource.get_uuid();
     }
@@ -87,7 +90,8 @@ public:
 
         Uuid resource_temporary_uuid = resource.get_uuid();
         try {
-            resource.set_unique_key(KeyGenerator::generate_key(resource, args...));
+            resource.set_unique_key(KeyGenerator{}.generate_key(resource, args...));
+
             resource.make_persistent_uuid();
             Uuid resource_persistent_uuid = resource.get_uuid();
             log_persistent_uuid_generated(T::get_component().to_string(),
@@ -101,6 +105,7 @@ public:
             return resource_temporary_uuid;
         }
     }
+
 };
 
 

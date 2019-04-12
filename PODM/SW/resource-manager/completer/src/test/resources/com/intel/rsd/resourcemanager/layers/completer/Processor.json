@@ -1,0 +1,66 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Systems/Members/1/Processors/Members/$entity",
+  "@odata.id": "/redfish/v1/Systems/db046a90-d610-11e7-9661-419a3eff5c1e/Processors/SOCKET+1",
+  "@odata.type": "#Processor.v1_0_0.Processor",
+  "Name": "Processor",
+  "Id": "SOCKET 1",
+  "Socket": "SOCKET 1",
+  "ProcessorType": "CPU",
+  "ProcessorArchitecture": "IA-64",
+  "InstructionSet": "x86-64",
+  "Manufacturer": "Intel",
+  "Model": "Intel(R) Xeon(R) CPU E5-2695 v3 @ 2.30GHz",
+  "ProcessorId": {
+    "VendorId": null,
+    "IdentificationRegisters": "f2 06 03 00 ff fb eb bf",
+    "EffectiveFamily": "6",
+    "EffectiveModel": "63",
+    "Step": "2",
+    "MicrocodeInfo": null
+  },
+  "MaxSpeedMHz": 3700,
+  "TotalCores": 14,
+  "TotalThreads": 28,
+  "Status": {
+    "State": "Enabled",
+    "Health": "OK"
+  },
+  "Oem": {
+    "Intel_RackScale": {
+      "@odata.type": "#Intel.Oem.Processor",
+      "Brand": "E5",
+      "Capabilities": [
+        "FPU",
+        "VME",
+        "DE",
+        "PSE",
+        "TSC",
+        "MSR",
+        "PAE",
+        "MCE",
+        "CX8",
+        "APIC",
+        "SEP",
+        "MTRR"
+      ],
+      "OnPackageMemory": [
+        {
+          "Type": "HBM2",
+          "CapacityMB": 512,
+          "SpeedMHz": 1066
+        }
+      ],
+      "ThermalDesignPowerWatt": 2.5,
+      "FPGA": {
+        "Type": "Integrated",
+        "BitStreamVersion": "Blue1",
+        "HSSIConfiguration": "4x10G",
+        "HSSISideband": "I2C",
+        "ReconfigurationSlots": 1
+      },
+      "Metrics": {
+        "@odata.id": "/redfish/v1/Systems/db046a90-d610-11e7-9661-419a3eff5c1e/Processors/SOCKET+1/Metrics"
+      }
+    }
+  }
+}

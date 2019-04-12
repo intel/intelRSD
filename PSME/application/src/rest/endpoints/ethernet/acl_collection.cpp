@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,17 +39,17 @@ using namespace agent_framework::model;
 using NetworkComponents = agent_framework::module::NetworkComponents;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchACLCollection.EthernetSwitchACLCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EthernetSwitchACLCollection.EthernetSwitchACLCollection";
     r[Common::NAME] = "Ethernet Switch Access Control List Collection";
     r[Common::DESCRIPTION] = "Switch Access Control List. Each ACL entry can "
         "be bound to any switch port";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
@@ -70,8 +70,7 @@ void endpoint::AclCollection::get(const server::Request& req,
     r[Common::ODATA_ID] = PathBuilder(req).build();
 
     const auto switch_uuid =
-        psme::rest::model::Find<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
-            .get_uuid();
+        psme::rest::model::find<agent_framework::model::EthernetSwitch>(req.params).get_uuid();
 
     const auto keys =
         agent_framework::module::NetworkComponents::get_instance()->
@@ -80,7 +79,7 @@ void endpoint::AclCollection::get(const server::Request& req,
     r[Collection::ODATA_COUNT] = static_cast<std::uint32_t>(keys.size());
 
     for (const auto& key : keys) {
-        json::Value link_elem(json::Value::Type::OBJECT);
+        json::Json link_elem(json::Json::value_t::object);
         link_elem[Common::ODATA_ID] = PathBuilder(req).append(key).build();
         r[Collection::MEMBERS].push_back(std::move(link_elem));
     }
@@ -90,10 +89,11 @@ void endpoint::AclCollection::get(const server::Request& req,
 
 
 void endpoint::AclCollection::post(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PostAclCollection";
     validators::JsonValidator::validate_empty_request(request);
 
     auto parent_switch =
-        model::Find<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID]).get();
+        model::find<agent_framework::model::EthernetSwitch>(request.params).get();
 
     const requests::AddAcl add_acl_request{
         parent_switch.get_uuid(),
@@ -115,5 +115,5 @@ void endpoint::AclCollection::post(const server::Request& request, server::Respo
         response.set_status(server::status_2XX::CREATED);
     };
 
-    gami_agent->execute_in_transaction(add_acl);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, add_acl);
 }

@@ -2,7 +2,7 @@
  * @brief Provides implementation of ComputeTreeStabilizer class
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,8 +31,6 @@
 #include "agent-framework/module/compute_components.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include "agent-framework/module/enum/common.hpp"
-
-#include "agent-framework/logger_ext.hpp"
 
 #include <algorithm>
 #include <vector>

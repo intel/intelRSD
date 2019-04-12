@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,6 +52,7 @@ namespace validation {
          * @throw Throws exception if parameter is invalid.
          * */
         static void validate_set_port_attributes(
+            const EthernetSwitchPort& port,
             const agent_framework::model::attribute::Attributes& attributes);
 
         /*!

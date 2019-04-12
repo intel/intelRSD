@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,13 +38,16 @@ Drive::~Drive() {}
 
 
 json::Json Drive::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
 
+    result[literals::Drive::NAME] = get_name();
+    result[literals::Drive::DESCRIPTION] = get_description();
     result[literals::Drive::STATUS] = get_status().to_json();
     result[literals::Drive::INTERFACE] = get_interface();
     result[literals::Drive::TYPE] = get_type();
     result[literals::Drive::RPM] = get_rpm();
     result[literals::Drive::FIRMWARE_VERSION] = get_firmware_version();
+    result[literals::Drive::LATENCY_TRACKING_ENABLED] = get_latency_tracking_enabled();
     result[literals::Drive::CAPACITY] = get_capacity_gb();
     result[literals::Drive::FRU_INFO] = get_fru_info().to_json();
     result[literals::Drive::INDICATOR_LED] = get_indicator_led();
@@ -73,10 +76,13 @@ json::Json Drive::to_json() const {
 Drive Drive::from_json(const json::Json& json) {
     Drive drive{};
 
+    drive.set_name(json[literals::Drive::NAME]);
+    drive.set_description(json[literals::Drive::DESCRIPTION]);
     drive.set_status(attribute::Status::from_json(json[literals::Drive::STATUS]));
     drive.set_interface(json[literals::Drive::INTERFACE]);
     drive.set_type(json[literals::Drive::TYPE]);
     drive.set_firmware_version(json[literals::Drive::FIRMWARE_VERSION]);
+    drive.set_latency_tracking_enabled(json[literals::Drive::LATENCY_TRACKING_ENABLED]);
     drive.set_rpm(json[literals::Drive::RPM]);
     drive.set_capacity_gb(json[literals::Drive::CAPACITY]);
     drive.set_fru_info(attribute::FruInfo::from_json(json[literals::Drive::FRU_INFO]));

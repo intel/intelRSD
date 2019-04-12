@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,12 +21,23 @@
 
 #include "psme/rest/server/error/server_exception.hpp"
 
+
+
 using namespace psme::rest::error;
 
-ServerException::ServerException(const ServerError& error): m_error(error) { }
 
-ServerException::~ServerException() noexcept { }
+ServerException::ServerException(const ServerError& error) : m_error(error) {}
+
+
+ServerException::~ServerException() noexcept {}
+
 
 const char* ServerException::what() const noexcept {
-    return m_error.get_message().c_str();
+    make_what();
+    return m_what.c_str();
+}
+
+
+void ServerException::make_what() const {
+    m_what = m_error.get_message();
 }

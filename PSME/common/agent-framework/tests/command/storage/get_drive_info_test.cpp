@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ private:
     class TestOEMData : public OEMData {
     public:
         json::Json to_json() const {
-            json::Json json_oem;
+            json::Json json_oem = json::Json();
             json_oem["testOEM"] = "TestOEMSpecificData";
             return json_oem;
         }
@@ -94,8 +94,8 @@ TEST(GetDriveInfoTest, PositiveExecute) {
         7200};
     GetDriveInfo::Request request{""};
     GetDriveInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params["component"] = "TestComponentId";
     params["drive"] = 1;
@@ -141,8 +141,8 @@ TEST(GetDriveInfoTest, NegativeComponentNotFound) {
         7200};
     GetDriveInfo::Request request{""};
     GetDriveInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params["component"] = "OtherTestComponentId";
     params["drive"] = 1;
@@ -161,8 +161,8 @@ TEST_F(GetDriveInfoTest, NegativeSlotNotFound) {
         7200};
     GetDriveInfo::Request request{""};
     GetDriveInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params["component"] = "TestComponentId";
     params["drive"] = 2;

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ CpuId::CpuId() { }
 CpuId::~CpuId() { }
 
 json::Json CpuId::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::CpuId::VENDOR_ID] = get_vendor_id();
     result[literals::CpuId::NUMERIC_ID] = get_numeric_id();
     result[literals::CpuId::FAMILY] = get_family();

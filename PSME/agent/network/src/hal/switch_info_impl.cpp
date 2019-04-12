@@ -1,8 +1,7 @@
 /*!
  * @brief Switch Info class implementation.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file agent/network/src/hal/switch_info_impl.cpp
  */
 
 #include "hal/switch_info_impl.hpp"
+#include "agent-framework/module/network_components.hpp"
+
+using namespace agent_framework;
+using namespace agent_framework::module;
+using namespace agent_framework::model;
 
 using namespace agent::network::hal;
 using namespace agent_framework::model;
@@ -35,13 +38,21 @@ void SwitchInfoImpl::read_switch_info() {
     read_mgmt_mac_address();
 }
 
-void SwitchInfoImpl::read_switch_port_list() {
-}
+bool SwitchInfoImpl::switch_vlan_exists(VlanId vlan_id) {
+    auto& port_manager = get_manager<EthernetSwitchPort>();
+    auto& port_vlan_manager = get_manager<EthernetSwitchPortVlan>();
 
-void SwitchInfoImpl::add_switch_port(const PortIdentifier&, PortMode) {
-}
+    /* check if the VLAN id exists on any port */
+    for (const auto& port_uuid : port_manager.get_keys()) {
+        for (const auto& vlan_uuid : port_vlan_manager.get_keys(port_uuid)) {
+            auto port_vlan_module = port_vlan_manager.get_entry(vlan_uuid);
+            if (vlan_id == port_vlan_module.get_vlan_id()) {
+                return true;
+            }
+        }
+    }
 
-void SwitchInfoImpl::delete_switch_port(const PortIdentifier&) {
+    return false;
 }
 
 void SwitchInfoImpl::update_switch_pfc_enabled(bool current_pfc_state, bool new_pfc_state) {

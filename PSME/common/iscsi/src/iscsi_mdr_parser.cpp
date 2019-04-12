@@ -1,7 +1,7 @@
 /*!
  * @brief Implementation of the iSCSI MDR region parser.
  *
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file iscsi_mdr_parser.cpp
  */
 
@@ -106,7 +105,7 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<iscsi::structs::
        << "\n\tInitiator Handle         : " << std::hex << se.data.initiator_handle
        << "\n\tTarget Handle            : " << std::hex << se.data.target_handle
        << "\n\tConnection Wait Time     : " << std::hex << se.data.connection_wait_time
-       << "\n\tConnection Retry Count   : " << std::hex << se.data.connection_retry_count
+       << "\n\tConnection Retry Count   : " << std::hex << uint32_t(se.data.connection_retry_count)
        << std::endl;
 
     return os;
@@ -114,7 +113,7 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<iscsi::structs::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<iscsi::structs::ISCSI_MDR_INITIATOR>& se) {
     os << "ISCSI_MDR_INITIATOR\t@" << se.header.handle
-       << "\n\tDHCP enabled     : " << std::boolalpha << se.data.initiator_dhcp_enabled
+       << "\n\tDHCP enabled     : " << std::boolalpha << bool(se.data.initiator_dhcp_enabled)
        << "\n\tName             : " << se.get_string(se.data.initiator_name)
        << "\n\tIP Address Type  : " << se.data.ip_address_type
        << "\n\tIP Address       : " << mdr::print_ip(se.data.initiator_ip_address)
@@ -130,15 +129,15 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<iscsi::structs::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<iscsi::structs::ISCSI_MDR_TARGET>& se) {
     os << "ISCSI_MDR_TARGET\t@" << se.header.handle
-       << "\n\tDHCP enabled             : " << std::boolalpha << se.data.target_dhcp_enabled
+       << "\n\tDHCP enabled             : " << std::boolalpha << bool(se.data.target_dhcp_enabled)
        << "\n\tName                     : " << se.get_string(se.data.target_name)
        << "\n\tIP Address Type          : " << se.data.ip_address_type
        << "\n\tIP Address               : " << mdr::print_ip(se.data.target_ip_address)
        << "\n\tPort                     : " << std::hex << se.data.target_port
        << "\n\tLUN                      : " << std::hex << se.data.target_lun
-       << "\n\tVLAN Enabled             : " << std::boolalpha << se.data.vlan_enabled
+       << "\n\tVLAN Enabled             : " << std::boolalpha << bool(se.data.vlan_enabled)
        << "\n\tVLAN ID                  : " << std::hex << se.data.vlan_id
-       << "\n\tRouter Advertisement     : " << std::boolalpha << se.data.router_advertisement
+       << "\n\tRouter Advertisement     : " << std::boolalpha << bool(se.data.router_advertisement)
        << "\n\tAuthentication Method    : " << se.data.authentication_method
        << "\n\tCHAP User Name           : " << se.get_string(se.data.chap_user_name)
        << "\n\tCHAP Secret              : " << se.get_string(se.data.chap_secret)
@@ -151,8 +150,8 @@ std::ostream& operator<<(std::ostream& os, const StructEnhanced<iscsi::structs::
 
 std::ostream& operator<<(std::ostream& os, const StructEnhanced<iscsi::structs::ISCSI_MDR_VERSION>& se) {
     os << "ISCSI_MDR_VERSION\t@" << se.header.handle
-       << "\n\tMajor    : " << std::hex << se.data.major_version
-       << "\n\tMinor    : " << std::hex << se.data.minor_version
+       << "\n\tMajor    : " << std::hex << uint32_t(se.data.major_version)
+       << "\n\tMinor    : " << std::hex << uint32_t(se.data.minor_version)
        << std::endl;
 
     return os;

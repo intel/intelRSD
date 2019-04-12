@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ DeletePortStaticMac::DeletePortStaticMac(const std::string& static_mac, Oem oem)
                 m_oem{oem} {}
 
 json::Json DeletePortStaticMac::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[StaticMac::STATIC_MAC] = m_static_mac;
     value[StaticMac::OEM] = m_oem.to_json();
     return value;

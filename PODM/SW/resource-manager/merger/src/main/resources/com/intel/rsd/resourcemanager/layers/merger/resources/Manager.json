@@ -1,0 +1,40 @@
+{
+  "@odata.context": "/redfish/v1/$metadata$Manager.Manager",
+  "@odata.id": "/redfish/v1/Managers/1",
+  "@odata.type": "#Manager.v1_2_0.Manager",
+  "Id": 1,
+  "Name": "PSME Manager",
+  "Description": "Manager description",
+  "ManagerType": "EnclosureManager",
+  "PowerState": "On",
+  "Model": "model-as-string",
+  "FirmwareVersion": "1.00",
+  "UUID": "526e61f0-ec98-11e8-816d-6d2e8a8f3f72",
+  "DateTime": "2015-03-13T04:14:33+06:00",
+  "DateTimeLocalOffset": "+06:00",
+  "Status": {
+    "State": "Enabled",
+    "Health": "OK",
+    "HealthRollup": "OK"
+  },
+  "Redundancy": [],
+  "EthernetInterfaces": null,
+  "NetworkProtocol": null,
+  "Links": {
+    "ManagerForServers": [],
+    "ManagerForChassis": [],
+    "ManagerInChassis": null,
+    "Oem": {
+      "Intel_RackScale": {
+        "@odata.type": "#Intel.Oem.ManagerLinks",
+        "ManagerForSwitches": [],
+        "ManagerForServices": []
+      }
+    }
+  },
+  "Actions": {
+    "Oem": {}
+  },
+  "Oem": {},
+  "ServiceEntryPointUUID": "526decc0-ec98-11e8-816d-6d2e8a8f3f72"
+}

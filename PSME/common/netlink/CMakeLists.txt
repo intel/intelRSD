@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2016-2018 Intel Corporation
+# Copyright (c) 2016-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 #
 # </license_header>
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.4)
 project(Netlink CXX)
 
 if (CMAKE_CROSSCOMPILING)
@@ -24,26 +24,35 @@ if (CMAKE_CROSSCOMPILING)
     return()
 endif()
 
+# TODO: remove old-style flags when all usages are removed
 set(NETLINK_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     CACHE PATH "Netlink include dir path"
 )
 
-set(NETLINK_LIBRARIES
-    netlink
-    CACHE PATH "Netlink libraries"
+add_library(netlink STATIC
+    src/nl_socket.cpp
+    src/nl_message.cpp
+    src/nl_exception.cpp
+    src/nl_exception_invalid_input.cpp
+    src/nl_exception_invalid_ifname.cpp
+    src/rt_message.cpp
+    src/neigh_message.cpp
+    src/fdb_info_message.cpp
+    src/utils.cpp
 )
 
-include_directories(
-    ${LOGGER_INCLUDE_DIRS}
-    ${AGENT_FRAMEWORK_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+target_include_directories(netlink
+    PUBLIC
+    include
 )
 
-include_directories(SYSTEM
+target_include_directories(netlink SYSTEM
+    PRIVATE
     ${NL3_INCLUDE_DIRS}
 )
 
-add_subdirectory(src)
-
-install (DIRECTORY include/netlink DESTINATION include)
+target_link_libraries(netlink
+    PRIVATE
+    logger
+)

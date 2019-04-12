@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: podm-gateway-config
+data:
+  application.yml: |-
+{{ tpl (toYaml .Values.applicationProperties | indent 4) . }}

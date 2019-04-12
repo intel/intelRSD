@@ -1,0 +1,14 @@
+/redfish/v1#/SessionService
+/redfish/v1#/Links/Sessions
+/redfish/v1#/AccountService
+/redfish/v1#/Registries
+/redfish/v1#/JsonSchemas
+/redfish/v1#/EventService
+
+/redfish/v1/#/SessionService
+/redfish/v1/#/Links/Sessions
+/redfish/v1/#/AccountService
+/redfish/v1/#/Registries
+/redfish/v1/#/JsonSchemas
+/redfish/v1/#/EventService
+

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,6 +70,9 @@ void request::SetSystemBootOptions::pack(std::vector<std::uint8_t>& data) const 
     }
     else if (m_boot_override_target == BootOverrideTarget::Pxe) {
         boot_target |= DEVICE_PXE;
+    }
+    else if (m_boot_override_target == BootOverrideTarget::RemoteDrive) {
+        boot_target |= DEVICE_REMOTE_HDD;
     }
 
     // 5 bytes of the options for BOOT FLAGS.

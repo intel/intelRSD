@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,7 @@
 #include "simple_update_action_info.hpp"
 #include "simple_update.hpp"
 #include "event_service.hpp"
+#include "session_service.hpp"
 #include "psme/rest/endpoints/task_service/task_service.hpp"
 #include "psme/rest/endpoints/task_service/task_collection.hpp"
 #include "psme/rest/endpoints/task_service/task.hpp"
@@ -38,6 +39,8 @@
 #include "message_registry.hpp"
 #include "event_subscriptions_collection.hpp"
 #include "event_subscription.hpp"
+#include "session_collection.hpp"
+#include "session.hpp"
 #include "psme/rest/endpoints/manager/manager.hpp"
 #include "psme/rest/endpoints/manager/manager_collection.hpp"
 #include "psme/rest/endpoints/manager/manager_reset.hpp"
@@ -49,6 +52,7 @@
 #include "psme/rest/endpoints/task_service/monitor.hpp"
 #include "psme/rest/endpoints/manager/network_protocol.hpp"
 #include "odata_service_document.hpp"
+#include "intel_registry.hpp"
 
 #include "system/system.hpp"
 #include "system/systems_collection.hpp"
@@ -57,17 +61,20 @@
 #include "system/memory.hpp"
 #include "system/memory_collection.hpp"
 #include "system/memory_metrics.hpp"
+#include "system/system_dcpmem_secure_erase.hpp"
 #include "system/system_network_interface.hpp"
 #include "system/system_network_interface_collection.hpp"
 #include "system/processor.hpp"
 #include "system/processors_collection.hpp"
 #include "system/processor_metrics.hpp"
+#include "system/processor_secure_erase.hpp"
 #include "system/storage_subsystem.hpp"
 #include "system/storage_subsystems_collection.hpp"
 #include "system/volumes_collection.hpp"
 #include "system/system_network_interface.hpp"
 #include "system/system_network_interface_collection.hpp"
 #include "system/system_metrics.hpp"
+#include "system/hosted_storage_services.hpp"
 #include "system/network_interface.hpp"
 #include "system/network_interfaces_collection.hpp"
 #include "system/network_device_function.hpp"
@@ -83,7 +90,11 @@
 #include "storage/volume_metrics.hpp"
 #include "storage/volume_initialize.hpp"
 #include "storage/volume_collection.hpp"
-#include "psme/rest/endpoints/storage/allocated_volumes_collection.hpp"
+#include "storage/allocated_volumes_collection.hpp"
+#include "storage/capacity_source.hpp"
+#include "storage/providing_drives_collection.hpp"
+#include "storage/providing_pools_collection.hpp"
+#include "storage/providing_volumes_collection.hpp"
 
 #include "ethernet/ethernet_switch.hpp"
 #include "ethernet/ethernet_switch_collection.hpp"
@@ -137,3 +148,9 @@
 #include "telemetry/telemetry_service.hpp"
 #include "telemetry/trigger.hpp"
 #include "telemetry/triggers_collection.hpp"
+
+#include "account_service/account_service.hpp"
+#include "account_service/account_collection.hpp"
+#include "account_service/account.hpp"
+#include "account_service/role.hpp"
+#include "account_service/role_collection.hpp"

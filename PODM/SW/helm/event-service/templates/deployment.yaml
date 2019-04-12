@@ -1,0 +1,81 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "event-service.fullname" . }}
+  labels:
+    app: {{ template "event-service.name" . }}
+    chart: {{ template "event-service.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "event-service.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ template "event-service.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      {{- if ne .Values.global.registry_secret "" }}
+      imagePullSecrets:
+        - name: {{ .Values.global.registry_secret }}
+      {{ end }}
+      volumes:
+        - name: event-service-config
+          configMap:
+            name: event-service-config
+            items:
+              - key: application.yml
+                path: application.yml
+      {{- include "shared.coverage.volume" . | indent 8}}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.global.registry }}{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.applicationProperties.server.port }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /redfish/v1/EventService
+              port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: /redfish/v1/EventService
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          env:
+          - name: PODM_POSTGRES_USER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.secretName }}
+                key: database-password
+          volumeMounts:
+            - name: event-service-config
+              mountPath: /app/config
+              readOnly: true
+          {{- include "shared.coverage.mount" . | indent 12}}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

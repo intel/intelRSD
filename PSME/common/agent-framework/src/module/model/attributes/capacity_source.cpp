@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@ using namespace agent_framework::model;
 CapacitySource::~CapacitySource() { }
 
 json::Json CapacitySource::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::CapacitySource::PROVIDING_DRIVES] = get_providing_drives().to_json();
     result[literals::CapacitySource::PROVIDING_POOLS] = get_providing_pools().to_json();
     result[literals::CapacitySource::PROVIDING_VOLUMES] = get_providing_volumes().to_json();

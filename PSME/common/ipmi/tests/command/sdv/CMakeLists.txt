@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,6 +42,8 @@ add_gtest(sdv_commands ipmi
     rsd/mdr_region_update_complete_test.cpp
     rsd/get_mdr_data_region_status_test.cpp
     rsd/mdr_region_lock_test.cpp
+    rsd/get_acpi_table_names_test.cpp
+    rsd/set_acpi_table_names_test.cpp
     test_runner.cpp
 )
 

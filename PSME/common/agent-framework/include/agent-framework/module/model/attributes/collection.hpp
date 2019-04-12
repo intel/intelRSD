@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,21 +40,17 @@ class Collection {
 public:
     explicit Collection();
 
-
     Collection(const std::string& name,
-               const enums::CollectionType& type,
-               const std::string& slot_mask = {}) :
-        m_name{name}, m_type{type}, m_slot_mask{slot_mask} {}
+               const enums::CollectionType& type) :
+        m_name{name}, m_type{type} {}
 
 
     Collection(const enums::CollectionName& name,
-               const enums::CollectionType& type,
-               const std::string& slot_mask = {}) :
-        m_name{name.to_string()}, m_type{type}, m_slot_mask{slot_mask} {}
+               const enums::CollectionType& type) :
+        m_name{name.to_string()}, m_type{type} {}
 
 
     ~Collection();
-
 
     /*! Enable copy */
     Collection(const Collection&) = default;
@@ -73,7 +69,7 @@ public:
      * @brief Set collections array entry name
      * @param[in] name Entry name
      */
-    void set_name(const std::string name) {
+    void set_name(const std::string& name) {
         m_name = name;
     }
 
@@ -82,7 +78,7 @@ public:
      * @brief Get collections array entry name
      * @return Entry name
      */
-    std::string get_name() const {
+    const std::string& get_name() const {
         return m_name;
     }
 
@@ -91,7 +87,7 @@ public:
      * @brief Set collections array entry type
      * @param[in] type Entry type
      */
-    void set_type(const enums::CollectionType type) {
+    void set_type(enums::CollectionType type) {
         m_type = type;
     }
 
@@ -103,25 +99,6 @@ public:
     enums::CollectionType get_type() const {
         return m_type;
     }
-
-
-    /*!
-     * @brief Set collections array entry slot mask
-     * @param[in] slot_mask Entry slot mask
-     */
-    void set_slot_mask(const std::string& slot_mask) {
-        m_slot_mask = slot_mask;
-    }
-
-
-    /*!
-     * @brief Get collections array entry slot mask
-     * @return Entry slot mask
-     */
-    const std::string& get_slot_mask() const {
-        return m_slot_mask;
-    }
-
 
     /*!
      * @brief Make Json from collections array entry
@@ -142,8 +119,6 @@ private:
 
     std::string m_name{};
     enums::CollectionType m_type{enums::CollectionType::None};
-    std::string m_slot_mask{};
-
 };
 
 }

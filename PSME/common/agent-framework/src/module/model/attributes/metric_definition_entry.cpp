@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file metric_definition_entry.cpp
  */
 
@@ -34,7 +32,7 @@ MetricDefinitionEntry::~MetricDefinitionEntry() {}
 
 
 json::Json MetricDefinitionEntry::to_json() const {
-    json::Json entry;
+    json::Json entry = json::Json();
     entry[literals::MetricDefinition::METRIC_DEFINITION] = get_metric_definition();
     return entry;
 }

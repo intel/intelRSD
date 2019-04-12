@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,20 +18,15 @@
 
 add_subdirectory(drive_discovery)
 
-set(SOURCES
-    udev.cpp
-    endpoint_reader.cpp
-    endpoint_creator.cpp
-    nvme_transport.cpp
-    periodic_task.cpp
-    tools.cpp
-    databases.cpp
-    default_transaction_handler.cpp
-    transaction_handler_factory.cpp
-    default_database_factory.cpp
+target_sources(psme-gpt-nvme PRIVATE
+    src/tools/udev.cpp
+    src/tools/endpoint_reader.cpp
+    src/tools/endpoint_creator.cpp
+    src/tools/periodic_task.cpp
+    src/tools/tools.cpp
+    src/tools/databases.cpp
+    src/tools/default_database_factory.cpp
+    src/tools/nvme_database.cpp
+    src/tools/unix_dir.cpp
+    src/tools/nvme_context.cpp
 )
-
-add_library(nvme-tools-objs OBJECT ${SOURCES})
-add_library(nvme-tools-db-objs OBJECT nvme_database.cpp)
-add_library(nvme-tools-dir-objs OBJECT unix_dir.cpp)
-add_library(nvme-tools-context-objs OBJECT nvme_context.cpp)

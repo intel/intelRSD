@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,6 +47,8 @@ endif()
 
 if (NOT (CMAKE_CROSSCOMPILING OR "${CMAKE_TARGET_ARCH}" STREQUAL "32"))
     set(BUILD_FABRIC YES)
+    set(BUILD_OPAE YES)
+    set(BUILD_AARDVARK YES)
 endif()
 
 # Path to folder with all cmake scripts
@@ -119,7 +121,6 @@ else()
 endif()
 
 install_third_party(NlohmannJson)
-install_third_party(JsonSchema)
 
 find_package(UDEV REQUIRED)
 install_third_party(Ipmitool)
@@ -130,12 +131,18 @@ find_package(DevMapper REQUIRED)
 
 install_third_party(SafeString)
 
+if (BUILD_OPAE)
+    install_third_party(OPAE11)
+    install_third_party(OPAE)
+endif()
+
 if (BUILD_FABRIC)
     install_third_party(Fabric)
 endif()
 
-# for agent-simulator
-find_package(Libxmlpp)
+if (BUILD_AARDVARK)
+    install_third_party(Aardvark)
+endif()
 
 if (NOT CMAKE_CROSSCOMPILING)
     # Enable google testing
@@ -167,6 +174,7 @@ endif()
 
 find_package(Zlib)
 
+
 ###############################################################################
 message(STATUS "Building sources...")
 add_definitions($ENV{OPTIONS})
@@ -175,10 +183,6 @@ add_subdirectory(common)
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/agent)
 	add_subdirectory(agent)
-endif()
-
-if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/agent-simulator)
-	add_subdirectory(agent-simulator)
 endif()
 
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/agent-stubs)

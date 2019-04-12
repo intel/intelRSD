@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,9 +43,9 @@ static const std::map<std::string, std::string> gami_to_rest_attributes = {
 };
 
 
-void fill_post_attributes(const json::Value& post, agent_framework::model::attribute::Attributes& attributes) {
-    if (post.is_member(constants::Common::STATE)) {
-        const auto state = post[constants::Common::STATE].as_string();
+void fill_post_attributes(const json::Json& post, agent_framework::model::attribute::Attributes& attributes) {
+    if (post.count(constants::Common::STATE) && post[constants::Common::STATE].is_string()) {
+        const auto state = post[constants::Common::STATE].get<std::string>();
         if (!JsonValidator::validate_allowable_values(endpoint::Power::get_state_allowable_values(), state)) {
             throw error::ServerException(
                 error::ErrorFactory::create_error_for_not_allowable_value(
@@ -85,11 +85,11 @@ void update_model_after_post(psme::core::agent::JsonAgentSPtr agent,
 }
 
 
-std::string get_psu_uuid_via_chassis(const agent_framework::model::Chassis& chassis, const json::Value& json) {
+std::string get_psu_uuid_via_chassis(const agent_framework::model::Chassis& chassis, const json::Json& json) {
     auto power_zones = agent_framework::module::get_manager<agent_framework::model::PowerZone>()
         .get_keys(chassis.get_uuid());
 
-    const auto& member_id = json[Common::MEMBER_ID].as_string();
+    const auto& member_id = json[Common::MEMBER_ID].get<std::string>();
     if (power_zones.size() == 0) {
         // Power Zones as a resource are not related to Redfish resource
         // so if there is no PowerZones collection, it means there are no PSUs
@@ -134,8 +134,9 @@ endpoint::PowerSupplyRequestStateChange::~PowerSupplyRequestStateChange() {}
 
 
 void endpoint::PowerSupplyRequestStateChange::post(const server::Request& request, server::Response& response) {
-    auto chassis_id = request.params[PathParam::CHASSIS_ID];
-    auto chassis = model::Find<agent_framework::model::Chassis>(chassis_id).get();
+    static const constexpr char TRANSACTION_NAME[] = "PostPowerSupplyRequestStateChange";
+
+    auto chassis = model::find<agent_framework::model::Chassis>(request.params).get();
 
     const auto& json = JsonValidator::validate_request_body<schema::RequestStateChangePostSchema>(request);
     const auto& psu_uuid = ::get_psu_uuid_via_chassis(chassis, json);
@@ -156,7 +157,7 @@ void endpoint::PowerSupplyRequestStateChange::post(const server::Request& reques
             ::update_model_after_post(gami_agent, chassis);
         };
 
-        gami_agent->execute_in_transaction(set_psu_attributes);
+        gami_agent->execute_in_transaction(TRANSACTION_NAME, set_psu_attributes);
     }
 
     response.set_status(server::status_2XX::NO_CONTENT);

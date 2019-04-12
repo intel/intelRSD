@@ -4,8 +4,7 @@
  * Initialize Google C++ Mock and Google C++ Testing Framework
  * Do general cleanup after tests like delete resources from singletons
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
- * @file test_runner.hpp
+ * @file test_runner.cpp
  */
 
 #include "gmock/gmock.h"

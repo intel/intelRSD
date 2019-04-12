@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@
 #include "psme/rest/server/error/message_object.hpp"
 #include "psme/rest/constants/constants.hpp"
 
-#include <json/json.hpp>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -45,15 +45,15 @@ void MessageObject::set_related_properties(const std::vector<std::string>& relat
 }
 
 
-MessageObject::operator json::Value() const {
-    json::Value message_object{};
+MessageObject::operator json::Json() const {
+    json::Json message_object = json::Json();
 
     message_object[constants::Common::ODATA_TYPE] = ::TYPE;
     message_object[constants::MessageObject::MESSAGE_ID] = get_message_id();
     message_object[constants::MessageObject::MESSAGE] = get_message();
-    message_object[constants::MessageObject::RELATED_PROPERTIES] = json::Value::Type::ARRAY;
-    message_object[constants::MessageObject::MESSAGE_ARGS] = json::Value::Type::ARRAY;
-    message_object[constants::MessageObject::RESOLUTION] = json::Value::Type::NIL;
+    message_object[constants::MessageObject::RELATED_PROPERTIES] = json::Json::array();
+    message_object[constants::MessageObject::MESSAGE_ARGS] = json::Json::array();
+    message_object[constants::MessageObject::RESOLUTION] = json::Json();
 
 
     if (!get_related_properties().empty()) {

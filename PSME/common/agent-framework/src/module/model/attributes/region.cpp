@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,11 +34,11 @@ Region::Region() { }
 Region::~Region() { }
 
 json::Json Region::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::Region::REGION_ID] = get_region_id();
     result[literals::Region::MEMORY_TYPE] = get_memory_type();
-    result[literals::Region::OFFSET_MB] = get_offset_mb();
-    result[literals::Region::SIZE_MB] = get_size_mb();
+    result[literals::Region::OFFSET_MIB] = get_offset_mib();
+    result[literals::Region::SIZE_MIB] = get_size_mib();
     return result;
 }
 
@@ -46,7 +46,7 @@ Region Region::from_json(const json::Json& json) {
     attribute::Region region{};
     region.set_region_id(json[literals::Region::REGION_ID]);
     region.set_memory_type(json[literals::Region::MEMORY_TYPE]);
-    region.set_offset_mb(json[literals::Region::OFFSET_MB]);
-    region.set_size_mb(json[literals::Region::SIZE_MB]);
+    region.set_offset_mib(json[literals::Region::OFFSET_MIB]);
+    region.set_size_mib(json[literals::Region::SIZE_MIB]);
     return region;
 }

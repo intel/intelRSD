@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,37 +23,47 @@
 """
 
 import sys
+
 try:
     import pip
 except ImportError:
     print "Please install pip"
     sys.exit(1)
-from pip.req import parse_requirements
-from pip.utils import get_installed_version
+
+try:  # for pip >= 10
+    from pip._internal.req import parse_requirements
+    from pip._internal.utils.misc import get_installed_version
+except ImportError:  # for pip <= 9.0.3
+    from pip.req import parse_requirements
+    from pip.utils import get_installed_version
 
 
 def get_required():
-    required = []
+    required_dependencies = []
     for e in ['requirements.txt', 'requirements-no-deps.txt']:
-        install_reqs = parse_requirements(e, session='hack')
-        required.extend([req.req for req in install_reqs])
+        install_requirements = parse_requirements(e, session='hack')
+        required_dependencies.extend([req.req for req in install_requirements])
 
-    return required
+    return required_dependencies
+
 
 def show_user_cmd_for_manual_install(missing):
-    print "\nPlease, install pip dependencies manually:\nsudo -H pip install {what}".format(
-        what = ' '.join(map(str, missing))
+    print "\nPlease, install pip dependencies manually or try using proxy option in installer:\nsudo -H pip install {what}".format(
+        what=' '.join(map(str, missing))
     )
 
-def is_installed(req):
+
+def is_installed(requirement):
     try:
-        req_name, req_ver = str(req).split('==')
+        req_name, req_ver = str(requirement).split('==')
     except ValueError:
         print "ERROR:: Requirement specifier not supported: {req}. Installer supports only specifiers with " \
-              "'=='".format(req=str(req))
+              "'=='".format(req=str(requirement))
         return True
+
     installed_version = get_installed_version(req_name)
     return installed_version == req_ver
+
 
 if __name__ == "__main__":
     required = get_required()

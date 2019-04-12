@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file nvme_commands.cpp
+ * @file nvme_commands.hpp
  *
  * @brief Declarations of all nvme commands
  * */
@@ -31,9 +31,13 @@
 #include "agent-framework/module/requests/storage/get_storage_pool_info.hpp"
 #include "agent-framework/module/requests/storage/get_volume_info.hpp"
 #include "agent-framework/module/requests/storage/add_volume.hpp"
+#include "agent-framework/module/requests/storage/add_storage_pool.hpp"
 #include "agent-framework/module/requests/storage/delete_volume.hpp"
+#include "agent-framework/module/requests/storage/delete_storage_pool.hpp"
+#include "agent-framework/module/responses/storage/delete_storage_pool.hpp"
 #include "agent-framework/module/responses/common.hpp"
 #include "agent-framework/module/responses/storage/add_volume.hpp"
+#include "agent-framework/module/responses/storage/add_storage_pool.hpp"
 #include "agent-framework/module/responses/storage/delete_volume.hpp"
 #include "agent-framework/module/managers/utils/manager_utils.hpp"
 #include "agent-framework/module/model/storage_service.hpp"
@@ -41,6 +45,10 @@
 #include "agent-framework/module/model/network_interface.hpp"
 #include "agent-framework/module/model/volume.hpp"
 #include "agent-framework/module/model/system.hpp"
+#include "agent-framework/module/requests/common/delete_drive.hpp"
+#include "agent-framework/module/responses/common/delete_drive.hpp"
+
+
 
 namespace agent_framework {
 namespace command {
@@ -76,12 +84,15 @@ template <typename CONTEXT> using ContextAddEndpoint = ContextCommand<CONTEXT, m
 template <typename CONTEXT> using ContextAddZone = ContextCommand<CONTEXT, model::requests::AddZone, model::responses::AddZone>;
 template <typename CONTEXT> using ContextAddZoneEndpoints = ContextCommand<CONTEXT, model::requests::AddZoneEndpoints, model::responses::AddZoneEndpoints>;
 template <typename CONTEXT> using ContextAddVolume = ContextCommand<CONTEXT, model::requests::AddVolume, model::responses::AddVolume>;
+template <typename CONTEXT> using ContextAddStoragePool = ContextCommand<CONTEXT, model::requests::AddStoragePool, model::responses::AddStoragePool>;
 
 // declarations of all delete methods
 template <typename CONTEXT> using ContextDeleteEndpoint = ContextCommand<CONTEXT, model::requests::DeleteEndpoint, model::responses::DeleteEndpoint>;
 template <typename CONTEXT> using ContextDeleteZone = ContextCommand<CONTEXT, model::requests::DeleteZone, model::responses::DeleteZone>;
 template <typename CONTEXT> using ContextDeleteZoneEndpoints = ContextCommand<CONTEXT, model::requests::DeleteZoneEndpoints, model::responses::DeleteZoneEndpoints>;
 template <typename CONTEXT> using ContextDeleteVolume = ContextCommand<CONTEXT, model::requests::DeleteVolume, model::responses::DeleteVolume>;
+template <typename CONTEXT> using ContextDeleteStoragePool = ContextCommand<CONTEXT, model::requests::DeleteStoragePool, model::responses::DeleteStoragePool>;
+template <typename CONTEXT> using ContextDeleteDrive = ContextCommand<CONTEXT, model::requests::DeleteDrive, model::responses::DeleteDrive>;
 
 }
 }

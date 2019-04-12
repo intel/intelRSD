@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -115,7 +115,9 @@ static std::string System1 =
             },
             "collections": [],
             "chassis": "none",
-            "oem": {}
+            "oem": {},
+            "currentPerformanceConfiguration": null,
+            "performanceConfigurations": []
         })";
 
 
@@ -161,7 +163,9 @@ static std::string System2 =
                 }
             ],
             "chassis": "none",
-            "oem": {}
+            "oem": {},
+            "currentPerformanceConfiguration": null,
+            "performanceConfigurations": []
         })";
 
 static std::string System2Modified =
@@ -206,7 +210,9 @@ static std::string System2Modified =
                 }
             ],
             "chassis": "none",
-            "oem": {}
+            "oem": {},
+            "currentPerformanceConfiguration": null,
+            "performanceConfigurations": []
         })";
 
 static std::string Processor1 =
@@ -267,7 +273,8 @@ static std::string Processor1 =
                 "bitStreamVersion": "1.0",
                 "hssiConfiguration": "PCIe",
                 "hssiSideband": "I2C",
-                "reconfigurationSlots": 2
+                "reconfigurationSlots": 2,
+                "erased" : true
             },
             "maxSpeedMHz": 2400,
             "totalCores": 16,
@@ -337,7 +344,8 @@ static std::string Processor2 =
                 "bitStreamVersion": "1.0",
                 "hssiConfiguration": "PCIe",
                 "hssiSideband": "I2C",
-                "reconfigurationSlots": 2
+                "reconfigurationSlots": 2,
+                "erased" : false
             },
             "maxSpeedMHz": 1200,
             "totalCores": 4,
@@ -407,7 +415,8 @@ static std::string Processor2Modified =
                 "bitStreamVersion": "1.0",
                 "hssiConfiguration": "PCIe",
                 "hssiSideband": "I2C",
-                "reconfigurationSlots": 2
+                "reconfigurationSlots": 2,
+                "erased" : true
             },
             "maxSpeedMHz": 1200,
             "totalCores": 4,
@@ -516,7 +525,9 @@ static std::string System3 =
                 }
             ],
             "chassis": "none",
-            "oem": {}
+            "oem": {},
+            "currentPerformanceConfiguration": null,
+            "performanceConfigurations": []
         })";
 
 static std::string Processor1OnSystem3 =
@@ -577,7 +588,8 @@ static std::string Processor1OnSystem3 =
                 "bitStreamVersion": "1.0",
                 "hssiConfiguration": "PCIe",
                 "hssiSideband": "I2C",
-                "reconfigurationSlots": 2
+                "reconfigurationSlots": 2,
+                "erased" : true
             },
             "maxSpeedMHz": 1200,
             "totalCores": 2,
@@ -647,7 +659,8 @@ static std::string Processor1OnSystem3Modified =
                 "bitStreamVersion": "1.0",
                 "hssiConfiguration": "PCIe",
                 "hssiSideband": "I2C",
-                "reconfigurationSlots": 2
+                "reconfigurationSlots": 2,
+                "erased" : true
             },
             "maxSpeedMHz": 1200,
             "totalCores": 2,
@@ -701,7 +714,9 @@ static std::string System4 =
                 }
             ],
             "chassis": "none",
-            "oem": {}
+            "oem": {},
+            "currentPerformanceConfiguration": null,
+            "performanceConfigurations": []
         })";
 
 static std::string Processor1OnSystem4 =
@@ -762,7 +777,8 @@ static std::string Processor1OnSystem4 =
                 "bitStreamVersion": "1.0",
                 "hssiConfiguration": "PCIe",
                 "hssiSideband": "I2C",
-                "reconfigurationSlots": 2
+                "reconfigurationSlots": 2,
+                "erased" : false
             },
             "maxSpeedMHz": 1200,
             "totalCores": 2,
@@ -881,7 +897,9 @@ static std::string System5 =
                 }
             ],
             "chassis": "none",
-            "oem": {}
+            "oem": {},
+            "currentPerformanceConfiguration": null,
+            "performanceConfigurations": []
         })";
 
 static std::string System6 =
@@ -931,7 +949,9 @@ static std::string System6 =
                 }
             ],
             "chassis": "none",
-            "oem": {}
+            "oem": {},
+            "currentPerformanceConfiguration": null,
+            "performanceConfigurations": []
         })";
 
 static std::string Task1 =

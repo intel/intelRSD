@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -114,7 +114,8 @@ static std::string Fabric1 =
         "status": {
             "health": "OK",
             "state": "Enabled"
-        }
+        },
+        "oemProtocol": null
     })";
 
 static std::string FabricZone1 =
@@ -151,6 +152,8 @@ static std::string FabricZone2 =
 
 static std::string Endpoint1InZone1 =
     R"({
+        "name": null,
+        "description": null,
         "collections": [
             {
                 "name": "Ports",
@@ -162,6 +165,7 @@ static std::string Endpoint1InZone1 =
             {
                 "entity": null,
                 "role": "Initiator",
+                "lun": null,
                 "identifiers" : []
             }
         ],
@@ -175,11 +179,14 @@ static std::string Endpoint1InZone1 =
         "status": {
             "health": "OK",
             "state": "Enabled"
-        }
+        },
+        "oemProtocol": null
     })";
 
 static std::string Endpoint1InZone2 =
     R"({
+        "name": null,
+        "description": null,
         "collections": [
             {
                 "name": "Ports",
@@ -191,6 +198,7 @@ static std::string Endpoint1InZone2 =
             {
                 "entity": null,
                 "role": "Initiator",
+                "lun": null,
                 "identifiers" : []
             }
         ],
@@ -204,11 +212,14 @@ static std::string Endpoint1InZone2 =
         "status": {
             "health": "OK",
             "state": "Enabled"
-        }
+        },
+        "oemProtocol": null
     })";
 
 static std::string Endpoint2InZone2 =
     R"({
+        "name": null,
+        "description": null,
         "collections": [
             {
                 "name": "Ports",
@@ -220,6 +231,7 @@ static std::string Endpoint2InZone2 =
             {
                 "entity": null,
                 "role": "Initiator",
+                "lun": null,
                 "identifiers" : []
             }
         ],
@@ -233,5 +245,6 @@ static std::string Endpoint2InZone2 =
         "status": {
             "health": "OK",
             "state": "Enabled"
-        }
+        },
+        "oemProtocol": null
     })";

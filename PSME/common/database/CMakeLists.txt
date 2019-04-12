@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,28 +16,18 @@
 #
 # </license_header>
 
-cmake_minimum_required(VERSION 2.8)
-project(Database CXX)
+cmake_minimum_required(VERSION 3.4)
+project("Database" CXX)
 
 set(DATABASE_LIBRARIES
     database
     CACHE PATH "Database libraries"
-)
+    )
 
 set(DATABASE_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     CACHE PATH "Database include directory"
-)
-
-include_directories(
-    include
-    ${COMMON_INCLUDE_DIRS}
-    ${LOGGER_INCLUDE_DIRS}
-)
-
-include_directories(SYSTEM
-    ${SAFESTRING_INCLUDE_DIRS}
-)
+    )
 
 add_library(database STATIC
     src/database.cpp
@@ -45,10 +35,19 @@ add_library(database STATIC
     src/persistent_attributes.cpp
 )
 
-install(TARGETS database
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
+target_include_directories(database
+    SYSTEM PRIVATE
+    ${SAFESTRING_INCLUDE_DIRS}
+
+    PUBLIC
+    include
+)
+
+target_link_libraries(database
+    PRIVATE
+    logger
+    common-include
+    ${SAFESTRING_LIBRARIES}
 )
 
 add_subdirectory(tests)

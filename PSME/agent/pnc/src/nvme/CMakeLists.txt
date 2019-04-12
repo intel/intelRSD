@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2016-2018 Intel Corporation
+# Copyright (c) 2016-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ set(SOURCES
     vital_product_data.cpp
     fw_version.cpp
     smart.cpp
-    nvme_secure_erase.cpp
-    nvme_secure_erase_task.cpp)
+    nvme_secure_erase.cpp)
 
 add_library(pnc-nvme OBJECT ${SOURCES})

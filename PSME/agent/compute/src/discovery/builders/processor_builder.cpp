@@ -1,8 +1,7 @@
 /*!
  * @brief Processor builder class implementation.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
- * @file processor_builder.hpp
+ * @file processor_builder.cpp
  */
 
 
-#include "discovery/builders/platform_specific/grantley/grantley_processor_builder.hpp"
+#include "discovery/builders/processor_builder.hpp"
+
 
 #include <bitset>
 
@@ -189,7 +188,7 @@ bool is_matching_processor(const std::string& processor_socket, const std::strin
 
 
 template<typename SmbiosFpgaData>
-OptionalField<enums::FpgaType> get_fpga_type(const SmbiosParser::StructEnhanced<SmbiosFpgaData>& fpga) {
+OptionalField<enums::FpgaType> get_fpga_type(const SmbiosFpgaData& fpga) {
     switch (fpga.data.fpga_type) {
         case FpgaType::INTEGRATED:
             return enums::FpgaType::Integrated;
@@ -204,25 +203,25 @@ OptionalField<enums::FpgaType> get_fpga_type(const SmbiosParser::StructEnhanced<
 
 
 template<typename SmbiosFpgaData>
-OptionalField<enums::OnPackageMemoryType>
-get_processor_memory_type(const SmbiosParser::StructEnhanced<SmbiosFpgaData>& fpga) {
+OptionalField<enums::IntegratedMemoryType>
+get_processor_memory_type(const SmbiosFpgaData& fpga) {
     switch (fpga.data.memory_technology) {
-        case OnPackageMemoryTechnology::EDRAM:
-            return enums::OnPackageMemoryType::EDRAM;
-        case OnPackageMemoryTechnology::HBM:
-            return enums::OnPackageMemoryType::HBM;
-        case OnPackageMemoryTechnology::HBM2:
-            return enums::OnPackageMemoryType::HBM2;
-        case OnPackageMemoryTechnology::NONE:
+        case IntegratedMemoryTechnology::EDRAM:
+            return enums::IntegratedMemoryType::EDRAM;
+        case IntegratedMemoryTechnology::HBM:
+            return enums::IntegratedMemoryType::HBM;
+        case IntegratedMemoryTechnology::HBM2:
+            return enums::IntegratedMemoryType::HBM2;
+        case IntegratedMemoryTechnology::NONE:
         default:
-            return OptionalField<enums::OnPackageMemoryType>{};
+            return OptionalField<enums::IntegratedMemoryType>{};
 
     }
 }
 
 
 template<typename SmbiosFpgaData>
-OptionalField<attribute::Status> get_fpga_status(const SmbiosParser::StructEnhanced<SmbiosFpgaData>& fpga) {
+OptionalField<attribute::Status> get_fpga_status(const SmbiosFpgaData& fpga) {
     switch (fpga.data.fpga_status) {
         case FpgaStatus::ENABLED:
             return attribute::Status{enums::State::Enabled, {}};
@@ -233,28 +232,6 @@ OptionalField<attribute::Status> get_fpga_status(const SmbiosParser::StructEnhan
 }
 
 
-template<typename SmbiosFpgaData>
-OptionalField<enums::HssiConfiguration>
-build_hssi_configuration(const SmbiosParser::StructEnhanced<SmbiosFpgaData>& fpga) {
-    std::stringstream ss;
-    if (FpgaHssiConfiguration::NETWORKING == fpga.data.fpga_hssi_configuration) {
-        ss << std::to_string(int(fpga.data.fpga_hssi_port_count));
-        ss << "x";
-        ss << std::to_string(int(fpga.data.fpga_hssi_port_speed));
-        ss << "G";
-        try {
-            return enums::HssiConfiguration::from_string(ss.str());
-        }
-        catch (const agent_framework::exceptions::InvalidValue&) {
-            return OptionalField<enums::HssiConfiguration>{};
-        }
-    }
-    else if (FpgaHssiConfiguration::PCIE == fpga.data.fpga_hssi_configuration) {
-        return enums::HssiConfiguration::PCIe;
-    }
-    return OptionalField<enums::HssiConfiguration>{};
-}
-
 /*!
 * @tparam SmbiosFpgaData Type of structure containing SMBIOS FPGA data.
 * @brief Update processor object with SMBIOS FPGA data.
@@ -263,28 +240,17 @@ build_hssi_configuration(const SmbiosParser::StructEnhanced<SmbiosFpgaData>& fpg
 */
 template<typename SmbiosFpgaData>
 static void generic_update_smbios_fpga_data(agent_framework::model::Processor& processor,
-                                    const smbios::parser::SmbiosParser::StructEnhanced<SmbiosFpgaData>& smbios_data) {
+                                            const SmbiosFpgaData& smbios_data) {
     attribute::Fpga fpga{};
-    fpga.set_bit_stream_version(smbios_data.get_string(smbios_data.data.fpga_bit_stream_version));
     fpga.set_type(get_fpga_type(smbios_data));
-    try {
-        fpga.set_hssi_sideband(enums::HssiSideband::from_string(
-            smbios_data.get_string(smbios_data.data.fpga_hssi_side_band_configuration)));
-    }
-    catch (const agent_framework::exceptions::InvalidValue&) {
-        fpga.set_hssi_sideband(OptionalField<enums::HssiSideband>{});
-    }
-    fpga.set_reconfiguration_slots(smbios_data.data.fpga_reconfiguration_slots);
-    fpga.set_hssi_configuration(build_hssi_configuration(smbios_data));
-
     attribute::CpuId cpu_id{};
     cpu_id.set_vendor_id(smbios_data.get_string(smbios_data.data.fpga_vendor));
     cpu_id.set_family(smbios_data.get_string(smbios_data.data.fpga_family));
 
-    attribute::OnPackageMemory memory{};
+    attribute::IntegratedMemory memory{};
     memory.set_type(get_processor_memory_type(smbios_data));
-    memory.set_capacity_mb(smbios_data.data.on_package_memory_capacity);
-    memory.set_speed_mhz(smbios_data.data.on_package_memory_speed);
+    memory.set_capacity_mb(smbios_data.data.integrated_memory_capacity);
+    memory.set_speed_mhz(smbios_data.data.integrated_memory_speed);
 
     processor.set_total_cores(smbios_data.data.fpga_hps_core_count);
     processor.set_model_name(smbios_data.get_string(smbios_data.data.fpga_model));
@@ -299,12 +265,13 @@ static void generic_update_smbios_fpga_data(agent_framework::model::Processor& p
     processor.add_memory(memory);
 }
 
-
 }
 
 
 Processor ProcessorBuilder::build_default(const std::string& parent_uuid) {
-    return Processor{parent_uuid};
+    Processor processor{parent_uuid};
+    processor.add_collection({enums::CollectionName::Processors, enums::CollectionType::Processors});
+    return processor;
 }
 
 
@@ -369,15 +336,13 @@ void ProcessorBuilder::update_smbios_processor_data(agent_framework::model::Proc
             is_capable_64_bit ? enums::ProcessorInstructionSet::x86_64 : enums::ProcessorInstructionSet::x86);
 
         // Finding model (processor brand) in substring of processor version
-        enums::ProcessorModel processor_model{enums::ProcessorModel::Unknown};
         for (const auto& model : enums::ProcessorModel::get_values()) {
             std::size_t found = processor_version.find(model);
             if (found != std::string::npos) {
-                processor_model = enums::ProcessorModel::from_string(model);
+                processor.set_model(enums::ProcessorModel::from_string(model));
                 break;
             }
         }
-        processor.set_model(processor_model);
 
         set_cpu_id(processor, cpu.data);
         set_capabilities(processor, cpu.data);
@@ -462,12 +427,14 @@ void ProcessorBuilder::update_smbios_cpu_id_data(agent_framework::model::Process
     processor.set_extended_cpu_id(cpu_id);
 }
 
+
 void ProcessorBuilder::update_smbios_fpga_data(agent_framework::model::Processor& processor,
-                                               const smbios::parser::SmbiosParser::StructEnhanced<SMBIOS_FPGA_DATA>& smbios_data){
+                                               const smbios::parser::SmbiosParser::StructEnhanced<SMBIOS_FPGA_DATA>& smbios_data) {
     generic_update_smbios_fpga_data(processor, smbios_data);
 }
 
+
 void ProcessorBuilder::update_smbios_fpga_data(agent_framework::model::Processor& processor,
-                                               const smbios::parser::SmbiosParser::StructEnhanced<SMBIOS_FPGA_DATA_OEM>& smbios_data){
+                                               const smbios::parser::SmbiosParser::StructEnhanced<SMBIOS_FPGA_DATA_OEM>& smbios_data) {
     generic_update_smbios_fpga_data(processor, smbios_data);
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,30 +21,33 @@
 #include "psme/rest/constants/constants.hpp"
 #include "psme/rest/endpoints/manager/manager_vlan_network_interface_collection.hpp"
 
+
+
 using namespace psme::rest;
 using namespace psme::rest::endpoint;
 using namespace psme::rest::constants;
 
 namespace {
 
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#VLanNetworkInterfaceCollection.VLanNetworkInterfaceCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#VLanNetworkInterfaceCollection.VLanNetworkInterfaceCollection";
     r[Common::NAME] = "VLAN Network Interface Collection";
     r[Common::DESCRIPTION] = "Collection of VLAN Network Interfaces";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
 
 }
 
+
 ManagerVlanNetworkInterfaceCollection::ManagerVlanNetworkInterfaceCollection(const std::string& path) :
-    EndpointBase(path) { }
+    EndpointBase(path) {}
 
 
 ManagerVlanNetworkInterfaceCollection::~ManagerVlanNetworkInterfaceCollection() {}
@@ -54,30 +57,26 @@ void ManagerVlanNetworkInterfaceCollection::get(const server::Request& request, 
     auto r = ::make_prototype();
 
     r[Common::ODATA_ID] = PathBuilder(request).build();
+    r[Collection::ODATA_COUNT] = 0;
 
-    auto manager_uuid = psme::rest::model::Find<agent_framework::model::Manager>(request.params[PathParam::MANAGER_ID])
-        .get_uuid();
+    auto manager_uuid = psme::rest::model::find<agent_framework::model::Manager>(request.params).get_uuid();
     auto nic_ids = agent_framework::module::get_manager<agent_framework::model::NetworkInterface>()
         .get_ids(manager_uuid);
 
-    if (nic_ids.empty()) {
-        throw agent_framework::exceptions::NotFound(
-            "There is no VLANs collection under NetworkInterface with ID: " + request.params[PathParam::NIC_ID] + ".");
-    }
+    if (!nic_ids.empty()) {
+        auto nic_uuid =
+            psme::rest::model::find<agent_framework::model::Manager,
+                                    agent_framework::model::NetworkInterface>(request.params).get_uuid();
 
-    auto nic_uuid =
-        psme::rest::model::Find<agent_framework::model::NetworkInterface>(request.params[PathParam::NIC_ID])
-            .via<agent_framework::model::Manager>(request.params[PathParam::MANAGER_ID])
-            .get_uuid();
+        auto vlan_ids = agent_framework::module::get_manager<agent_framework::model::EthernetSwitchPortVlan>()
+            .get_ids(nic_uuid);
 
-    auto vlan_ids = agent_framework::module::get_manager<agent_framework::model::EthernetSwitchPortVlan>()
-        .get_ids(nic_uuid);
-
-    r[Collection::ODATA_COUNT] = vlan_ids.size();
-    for (const auto& vlan_id : vlan_ids) {
-        json::Value link(json::Value::Type::OBJECT);
-        link[Common::ODATA_ID] = PathBuilder(request).append(vlan_id).build();
-        r[Collection::MEMBERS].push_back(std::move(link));
+        r[Collection::ODATA_COUNT] = vlan_ids.size();
+        for (const auto& vlan_id : vlan_ids) {
+            json::Json link(json::Json::value_t::object);
+            link[Common::ODATA_ID] = PathBuilder(request).append(vlan_id).build();
+            r[Collection::MEMBERS].push_back(std::move(link));
+        }
     }
 
     set_response(response, r);

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -261,6 +261,12 @@ class ApiCaller:
         :type url: str
         :type discovery_container: DiscoveryContainer
         :type acceptable_return_codes: list(int)
+
+        :rtype link
+        :rtype status
+        :rtype status_code
+        :rtype response_body
+        :rtype headers
         """
 
         link, status, status_code, response_body, headers = \

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ using namespace agent_framework::model::requests;
 HeartBeat::HeartBeat(const std::string& gami_id): m_gami_id{gami_id} {}
 
 json::Json HeartBeat::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[literals::HeartBeat::GAMI_ID] = get_gami_id();
     return value;
 }

@@ -13,3 +13,4 @@ pyopenssl==17.0.0
 ndg-httpsclient==0.4.0
 pyasn1==0.1.9
 pandas==0.19.2
+paramiko==2.4.1

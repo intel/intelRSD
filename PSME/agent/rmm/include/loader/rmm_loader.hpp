@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file rmm/loader/rmm_loader.hpp
  */
 
@@ -39,10 +37,10 @@ public:
 
     /*!
      * @brief Loads compute configuration file and build compute.
-     * @param[in] json instance of json::Value with loaded compute configuration.
+     * @param[in] json instance of json::Json with loaded compute configuration.
      * @return true if success otherwise false
      * */
-    bool load(const json::Value& json) override;
+    bool load(const json::Json& json) override;
 
 private:
     agent::rmm::discovery::helpers::DiscoveryContext& m_dc;

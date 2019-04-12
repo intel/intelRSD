@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,11 +11,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file nvme/utils.cpp
  */
 
 #include "nvme/utils.hpp"
+#include "nvme/nvme_exception.hpp"
 
 namespace {
 
@@ -88,4 +87,13 @@ uint64_t nvme::get_formatted_lba_data_size(const nvme::NamespaceData& namespace_
         return DEFAULT_BLOCK_SIZE_BYTES;
     }
     return (1 << flbas_power);
+}
+
+std::uint32_t nvme::find_first_namespace(const nvme::NamespaceIdList& ns_id_list) {
+    for (unsigned i = 0; i < nvme::NAMESPACE_ID_LIST_MAX_SIZE; ++i) {
+        if (ns_id_list.namespace_id[i] != 0) {
+            return ns_id_list.namespace_id[i];
+        }
+    }
+    throw nvme::NvmeException("No active namespaces found.");
 }

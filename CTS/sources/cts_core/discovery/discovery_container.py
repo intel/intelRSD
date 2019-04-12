@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,46 +38,58 @@ from cts_framework.commons.enums import RequestStatus
 
 ID_SUBSTITUTE_CHAR = "*"
 
+
 class constraint():
     def __init__(self, field, value):
         self._field = field
         self._value = value
 
+
 class equal(constraint):
     def apply(self, dataframe):
         return dataframe[dataframe[self._field] == self._value]
+
 
 class not_equal(constraint):
     def apply(self, dataframe):
         return dataframe[dataframe[self._field] != self._value]
 
+
 class less_or_equal(constraint):
     def apply(self, dataframe):
         return dataframe[dataframe[self._field] <= self._value]
+
 
 class less(constraint):
     def apply(self, dataframe):
         return dataframe[dataframe[self._field] < self._value]
 
+
 class greater_or_equal(constraint):
     def apply(self, dataframe):
         return dataframe[dataframe[self._field] >= self._value]
+
 
 class greater(constraint):
     def apply(self, dataframe):
         return dataframe[dataframe[self._field] > self._value]
 
+
 class first(constraint):
     def __init__(self, number):
         self._number = number
+
     def apply(self, dataframe):
         return dataframe.iloc[0:self._number]
+
 
 class last(constraint):
     def __init__(self, number):
         self._number = number
+
     def apply(self, dataframe):
         return dataframe.iloc[-self._number:]
+
 
 class order_by(constraint):
     def __init__(self, field, ascending=None):
@@ -85,21 +97,26 @@ class order_by(constraint):
             ascending = True
         self._field = field
         self._ascending = ascending
+
     def apply(self, dataframe):
         return dataframe.sort_values(by=[self._field], ascending=self._ascending)
+
 
 class from_collection(constraint):
     def __init__(self, collection):
         if not collection.endswith("/"):
             collection = collection + "/"
         self._collection = collection
+
     def apply(self, dataframe):
         return dataframe[dataframe.url.str.startswith(self._collection) &
                          dataframe.url.str[len(self._collection):]]
 
+
 class odata_ids(constraint):
     def __init__(self, odata_id_set):
         self._odata_ids = odata_id_set
+
     def apply(self, dataframe):
         temp_df = DataFrame()
         for odata_id in self._odata_ids:
@@ -110,12 +127,12 @@ class odata_ids(constraint):
 class urls(constraint):
     def __init__(self, url_set):
         self._urls = url_set
+
     def apply(self, dataframe):
         temp_df = DataFrame()
         for url in self._urls:
             temp_df = concat([dataframe[dataframe.url == url], temp_df], axis=0, ignore_index=True)
         return temp_df
-
 
 
 class DiscoveryContainer(dict):
@@ -139,10 +156,10 @@ class DiscoveryContainer(dict):
     def _generalize_url(self, url):
         parts = urlsplit(url)
         simplified_url = urlunsplit((parts.scheme,
-                                 parts.netloc,
-                                 '',
-                                 '',
-                                 ''))
+                                     parts.netloc,
+                                     '',
+                                     '',
+                                     ''))
         url = simplified_url
         segments = split_path_into_segments(parts.path)
         parent_is_collection = False
@@ -194,7 +211,7 @@ class DiscoveryContainer(dict):
 
         odata_type = resource.odata_type
 
-        if odata_type: # do not add the resource to any table if it is of an unknown type
+        if odata_type:  # do not add the resource to any table if it is of an unknown type
             self.register_url_pattern(resource.url, odata_type)
             resource.expected_odata_type = odata_type
             new_row = json_normalize(resource.body)
@@ -203,7 +220,7 @@ class DiscoveryContainer(dict):
             if odata_type in self._dataframes:
                 # delete the deprecated definition of the resource if it exists
                 if len(self._dataframes[odata_type][self._dataframes[odata_type]["url"] ==
-                        resource.url].index):
+                                                    resource.url].index):
                     self._dataframes[odata_type] = \
                         self._dataframes[odata_type][self._dataframes[odata_type]["url"] != resource.url]
                 self._dataframes[odata_type] = \
@@ -226,7 +243,6 @@ class DiscoveryContainer(dict):
         else:
             cts_warning("Metadata not known, skipping resource validation")
             return RequestStatus.SUCCESS
-
 
     def delete_resource(self, url):
         """
@@ -307,7 +323,6 @@ class DiscoveryContainer(dict):
         """
         resources = [ApiResourceProxy(r, self) for _, r in self.iteritems() if r.location]
         return resources
-
 
     def root_resources(self):
         """

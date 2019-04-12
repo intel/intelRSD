@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 set(SOURCES
     # Interface
+    switch_port_vlan.cpp
     switch_port_info.cpp
     switch_port_info_impl.cpp
     switch_info.cpp

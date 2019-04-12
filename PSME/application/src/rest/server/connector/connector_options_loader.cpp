@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2018 Intel Corporation.
+ * @copyright Copyright (c) 2018-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,23 +11,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file psme/rest/server/connector/connector_options_loader.cpp
  */
 
 #include "psme/rest/server/connector/connector_options_loader.hpp"
 
+
+
 namespace psme {
 namespace rest {
 namespace server {
 
-ConnectorOptionsVec load_connectors_options(const json::Value& config) {
-    const auto& connectors_config = config["server"]["connectors"];
-    const auto& network_interface_names = config["server"]["network-interface-name"];
+ConnectorOptionsVec load_connectors_options(const json::Json& config) {
     ConnectorOptionsVec connector_options{};
-    for (const auto& iface_name: network_interface_names.as_array()) {
-        for (const auto& connector_config : connectors_config) {
-            connector_options.emplace_back(connector_config, iface_name.as_string());
+    if (config.count("server") &&
+        config["server"].count("connectors") &&
+        config["server"].count("network-interface-name")) {
+        const auto& connectors_config = config["server"]["connectors"];
+        const auto& network_interface_names = config["server"]["network-interface-name"];
+        for (const auto& iface_name: network_interface_names) {
+            for (const auto& connector_config : connectors_config) {
+                connector_options.emplace_back(connector_config, iface_name.get<std::string>());
+            }
         }
     }
     if (connector_options.empty()) {

@@ -12,7 +12,7 @@ Only one patch is allowed for product version (other are skipped). Target direct
 
 After making code corrections, patch file should be prepared. Patch prefix is up to the user.
 
-$ diff -Naur --ignore-trailing-space ${ORG} ${ORG}_patched > {ORG}_patched.patch
+$ diff -Naur --ignore-trailing-space ${ORG} ${ORG}_patched > ${ORG}_patched.patch
 
 Trailing spaces should be ignored during patch creation (otherwise editing a patch file might
 cause problems with these: hunks won't match anymore).

@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file nvme_agent_commands.hpp
  */
 
@@ -69,6 +67,8 @@ using DeleteEndpoint = ::agent_framework::command::ContextDeleteEndpoint<AgentCo
 using DeleteZone = ::agent_framework::command::ContextDeleteZone<AgentContext>;
 using DeleteZoneEndpoints = ::agent_framework::command::ContextDeleteZoneEndpoints<AgentContext>;
 using DeleteVolume = ::agent_framework::command::ContextDeleteVolume<AgentContext>;
+using DeleteDrive = ::agent_framework::command::ContextDeleteDrive<AgentContext>;
+using DeleteStoragePool = ::agent_framework::command::ContextDeleteStoragePool<AgentContext>;
 
 
 }

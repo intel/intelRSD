@@ -1,0 +1,108 @@
+/*
+ * Copyright (c) 2018-2019 Intel Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply from: "../buildscripts/wrapper.gradle"
+
+buildscript {
+    ext {
+        podmCommonVersion = '1.0-SNAPSHOT'
+        springBootVersion = '2.0.0.RELEASE'
+        dependencyManagementPluginVersion = '1.0.4.RELEASE'
+        podmServiceDockerPluginVersion = '1.0-SNAPSHOT'
+        gradleVersionsPluginVersion = '0.17.0'
+
+        springPlatformBomVersion = 'Cairo-RC1'
+        springCloudVersion = 'Finchley.M8'
+
+        springCloudStarterZuulVersion = '1.4.3.RELEASE'
+        springRetryVersion = '1.2.2.RELEASE'
+        guavaVersion = '24.1-jre'
+
+        mockitoVersion = '2.0.2-beta'
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("io.spring.gradle:dependency-management-plugin:${dependencyManagementPluginVersion}")
+        classpath("com.intel.rsd:podm-service-docker-plugin:${podmServiceDockerPluginVersion}")
+        classpath("com.github.ben-manes:gradle-versions-plugin:${gradleVersionsPluginVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.intel.rsd.podm-service-docker'
+apply plugin: 'com.github.ben-manes.versions'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.spring.io/libs-milestone' }
+    maven { url 'http://repo.spring.io/milestone' }
+    maven { url 'http://sndyuk.github.com/maven' }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("io.spring.platform:platform-bom:${springPlatformBomVersion}")
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
+    }
+}
+
+apply from: "../buildscripts/checkstyle.gradle"
+
+dependencies {
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+
+    compile("com.intel.rsd:podm-common:${podmCommonVersion}")
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    compile("org.springframework.cloud:spring-cloud-starter-zuul:${springCloudStarterZuulVersion}")
+    runtime("org.springframework.retry:spring-retry:${springRetryVersion}")
+    runtime("io.micrometer:micrometer-registry-prometheus")
+    compile("com.google.guava:guava:${guavaVersion}")
+
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
+
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testCompile("org.testng:testng")
+    testCompile("org.mockito:mockito-core:${mockitoVersion}")
+}
+
+bootJar {
+    launchScript()
+}
+
+test {
+    useTestNG() {
+    }
+
+    testLogging {
+        showStandardStreams = false
+        //event to log on gradle output
+        events = ["skipped", "passed", "failed"]
+        exceptionFormat = "full"
+        showExceptions = true
+        showCauses = true
+        showStackTraces = false
+    }
+}

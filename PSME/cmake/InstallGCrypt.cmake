@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 function(install_gcrypt)
     include(ConfigurationPackage OPTIONAL)
-    assure_package(gcrypt 1.7.6 "https://gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.7.6.tar.bz2" "54e180679a7ae4d090f8689ca32b654c")
+    assure_package(gcrypt 1.8.4 "https://www.gnupg.org/ftp/gcrypt/libgcrypt/libgcrypt-1.8.4.tar.bz2" "fbfdaebbbc6d7e5fbbf6ffdb3e139573")
 
     set(CONFIGURE_FLAGS)
 

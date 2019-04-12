@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -131,11 +131,14 @@ enum class ErrorCode {
     ISCSI = 41000,
     LVM = 42000,
     NVME = 43000,
+    SPDK = 44000,
 
     PCIE_FABRIC = 50000,
 
     CHASSIS = 60000,
     CERTIFICATE = 61000,
+
+    FPGAOF = 70000,
 };
 
 /*!

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,75 +39,75 @@ using namespace agent_framework::model::attribute;
 using agent_framework::module::CommonComponents;
 
 namespace {
-void check_required_fields(const json::Value& config) {
-    if (!config["agent"].is_object()) {
+void check_required_fields(const json::Json& config) {
+    if (!config.value("agent", json::Json()).is_object()) {
         throw std::runtime_error("'agent' field is required.");
     }
 
-    if (!config["agent"]["vendor"].is_string()) {
+    if (!config.value("agent", json::Json::object()).value("vendor", json::Json()).is_string()) {
         throw std::runtime_error("'agent:vendor' field is required.");
     }
 
-    if (!config["agent"]["capabilities"].is_array()) {
+    if (!config.value("agent", json::Json::object()).value("capabilities", json::Json()).is_array()) {
         throw std::runtime_error("'agent:capabilities' field is required.");
     }
 
-    if (!config["registration"].is_object()) {
+    if (!config.value("registration", json::Json()).is_object()) {
         throw std::runtime_error("'registration' field is required.");
     }
 
-    if (!config["registration"]["ipv4"].is_string()) {
+    if (!config.value("registration", json::Json::object()).value("ipv4", json::Json()).is_string()) {
         throw std::runtime_error("'registration:ipv4' field is required.");
     }
 
-    if (!config["registration"]["port"].is_number()) {
+    if (!config.value("registration", json::Json::object()).value("port", json::Json()).is_number()) {
         throw std::runtime_error("'registration:port' field is required.");
     }
 
-    if (!config["registration"]["interval"].is_number()) {
+    if (!config.value("registration", json::Json::object()).value("interval", json::Json()).is_number()) {
         throw std::runtime_error("'registration:interval' field is required.");
     }
 
-    if (!config["server"].is_object()) {
+    if (!config.value("server", json::Json()).is_object()) {
         throw std::runtime_error("'server' field is required.");
     }
 
-    if (!config["server"]["port"].is_number()) {
+    if (!config.value("server", json::Json::object()).value("port", json::Json()).is_number()) {
         throw std::runtime_error("'server:port' field is required.");
     }
 
-    if (!config["managers"].is_array()) {
+    if (!config.value("managers", json::Json()).is_array()) {
         throw std::runtime_error("'managers' field is required.");
     }
 
-    auto& managers_array = config["managers"].as_array();
-
-    if (managers_array.empty()) {
+    if (config["managers"].size() == 0) {
         throw std::runtime_error("'managers' array should have at least one entry.");
     }
 
-    for (const auto& manager: managers_array) {
-        if (!manager["ipv4"].is_string()) {
-            throw std::runtime_error("Each entry in manager must have ipv4 field.");
-        }
-        if (!manager["username"].is_string()) {
-            throw std::runtime_error("Each entry in manager must have username field.");
-        }
-        if (!manager["password"].is_string()) {
-            throw std::runtime_error("Each entry in manager must have password field.");
-        }
-        if (!manager["port"].is_number()) {
-            throw std::runtime_error("Each entry in manager must have port field.");
-        }
-        if (!manager["slot"].is_number()) {
-            throw std::runtime_error("Each entry in manager must have slot field.");
+    if (config.count("managers")) {
+        for (const auto& manager: config["managers"]) {
+            if (!manager.count("ipv4") || !manager.value("ipv4", json::Json()).is_string()) {
+                throw std::runtime_error("Each entry in manager must have ipv4 field.");
+            }
+            if (!manager.count("username") || !manager.value("username", json::Json()).is_string()) {
+                throw std::runtime_error("Each entry in manager must have username field.");
+            }
+            if (!manager.count("password") || !manager.value("password", json::Json()).is_string()) {
+                throw std::runtime_error("Each entry in manager must have password field.");
+            }
+            if (!manager.count("port") || !manager.value("port", json::Json()).is_number()) {
+                throw std::runtime_error("Each entry in manager must have port field.");
+            }
+            if (!manager.count("slot") || !manager.value("slot", json::Json()).is_number()) {
+                throw std::runtime_error("Each entry in manager must have slot field.");
+            }
         }
     }
 }
 }
 
 
-bool ComputeLoader::load(const json::Value& config) {
+bool ComputeLoader::load(const json::Json& config) {
     try {
         check_required_fields(config);
     }

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ from cts_core.metadata.diff.metadata_loader import LOADER_CHAIN
 
 
 class MetadataComparator:
-    def __init__(self, metadata_list, qualifiers):
+    def __init__(self, metadata_list, qualifiers=None):
         self.metadata_list = metadata_list
         self.qualifiers = qualifiers if qualifiers else []
 
@@ -40,8 +40,8 @@ class MetadataComparator:
 
         msg = "Unable to load metadata: {ref}".format(ref=metadata_ref)
         cts_error(msg)
-        sys.stderr.write(msg + "\n")
-        return None
+        sys.stderr.write(msg + "\nExiting...")
+        exit(1)
 
     def run(self):
         print "Comparing {b} to {a}".format(b=self.metadata_list[1], a=self.metadata_list[0])

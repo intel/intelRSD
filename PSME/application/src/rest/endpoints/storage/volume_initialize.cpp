@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,11 +22,11 @@
 #include "agent-framework/module/requests/common.hpp"
 #include "agent-framework/module/responses/common.hpp"
 #include "agent-framework/module/enum/storage.hpp"
+#include "agent-framework/module/constants/storage.hpp"
 #include "psme/rest/validators/json_validator.hpp"
 #include "psme/rest/endpoints/storage/volume_initialize.hpp"
 #include "psme/rest/validators/schemas/volume.hpp"
-#include "agent-framework/module/utils/json_transformations.hpp"
-#include "agent-framework/module/constants/storage.hpp"
+#include "psme/rest/server/error/error_factory.hpp"
 #include "psme/rest/model/handlers/handler_manager.hpp"
 #include "psme/rest/model/handlers/generic_handler_deps.hpp"
 #include "psme/rest/model/handlers/generic_handler.hpp"
@@ -39,6 +39,14 @@ using namespace psme::rest;
 using namespace psme::rest::constants;
 using namespace psme::rest::validators;
 
+namespace {
+
+static const std::map<std::string, std::string> gami_to_rest_attributes = {
+    {agent_framework::model::literals::Volume::INITIALIZATION, constants::Swordfish::INITIALIZE_TYPE}
+};
+
+}
+
 
 endpoint::VolumeInitialize::VolumeInitialize(const std::string& path) : EndpointBase(path) {}
 
@@ -47,23 +55,22 @@ endpoint::VolumeInitialize::~VolumeInitialize() {}
 
 
 void endpoint::VolumeInitialize::post(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PostVolumeInitialize";
 
     // validate request
     const auto& json = JsonValidator::validate_request_body<schema::VolumeInitializePostSchema>(request);
 
     // get volume and agent
-    auto volume =
-        psme::rest::model::Find<agent_framework::model::Volume>(request.params[PathParam::VOLUME_ID])
-            .via<agent_framework::model::StorageService>(request.params[PathParam::SERVICE_ID])
-            .get();
+    auto volume = psme::rest::model::find<agent_framework::model::StorageService, agent_framework::model::Volume>(
+        request.params).get();
     auto gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(volume.get_agent_id());
 
     // prepare set component attributes request
     agent_framework::model::attribute::Attributes attributes{};
     std::string value = agent_framework::model::enums::VolumeInitializationType(
         agent_framework::model::enums::VolumeInitializationType::Slow).to_string();
-    if (json.is_member(constants::Swordfish::INITIALIZE_TYPE)) {
-        value = json[constants::Swordfish::INITIALIZE_TYPE].as_string();
+    if (json.count(constants::Swordfish::INITIALIZE_TYPE)) {
+        value = json[constants::Swordfish::INITIALIZE_TYPE].get<std::string>();
     }
     attributes.set_value(agent_framework::model::literals::Volume::INITIALIZATION, value);
 
@@ -79,17 +86,12 @@ void endpoint::VolumeInitialize::post(const server::Request& request, server::Re
     // reload volume resource on task completion
     auto update_on_completion = [volume](const Uuid& task_uuid) {
         auto agent = psme::core::agent::AgentManager::get_instance()->get_agent(volume.get_agent_id());
-        auto task = agent_framework::module::get_manager<agent_framework::model::Task>().get_entry_reference(
-            task_uuid);
-        if (task->get_state() == agent_framework::model::enums::TaskState::Completed) {
-            agent_framework::model::Task::Messages messages{
-                agent_framework::model::attribute::Message{"Base.1.0.0.Success", "Successfully Completed Request",
-                                                           agent_framework::model::enums::Health::OK,
-                                                           "None", agent_framework::model::attribute::Oem{},
-                                                           agent_framework::model::attribute::Message::RelatedProperties{
-                                                               "#/Id"},
-                                                           agent_framework::model::attribute::Message::MessageArgs{}}};
-            task->set_messages(messages);
+        {
+            auto task = agent_framework::module::get_manager<agent_framework::model::Task>()
+                .get_entry_reference(task_uuid);
+            if (task->get_state() == agent_framework::model::enums::TaskState::Completed) {
+                task->set_messages(task_service_utils::build_success_message());
+            }
         }
 
         psme::rest::model::handler::HandlerManager::get_instance()
@@ -104,6 +106,13 @@ void endpoint::VolumeInitialize::post(const server::Request& request, server::Re
             gami_agent->execute<agent_framework::model::responses::SetComponentAttributes>(set_component_attributes);
 
         if (set_component_attributes_response.get_task().empty()) {
+            const auto& result_statuses = set_component_attributes_response.get_statuses();
+            if (!result_statuses.empty()) {
+                const auto& error = error::ErrorFactory::create_error_from_set_component_attributes_results(
+                    result_statuses, ::gami_to_rest_attributes);
+                throw error::ServerException(error);
+            }
+
             psme::rest::model::handler::HandlerManager::get_instance()
                 ->get_handler(agent_framework::model::enums::Component::Volume)
                 ->load(gami_agent, volume.get_parent_uuid(),
@@ -114,16 +123,18 @@ void endpoint::VolumeInitialize::post(const server::Request& request, server::Re
         else {
             const auto task_uuid = set_component_attributes_response.get_task();
 
-            auto task_handler = psme::rest::model::handler::HandlerManager::get_instance()->get_handler(
-                agent_framework::model::enums::Component::Task);
+            auto task_handler = psme::rest::model::handler::HandlerManager::get_instance()
+                ->get_handler(agent_framework::model::enums::Component::Task);
             task_handler->load(gami_agent,
                                "",
                                agent_framework::model::enums::Component::Task,
                                task_uuid,
                                false);
             MonitorContentBuilder::get_instance()->add_builder(task_uuid, response_renderer);
-            agent_framework::module::get_manager<agent_framework::model::Task>().get_entry_reference(task_uuid)
-                ->add_completion_notifier(std::bind(update_on_completion, task_uuid));
+            {
+                agent_framework::module::get_manager<agent_framework::model::Task>().get_entry_reference(task_uuid)
+                    ->add_completion_notifier(std::bind(update_on_completion, task_uuid));
+            }
 
             std::string task_monitor_url =
                 PathBuilder(utils::get_component_url(agent_framework::model::enums::Component::Task, task_uuid))
@@ -134,5 +145,5 @@ void endpoint::VolumeInitialize::post(const server::Request& request, server::Re
         }
     };
 
-    gami_agent->execute_in_transaction(initialize);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, initialize);
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +35,7 @@ const char REDFISH[] = "redfish";
 const char METADATA_ROOT[] = "$metadata";
 const char METADATA[] = "metadata";
 const char BASE_URL[] = "/redfish/v1";
+const char OEM_INTEL_RACKSCALE[] = "Oem/Intel_RackScale";
 const char METADATA_FILE[] = "metadataFile";
 const char SUBSCRIPTION_ID[] = "subscriptionId";
 const char CHASSIS_ID[] = "chassisId";
@@ -43,6 +44,7 @@ const char ADAPTER_ID[] = "adapterId";
 const char DEVICE_ID[] = "deviceId";
 const char SERVICE_ID[] = "serviceId";
 const char STORAGE_POOL_ID[] = "storagePoolId";
+const char CAPACITY_SOURCE_ID[] = "capacitySourceId";
 const char VOLUME_ID[] = "volumeId";
 const char DRIVE_ID[] = "driveId";
 const char MANAGER_ID[] = "managerId";
@@ -74,7 +76,10 @@ const char PSU_ID[] = "psuId";
 const char METRIC_DEFINITION_ID[] = "metricDefinitionId";
 const char METRIC_REPORT_DEFINITION_ID[] = "metricReportDefinitionId";
 const char TRIGGER_ID[] = "triggerId";
-
+const char SESSION_ID[] = "sessionId";
+const char ACCOUNT_ID[] = "accountId";
+const char ROLE_ID[] = "roleId";
+const char INTEL_RACKSCALE_REGISTRY_URL[] = "/registries/Intel_RackScale.1.0.0.json";
 
 const char PATH_SEP = '/';
 const char VARIABLE_BEGIN = '{';
@@ -82,6 +87,8 @@ const char VARIABLE_END = '}';
 const char REGEX_MARK = ':';
 const char ID_REGEX[] = "[0-9]+";
 const char XML_REGEX[] = ".*.xml";
+const char STRING_ID_REGEX[] = "[A-Za-z]+";
+
 }
 
 namespace Common {
@@ -124,11 +131,16 @@ const char SKU[] = "SKU";
 const char RELATED_ITEM[] = "RelatedItem";
 const char MAC_ADDRESS[] = "MACAddress";
 const char METRICS[] = "Metrics";
+const char STORAGE_SERVICES[] = "StorageServices";
 const char REDUNDANCY[] = "Redundancy";
 const char IDENTIFIERS[] = "Identifiers";
 const char DURABLE_NAME[] = "DurableName";
 const char DURABLE_NAME_FORMAT[] = "DurableNameFormat";
-
+const char LUN[] = "LUN";
+const char ADMINISTRATOR[] = "Administrator";
+const char PERFORMANCE_CONFIGURATION[] = "PerformanceConfiguration";
+const char CURRENT_CONFIGURATION_ID[] = "CurrentConfigurationId";
+const char CONFIGURATIONS[] = "Configurations";
 
 }
 
@@ -157,6 +169,7 @@ const char MEMBERS[] = "Members";
 namespace Root {
 const char REDFISH_VERSION[] = "RedfishVersion";
 const char EVENT_SERVICE[] = "EventService";
+const char SESSION_SERVICE[] = "SessionService";
 const char TASKS[] = "Tasks";
 const char SYSTEMS[] = "Systems";
 const char STORAGE_SERVICES[] = "StorageServices";
@@ -168,6 +181,7 @@ const char FABRICS[] = "Fabrics";
 const char TELEMETRY_SERVICE[] = "TelemetryService";
 const char UPDATE_SERVICE[] = "UpdateService";
 const char SERVICE[] = "Service";
+const char ACCOUNT_SERVICE[] = "AccountService";
 }
 
 namespace Redfish {
@@ -197,6 +211,8 @@ const char COMMAND_SHELL[] = "CommandShell";
 const char MANAGER_FOR_CHASSIS[] = "ManagerForChassis";
 const char MANAGER_FOR_SERVERS[] = "ManagerForServers";
 const char MANAGER_FOR_SWITCHES[] = "ManagerForSwitches";
+const char MANAGER_FOR_ETHERNET_SWITCHES[] = "ManagerForEthernetSwitches";
+const char MANAGER_FOR_FABRICS[] = "ManagerForFabrics";
 const char MANAGER_IN_CHASSIS[] = "ManagerInChassis";
 const char MANAGER_FOR_SERVICES[] = "ManagerForServices";
 const char NETWORK_PROTOCOL[] = "NetworkProtocol";
@@ -262,6 +278,7 @@ const char NAME_SERVERS[] = "NameServers";
 const char INTERFACE_ENABLED[] = "InterfaceEnabled";
 const char UEFI_DEVICE_PATH[] = "UefiDevicePath";
 const char VLANS[] = "VLANs";
+const char VLAN[] = "VLAN";
 const char NEIGHBOR_PORT[] = "NeighborPort";
 const char SUPPORTED_PROTOCOLS[] = "SupportedProtocols";
 const char LINK_STATUS[] = "LinkStatus";
@@ -327,6 +344,7 @@ const char STORAGE[] = "Storage";
 const char PNC[] = "Pnc";
 const char RMM[] = "Rmm";
 const char NVME[] = "NVMe";
+const char FPGAOF[] = "FPGA-oF";
 }
 
 namespace TaskService {
@@ -367,6 +385,43 @@ const char MESSAGES[] = "Messages";
 const char OWNING_ENTITY[] = "OwningEntity";
 const char REGISTRY_PREFIX[] = "RegistryPrefix";
 const char REGISTRY_VERSION[] = "RegistryVersion";
+}
+
+namespace SessionService {
+extern const char SERVICE_ENABLED[] = "ServiceEnabled";
+extern const char SESSION_TIMEOUT[] = "SessionTimeout";
+extern const char SESSIONS[] = "Sessions";
+}
+
+namespace Session {
+extern const char USER_NAME[] = "UserName";
+extern const char PASSWORD[] = "Password";
+extern const char OEM[] = "Oem";
+}
+
+namespace AccountService {
+const char SERVICE_ENABLED[] = "ServiceEnabled";
+const char AUTH_FAILURE_LOGGING_THRESHOLD[] = "AuthFailureLoggingThreshold";
+const char MIN_PASSWORD_LENGTH[] = "MinPasswordLength";
+const char LOCAL_ACCOUNT_AUTH[] = "LocalAccountAuth";
+const char ACCOUNTS[] = "Accounts";
+const char ROLES[] = "Roles";
+}
+
+namespace Account {
+const char ENABLED[] = "Enabled";
+const char PASSWORD[] = "Password";
+const char USER_NAME[] = "UserName";
+const char ROLE_ID[] = "RoleId";
+const char LOCKED[] = "Locked";
+const char ROLE[] = "Role";
+}
+
+namespace Role {
+const char IS_PREDEFINED[] = "IsPredefined";
+const char ASSIGNED_PRIVILEGES[] = "AssignedPrivileges";
+const char OEM_PRIVILEGES[] = "OemPrivileges";
+const char ROLE_ID[] = "RoleId";
 }
 
 }

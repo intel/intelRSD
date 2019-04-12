@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,12 +28,11 @@ add_gtest(certificate_management psme-rmm
 
 target_link_libraries(${test_target}
     rmm-libs
-    ${AGENT_FRAMEWORK_LIBRARIES}
+    agent-framework
     ${UUID_LIBRARIES}
     ${LOGGER_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
+    configuration
     ${IPMI_LIBRARIES}
     md5
 )

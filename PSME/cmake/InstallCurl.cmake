@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@
 
 function(install_curl)
     include(ConfigurationPackage OPTIONAL)
-    assure_package(curl 7.54.0 "https://curl.haxx.se/download/curl-7.54.0.tar.gz" "18091896d871982cc4c2b307885eacb3")
+    assure_package(curl 7.64.0 "https://curl.haxx.se/download/curl-7.64.0.tar.gz" "a026740d599a32bcbbe6e70679397899")
 
     set(CONFIGURE_FLAGS)
 
     if(DEFINED ENV{ARISTA_PATH})
         string(REGEX REPLACE "/bin/*$" "" ARISTA_PATH "$ENV{ARISTA_PATH}")
     else()
-        set(ARISTA_PATH "/opt/arista/fc18-gcc4.9.2")
+        set(ARISTA_PATH "/opt/arista/fc18-gcc5.4.0")
     endif()
 
     #set(ENV{PATH} "${CMAKE_BINARY_DIR}/bin:/usr/bin:${PATH}/bin")
@@ -90,9 +90,6 @@ function(install_curl)
     )
     file(INSTALL ${source_dir}/include/curl
         DESTINATION ${CMAKE_BINARY_DIR}/include
-    )
-    file(INSTALL ${binary_dir}/include/curl/curlbuild.h
-        DESTINATION ${CMAKE_BINARY_DIR}/include/curl
     )
     set(CURL_INCLUDE_DIR ${CMAKE_BINARY_DIR}/include)
 endfunction()

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,18 +30,24 @@
 #include "agent-framework/module/constants/chassis.hpp"
 #include "json-wrapper/json-wrapper.hpp"
 
+
+
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
-GetChassisInfo::GetChassisInfo(const std::string& chassis): m_chassis{chassis} {}
+
+GetChassisInfo::GetChassisInfo(const std::string& chassis) : m_chassis{chassis} {}
+
 
 json::Json GetChassisInfo::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Chassis::CHASSIS] = m_chassis;
     return value;
 }
 
+
 GetChassisInfo GetChassisInfo::from_json(const json::Json& json) {
     return GetChassisInfo{
-        json[Chassis::CHASSIS].get<std::string>()};
+        json[Chassis::CHASSIS].get<std::string>()
+    };
 }

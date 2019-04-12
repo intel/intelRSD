@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,16 +16,18 @@
 #
 # </license_header>
 
-cmake_minimum_required(VERSION 2.8)
-project("PSME Encrypter" C CXX)
+cmake_minimum_required(VERSION 3.4)
+project("PSME Encrypter" CXX)
 
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
+add_executable(encrypt src/main.cpp)
 
-include_directories(SYSTEM
+target_include_directories(encrypt
+    SYSTEM PRIVATE
     ${SAFESTRING_INCLUDE_DIRS}
-)
+    )
 
-add_subdirectory(src)
+target_link_libraries(encrypt
+    ${SAFESTRING_LIBRARIES}
+    utils
+    )
 

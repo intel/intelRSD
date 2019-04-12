@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,31 +18,32 @@
 
 if (NOT GTEST_FOUND)
     return()
-endif()
+endif ()
 
-include_directories(
-        ${AGENT_FRAMEWORK_INCLUDE_DIRS}
-        ${LOGGER_INCLUDE_DIRS}
-        )
 
 add_gtest(parser iscsi_mdr
-        test_runner.cpp
-        parser_test.cpp
-        builder_test.cpp
-        test_fixture.hpp
-        builder_fixture.hpp
-)
+    test_runner.cpp
+    parser_test.cpp
+    builder_test.cpp
+    test_fixture.hpp
+    builder_fixture.hpp
+    )
 
 target_link_libraries(${test_target}
-        iscsi_mdr
-        ipmi
-        agent-framework
-        ${SAFESTRING_LIBRARIES}
-)
+    iscsi_mdr
+    ipmi
+    agent-framework
+    ${SAFESTRING_LIBRARIES}
+    )
+
+target_include_directories(${test_target}
+    PRIVATE
+    ${AGENT_FRAMEWORK_INCLUDE_DIRS}
+    )
 
 add_custom_target(unittest_iscsi_mdr
-                  make
-)
+    make
+    )
 add_custom_target(unittest_iscsi_mdr_run
-                  ctest --output-on-failure
-)
+    ctest --output-on-failure
+    )

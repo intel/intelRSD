@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 function(install_gpg_error)
     include(ConfigurationPackage OPTIONAL)
-    assure_package(gpg-error 1.27 "https://gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.27.tar.bz2" "5217ef3e76a7275a2a3b569a12ddc989")
+    assure_package(gpg-error 1.35 "https://www.gnupg.org/ftp/gcrypt/libgpg-error/libgpg-error-1.35.tar.bz2" "2808a9e044f883f7554c5ba6a380b711")
 
     set(CONFIGURE_FLAGS)
 

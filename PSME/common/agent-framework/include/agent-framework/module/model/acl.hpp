@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,30 +93,7 @@ public:
         return Acl::component;
     }
 
-
-    /*!
-     * @brief Set ACL name
-     *
-     * @param[in] name ACL name
-     * */
-    void set_name(const OptionalField <std::string> name) {
-        m_name = name;
-    }
-
-
-    /*!
-     * @brief Get ACL name
-     *
-     * @return ACL name
-     * */
-    const OptionalField <std::string>& get_name() const {
-        return m_name;
-    }
-
-
 private:
-    OptionalField <std::string> m_name{};
-
     static const enums::CollectionName collection_name;
     static const enums::Component component;
 };

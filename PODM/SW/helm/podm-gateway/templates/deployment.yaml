@@ -1,0 +1,129 @@
+{{- $northboundSecurity := "nb-security-config" -}}
+
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "podm-gateway.fullname" . }}
+  labels:
+    app: {{ template "podm-gateway.name" . }}
+    chart: {{ template "podm-gateway.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "podm-gateway.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/scrape: "true"
+      labels:
+        app: {{ template "podm-gateway.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      {{- if ne .Values.global.registry_secret "" }}
+      imagePullSecrets:
+        - name: {{ .Values.global.registry_secret }}
+      {{ end }}
+      volumes:
+        - name: podm-gateway-config
+          configMap:
+            name: podm-gateway-config
+            items:
+              - key: application.yml
+                path: application.yml
+      {{- if .Values.northbound_security.enabled }}
+        - name: northbound-security-jks
+          secret:
+            secretName: {{ $northboundSecurity }}
+            items:
+              - key: server.ssl.key-store
+                path: nb-keystore.jks
+      {{ end }}
+      {{- include "shared.coverage.volume" . | indent 8}}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.global.registry }}{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: podm-gateway-config
+              mountPath: /app/config
+              readOnly: true
+          {{- if .Values.northbound_security.enabled }}
+            - name: northbound-security-jks
+              mountPath: /var/run/secrets/nb
+              readOnly: true
+          {{ end }}
+          {{- include "shared.coverage.mount" . | indent 12}}
+          env:
+            {{- if .Values.northbound_security.enabled }}
+            - name: SERVER_SSL_ENABLED
+              value: 'true'
+            - name: SERVER_SSL_KEY-STORE
+              value: /var/run/secrets/nb/nb-keystore.jks
+            - name: SERVER_SSL_KEY-STORE-PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $northboundSecurity }}
+                  key: server.ssl.key-store-password
+            - name: SERVER_SSL_KEY-ALIAS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $northboundSecurity }}
+                  key: server.ssl.key-alias
+            - name: SERVER_SSL_KEY-PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $northboundSecurity }}
+                  key: server.ssl.key-password
+            {{ end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.applicationProperties.server.port }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+              {{- if .Values.northbound_security.enabled }}
+              scheme: HTTPS
+              port:  {{ .Values.service.httpsPort }}
+              {{ else }}
+              scheme: HTTP
+              port:  {{ .Values.service.port }}
+              {{ end }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+              {{- if .Values.northbound_security.enabled  }}
+              scheme: HTTPS
+              port:  {{ .Values.service.httpsPort }}
+              {{ else }}
+              scheme: HTTP
+              port:  {{ .Values.service.port }}
+              {{ end }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+
+          resources:
+  {{ toYaml .Values.resources | indent 12 }}
+  {{- with .Values.nodeSelector }}
+nodeSelector:
+  {{ toYaml . | indent 8 }}
+  {{- end }}
+  {{- with .Values.affinity }}
+affinity:
+  {{ toYaml . | indent 8 }}
+  {{- end }}
+  {{- with .Values.tolerations }}
+tolerations:
+  {{ toYaml . | indent 8 }}
+  {{- end }}
+

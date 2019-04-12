@@ -1,7 +1,7 @@
 /*!
  * @brief iSCSI MDR entry point v1.0.
  *
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file iscsi_mdr_10_entry_point.hpp
  */
 
@@ -62,12 +61,6 @@ public:
     ~IscsiMdr10EntryPoint() = default;
 
     /*!
-     * @brief Get struct table address
-     * @return return offset of start of struct table within the MDR region
-     */
-    std::uint64_t get_struct_table_address() const override;
-
-    /*!
      * @brief Get iSCSI MDR major version
      * @return numerical value of the iSCSI MDR major version
      */
@@ -78,6 +71,24 @@ public:
      * @return numerical value of the iSCSI MDR minor version
      */
     std::uint8_t get_minor_version() const override;
+
+    /*!
+     * @brief Get structure length in MDR
+     * @return structure length in bytes
+     */
+    std::uint32_t get_length() const override;
+
+    /*!
+     * @brief Get data struct offset within table
+     * @return start offset of data struct within the MDR region
+     */
+    std::uint64_t get_struct_table_address() const override;
+
+    /*!
+    * @brief Get data struct end offset within table
+    * @return end offset of data struct within the MDR region
+    */
+    std::uint64_t get_struct_table_end_address() const override;
 
     /*!
      * @brief Not implemented, this method always throws.
@@ -98,6 +109,7 @@ public:
 private:
 
     const structs::ISCSI_MDR_VERSION* m_version;
+    std::uint32_t m_region_length{0};
 
     static constexpr int SUPPORTED_MAJOR = 1;
     static constexpr int SUPPORTED_MINOR = 0;

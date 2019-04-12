@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,6 +64,7 @@ public:
     MOCK_METHOD0(get_mdr_region_checksum, std::uint8_t());
     MOCK_METHOD0(get_mdr_region_size_to_read, std::uint16_t());
     MOCK_METHOD1(write_mdr_region, void(const IpmiInterface::ByteBuffer&));
+    MOCK_METHOD0(get_mdr_region_update_count, std::uint8_t());
 };
 
 class MockMdrRegionAccessorFactory : public MdrRegionAccessorFactory {
@@ -119,7 +120,7 @@ TEST_F(PurleyDiscovererTest, DiscoverDrives) {
     auto drive = drives[0];
     EXPECT_EQ(m_dummy_parent, drive.get_parent_uuid());
     EXPECT_EQ(255, drive.get_capacity_gb());
-    EXPECT_EQ(enums::StorageProtocol::SATA, drive.get_interface());
+    EXPECT_EQ(enums::TransportProtocol::SATA, drive.get_interface());
     EXPECT_EQ(enums::DriveType::HDD, drive.get_type());
     EXPECT_EQ("ABC789", drive.get_firmware_version().value());
     EXPECT_EQ("321Model", drive.get_fru_info().get_model_number().value());

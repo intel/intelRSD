@@ -3,7 +3,7 @@
  *
  * File contains all definitions of methods and all classes derived from ValidityChecker.
  *
- * @copyright Copyright (c) 2016-2018 Intel Corporation
+ * @copyright Copyright (c) 2016-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file procedure_validator.cpp
  */
 
@@ -32,8 +31,6 @@
 #include "agent-framework/validators/checkers/enum_validity_checker.hpp"
 #include "agent-framework/validators/checkers/attribute_validity_checker.hpp"
 #include "agent-framework/validators/checkers/regex_validity_checker.hpp"
-
-#include "agent-framework/module/utils/json_transformations.hpp"
 
 #include "generic/assertions.hpp"
 
@@ -267,11 +264,6 @@ void ProcedureValidator::validate(const json::Json& request) const {
             ex.get_error_code(), ex.get_message(),
             InvalidField::create_json_data_from_field(ex.get_field(), ex.get_field_value()));
     }
-}
-
-void ProcedureValidator::validate(const json::Value& req) const {
-    json::Json value = agent_framework::model::utils::to_json_rpc(req);
-    validate(value);
 }
 
 } /*! @i{jsonrpc namespace} */

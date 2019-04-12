@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@ SerialConsole::SerialConsole() { }
 SerialConsole::~SerialConsole() { }
 
 json::Json SerialConsole::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::SerialConsole::SIGNAL_TYPE] = get_signal_type();
     result[literals::SerialConsole::BITRATE] = get_bitrate();
     result[literals::SerialConsole::PARITY] = get_parity();

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -161,8 +161,6 @@ void ComputeValidator::validate_set_network_device_function_attributes(const Att
             }
         };
 
-        check_length(literals::IscsiBoot::INITIATOR_NAME, 1, 200);
-        check_length(literals::IscsiBoot::PRIMARY_TARGET_NAME, 1, 200);
         check_length(literals::IscsiBoot::CHAP_USERNAME, 1, 32);
         check_length(literals::IscsiBoot::CHAP_SECRET, 12, 16);
         check_length(literals::IscsiBoot::MUTUAL_CHAP_USERNAME, 1, 32);

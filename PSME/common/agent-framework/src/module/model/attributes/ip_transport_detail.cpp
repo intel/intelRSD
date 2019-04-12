@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@ using namespace agent_framework::model;
 IpTransportDetail::~IpTransportDetail() { }
 
 json::Json IpTransportDetail::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::IpTransportDetail::IPV4_ADDRESS] = get_ipv4_address().to_json();
     result[literals::IpTransportDetail::IPV6_ADDRESS] = get_ipv6_address().to_json();
     result[literals::IpTransportDetail::INTERFACE] = get_interface();

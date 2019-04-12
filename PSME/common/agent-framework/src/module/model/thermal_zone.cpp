@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ ThermalZone::ThermalZone(const std::string& parent_uuid, enums::Component parent
 ThermalZone::~ThermalZone() {}
 
 json::Json ThermalZone::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::ThermalZone::STATUS] = get_status().to_json();
     result[literals::ThermalZone::VOLUMETRIC_AIRFLOW_CFM] = get_volumetric_airflow_cfm();
     result[literals::ThermalZone::DESIRED_SPEED_PWM] = get_desired_speed_pwm();

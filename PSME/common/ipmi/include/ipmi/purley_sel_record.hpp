@@ -3,8 +3,7 @@
  *
  * This is only definition class, not to be instantiated.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file ipmi/purley_sel_record.hpp
  */
 
@@ -122,7 +120,7 @@ public:
     static constexpr EventSensorType CAT_IERR  = for_offset(CATERR, 0);
     static constexpr EventSensorType CAT_MCERR = for_offset(CATERR, 0x0b);
 
-    static constexpr EventSensorType MSMI = for_sensor(SS(SENSOR, PROCESSOR), 0xE6);
+    static constexpr EventSensorType MSMI = for_sensor(SS(SENSOR, PROCESSOR), 0xE7);
     static constexpr EventSensorType MSMI_IERR  = for_offset(MSMI, 0);
     static constexpr EventSensorType MSMI_MCERR = for_offset(MSMI, 0x0b);
 

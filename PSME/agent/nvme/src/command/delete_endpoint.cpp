@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of DeleteEndpoint command.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file delete_endpoint.cpp
  */
 
@@ -36,42 +34,40 @@ using namespace agent_framework::module;
 using namespace agent_framework;
 using namespace agent::nvme::loader;
 using namespace agent::nvme::tools;
-using namespace std;
 
 namespace {
 
-void delete_target_endpoint(DeleteEndpoint::ContextPtr context, const Uuid& endpoint_uuid, const string& nqn) {
+void delete_target_endpoint(DeleteEndpoint::ContextPtr context, const Uuid& endpoint_uuid, const std::string& nqn) {
     auto& endpoint_creator = NvmeConfig::get_instance()->get_endpoint_creator();
     try {
         EndpointDatabase db{endpoint_uuid};
         auto nvme_port = db.get(EndpointReader::DATABASE_NVME_PORT);
         endpoint_creator.delete_target_endpoint(context, nqn, nvme_port);
     }
-    catch (const runtime_error& error) {
+    catch (const std::runtime_error& error) {
         THROW(exceptions::NvmeError, "nvme-agent",
-              string("Failed deleting target endpoint: ") + error.what());
+              std::string("Failed deleting target endpoint: ") + error.what());
     }
 }
 
-string get_nqn(const Endpoint& endpoint) {
-    string nqn{};
-
+std::string get_nqn(const Endpoint& endpoint) {
+    std::string nqn{};
     try {
         nqn = attribute::Identifier::get_nqn(endpoint);
         log_debug("nvme-agent", "NQN is " + nqn);
     }
-    catch (const logic_error&) {
+    catch (const std::logic_error&) {
     }
 
     if (nqn.empty()) {
-        THROW(exceptions::NvmeError, "nvme-agent",
-              "NQN identifier was not found or is empty");
+        THROW(exceptions::NvmeError, "nvme-agent", "NQN identifier was not found or is empty.");
     }
     return nqn;
 }
 
 void delete_endpoint(DeleteEndpoint::ContextPtr context, const DeleteEndpoint::Request& req, DeleteEndpoint::Response&) {
     const auto& uuid{req.get_endpoint()};
+    log_info("nvme-agent", "Deleting endpoint '" << uuid << "'...");
     // check if endpoint exists
     auto endpoint = get_manager<Endpoint>().get_entry(uuid);
 
@@ -83,24 +79,35 @@ void delete_endpoint(DeleteEndpoint::ContextPtr context, const DeleteEndpoint::R
         }
     }
 
-    if (NvmeConfig::get_instance()->get_is_target()) {
-        if (is_target(endpoint)) {
-            delete_target_endpoint(context, req.get_endpoint(), get_nqn(endpoint));
+    if (is_target(endpoint)) {
+        delete_target_endpoint(context, req.get_endpoint(), get_nqn(endpoint));
+    }
+    else {
+        // add initiator nqn to hosts configuration
+        auto nqn = agent_framework::model::attribute::Identifier::get_nqn(endpoint);
+        tools::convert_to_subnqn(nqn);
+
+        // Be sure that "allowed host" is unlinked from all subsystems
+        for (const auto& subsystem : context->nvme_target_handler->get_subsystems()) {
+            try {
+                context->nvme_target_handler->remove_subsystem_host(subsystem, nqn);
+                log_warning("nvme-agent", "Force delete host " << nqn << " from subsystem " << subsystem);
+            }
+            catch (const std::exception& exception) {
+                log_debug("nvme-agent", "Failed to force remove subsystem host: " << exception.what());
+            }
         }
-        else {
-            // add initiator nqn to hosts configuration
-            auto nqn = agent_framework::model::attribute::Identifier::get_nqn(endpoint);
-            tools::convert_to_subnqn(nqn);
-            context->nvme_target_handler->remove_host(nqn);
-        }
-        // delete endpoint from fabric's database
-        FabricDatabase(get_manager<Fabric>().get_keys().front()).del(uuid);
-        // delete endpoint database
-        EndpointDatabase(uuid).remove();
+
+        context->nvme_target_handler->remove_host(nqn);
     }
 
+    // delete endpoint from fabric's database
+    FabricDatabase(get_manager<Fabric>().get_keys().front()).del(uuid);
+    // delete endpoint database
+    EndpointDatabase(uuid).remove();
+
     get_manager<Endpoint>().remove_entry(req.get_endpoint());
-    log_debug("nvme-agent", "Removed endpoint with UUID '" + req.get_endpoint() + "'");
+    log_info("nvme-agent", "Removed endpoint with UUID '" + req.get_endpoint() + "'");
 }
 }
 

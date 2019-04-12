@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file nvme/nvme_interface.hpp
  */
 
@@ -45,6 +43,9 @@ public:
     virtual void format(const std::string& target, uint32_t namespace_id, FormatNvmSes format_type) const override;
     virtual LogPageSmart get_smart_log(const std::string& target, uint32_t namespace_id) const override;
     virtual LogPageFirmware get_firmware_log(const std::string& target, uint32_t namespace_id) const override;
+    virtual LogPageIOQueues get_ioq_log(const std::string& target, std::uint32_t namespace_id) const override;
+    virtual LogPageLatencyStats get_write_latency_histogram(const std::string& target, std::uint32_t namespace_id) const override;
+    virtual LogPageLatencyStats get_read_latency_histogram(const std::string& target, std::uint32_t namespace_id) const override;
     virtual ControllerData get_controller_info(const std::string& target, uint16_t controller_id) const override;
     virtual NamespaceData get_namespace_info(const std::string& target, uint32_t namespace_id) const override;
     virtual NamespaceIdList get_active_namespaces(const std::string& target) const override;
@@ -55,6 +56,9 @@ public:
     virtual void detach_namespace(const std::string& target, uint16_t controller_id, uint32_t namespace_id) const override;
     virtual void delete_namespace(const std::string& target, uint32_t namespace_id) const override;
     virtual uint32_t create_namespace(const std::string& target, uint64_t size, uint64_t capacity, bool is_private) const override;
+    virtual std::uint32_t get_latency_tracking_feature(const std::string& target, std::uint32_t namespace_id) override;
+    virtual void enable_latency_tracking_feature(const std::string& target, std::uint32_t namespace_id) override;
+    virtual void disable_latency_tracking_feature(const std::string& target, std::uint32_t namespace_id) override;
 
 };
 

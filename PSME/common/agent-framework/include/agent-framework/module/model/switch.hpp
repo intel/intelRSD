@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -238,7 +238,7 @@ public:
      * @brief Get protocol
      * @return protocol
      * */
-    const OptionalField<enums::StorageProtocol>& get_protocol() const {
+    const OptionalField<enums::TransportProtocol>& get_protocol() const {
         return m_protocol;
     }
 
@@ -246,7 +246,7 @@ public:
      * @brief Set protocol
      * @param[in] protocol protocol
      * */
-    void set_protocol(const OptionalField<enums::StorageProtocol>& protocol) {
+    void set_protocol(const OptionalField<enums::TransportProtocol>& protocol) {
         m_protocol = protocol;
     }
 
@@ -282,7 +282,7 @@ private:
     attribute::FruInfo m_fru_info{};
     OptionalField<enums::IndicatorLed> m_indicator_led{};
     OptionalField<enums::PcieSwitchPowerState> m_power_state{};
-    OptionalField<enums::StorageProtocol> m_protocol{};
+    OptionalField<enums::TransportProtocol> m_protocol{};
     AllowedActions m_allowed_actions{};
 
     // path the the memory controller device for this switch

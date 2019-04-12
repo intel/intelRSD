@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,11 +35,12 @@ Fabric::Fabric(const std::string& parent_uuid, enums::Component parent_type) :
 Fabric::~Fabric() {}
 
 json::Json Fabric::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::Switch::COLLECTIONS] = get_collections().to_json();
     result[literals::Switch::STATUS] = get_status().to_json();
     result[literals::Switch::OEM] = get_oem().to_json();
     result[literals::Switch::PROTOCOL] = get_protocol();
+    result[literals::Endpoint::OEM_PROTOCOL] = get_oem_protocol();
     return result;
 }
 
@@ -50,6 +51,7 @@ Fabric Fabric::from_json(const json::Json& json) {
     pcie_fabric.set_status(Status::from_json(json[literals::Switch::STATUS]));
     pcie_fabric.set_oem(Oem::from_json(json[literals::Switch::OEM]));
     pcie_fabric.set_protocol(json[literals::Switch::PROTOCOL]);
+    pcie_fabric.set_oem_protocol(json[literals::Endpoint::OEM_PROTOCOL]);
 
     return pcie_fabric;
 }

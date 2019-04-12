@@ -1,0 +1,4 @@
+apiVersion: v1
+description: resource-manager
+name: resource-manager
+version: 0.1.0

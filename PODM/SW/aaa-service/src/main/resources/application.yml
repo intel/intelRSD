@@ -1,0 +1,75 @@
+server:
+  port: 9911
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include:
+        - health
+        - configprops
+        - env
+        - loggers
+        - logfile
+        - httptrace
+        - threaddump
+        - refresh
+
+spring:
+  jpa:
+    generate-ddl: true
+    properties:
+      hibernate.temp.use_jdbc_metadata_defaults: false
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+
+aaa-config:
+  default-user:
+    name: admin
+    password: admin
+    role: Administrator
+  password-policy:
+    minLength: 4
+    maxLength: 20
+    lowercaseCharactersAmount: 1
+    uppercaseCharactersAmount: 0
+    digitCharactersAmount: 0
+    specialCharactersAmount: 0
+    checkForUsernameInPassword: false
+  session-timeout: 60
+  authority-data:
+    data: ${ACCESS_VERIFIER_DEFAULT_USERS_SQL:/initial-authorities-data.sql}
+  datasource:
+    url: jdbc:postgresql://localhost:5432/accessverifier
+    driver-class-name: org.postgresql.Driver
+    username: podm
+    password: podm
+  whiteListedAccessRequests:
+    - path: /**
+      methods:
+        - HEAD
+        - OPTIONS
+        - TRACE
+    - path: /redfish/v1
+      methods:
+        - GET
+        - POST
+        - PATCH
+        - HEAD
+    - path: /redfish/v1/odata
+      methods:
+        - GET
+    - path: /redfish/v1/SessionService/Sessions
+      methods:
+        - POST
+    - path: /actuator/**
+      methods:
+        - GET
+        - HEAD
+    - path: /redfish/v1/events/*
+      methods:
+        - POST

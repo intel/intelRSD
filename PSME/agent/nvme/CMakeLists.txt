@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,38 +20,45 @@ cmake_minimum_required(VERSION 3.4)
 project("PSME NVMe" C CXX)
 
 if (CMAKE_CROSSCOMPILING)
-  message(WARNING "Not supported for crosscompiling")
-  return()
-endif()
+    message(WARNING "Not supported for crosscompiling")
+    return()
+endif ()
 
-set(AGENT_NVME_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+add_executable(psme-gpt-nvme "")
 
-include_directories(
-    ${LOGGER_INCLUDE_DIRS}
+target_include_directories(psme-gpt-nvme
+    SYSTEM PRIVATE
+    ${NL3_INCLUDE_DIRS}
+
+    PRIVATE
     ${DATABASE_INCLUDE_DIRS}
-    ${NVMFPP_INCLUDE_DIRS}
-    ${JSON_INCLUDE_DIRS}
-    ${JSON_RPC_INCLUDE_DIRS}
-    ${JSONCXX_INCLUDE_DIRS}
     ${AGENT_FRAMEWORK_INCLUDE_DIRS}
-    ${CONFIGURATION_INCLUDE_DIRS}
-    ${COMMON_INCLUDE_DIRS}
     ${NETLINK_INCLUDE_DIRS}
-    ${NVME_INCLUDE_DIRS}
-    ${PARTITION_INCLUDE_DIRS}
-    ${SYSFSREF_INCLUDE_DIRS}
-    ${DATABASE_INCLUDE_DIRS}
-    ${TELEMETRY_INCLUDE_DIRS}
-    ${NVME_TARGET_INCLUDE_DIRS}
-
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-include_directories(SYSTEM
-    ${SAFESTRING_INCLUDE_DIRS}
-    ${UUID_INCLUDE_DIRS}
-    ${NL3_INCLUDE_DIRS}
+add_subdirectory(src)
+
+target_link_libraries(psme-gpt-nvme
+    PRIVATE
+    agent-framework
+    partition
+    nvme
+    ${NVMFPP_LIBRARIES}
+    netlink
+    ${NET_LIBRARIES}
+    telemetry
+    ${NL3_LIBRARIES}
+    nvme-target
+    uuid
+    logger
+    configuration
+    ${SAFESTRING_LIBRARIES}
+    pthread
+    ${MICROHTTPD_LIBRARIES}
+    ${CURL_LIBRARIES}
+    udev
+    md5
 )
 
-add_subdirectory(src)
 add_subdirectory(tests)

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,10 +19,12 @@
  *
  *
  * @file status.hpp
- * @brief Status
+ * @brief Definition of Status attribute
  * */
 
 #pragma once
+
+
 
 #include "agent-framework/module/enum/common.hpp"
 #include "agent-framework/module/utils/utils.hpp"
@@ -30,58 +32,80 @@
 
 #include <string>
 
+
+
 namespace agent_framework {
 namespace model {
 namespace attribute {
 
-
-/*! Storage  status */
+/*! Resource's status */
 class Status {
 public:
 
     explicit Status();
 
+
     Status(const enums::State state, const OptionalField<enums::Health>& health);
 
-    Status(const std::string& state, const std::string& health);
 
-    Status(const bool ok);
+    virtual ~Status();
 
-    ~Status();
 
     /*! Enable copy */
     Status(const Status&) = default;
+
+
     Status& operator=(const Status&) = default;
+
+
     Status(Status&&) = default;
+
+
     Status& operator=(Status&&) = default;
 
+
     /*!
-     * Gets health
+     * @brief Gets state
+     * @return State of the resource
      * */
     const enums::State& get_state() const {
         return m_state;
     }
 
+
+    /*!
+     * @brief Sets state
+     * @param[in] state Resource's state to set
+     * */
     void set_state(const enums::State& state) {
         m_state = state;
     }
 
+
     /*!
-     * Gets health
+     * @brief Gets health
+     * @return Health of the resource
      * */
     const OptionalField<enums::Health>& get_health() const {
         return m_health;
     }
 
+
+    /*!
+     * @brief Sets health
+     * @param[in] health Resource's health to set
+     * */
     void set_health(const OptionalField<enums::Health>& health) {
         m_health = health;
     }
+
 
     /*!
      * @brief Converts this object to json representation
      * @return Json representation of this object
      * */
     json::Json to_json() const;
+
 
     /*!
      * @brief construct an object of class Status from JSON
@@ -92,9 +116,10 @@ public:
      */
     static Status from_json(const json::Json& json);
 
+
 private:
     enums::State m_state{enums::State::Disabled};
-    OptionalField<enums::Health> m_health{enums::Health::OK};
+    OptionalField<enums::Health> m_health{};
 };
 
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -190,7 +190,7 @@ void NumberValidityChecker::validate(const json::Json& value) const {
             if (!value.is_number()) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
-                      " Property value is not valid number type.", value);
+                      "Property value is not valid number type.", value);
             }
             if (value.is_number_float() && fractional != 0.0) {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
@@ -201,6 +201,21 @@ void NumberValidityChecker::validate(const json::Json& value) const {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Boolean value is not a number.", value);
+            }
+
+            // Checking min/max integers by double value (approximately) and user defined min/max
+            if (value.get<double>() < std::numeric_limits<std::int64_t>::min() ||
+                value.get<double>() > std::numeric_limits<std::int64_t>::max()) {
+                THROW(ValidityChecker::ValidationException, "agent-framework",
+                      agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
+                      ::get_out_of_range_message("64-bit integer",
+                          std::numeric_limits<std::int64_t>::min(), std::numeric_limits<std::int64_t>::max()), value);
+            }
+            if ((has_min && (value.get<std::int64_t>() < min.i64)) ||
+                (has_max && (value.get<std::int64_t>() > max.i64))) {
+                THROW(ValidityChecker::ValidationException, "agent-framework",
+                      agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
+                      ::get_out_of_range_message("64-bit integer", min.i64, max.i64), value);
             }
             break;
         case ProcedureValidator::NumberType::TYPE_UINT64:
@@ -223,6 +238,21 @@ void NumberValidityChecker::validate(const json::Json& value) const {
                 THROW(ValidityChecker::ValidationException, "agent-framework",
                       agent_framework::exceptions::ErrorCode::INVALID_FIELD_TYPE,
                       "Boolean value is not a number.", value);
+            }
+
+            // Checking min/max integers by double value (approximately) and user defined min/max
+            if (value.get<double>() < std::numeric_limits<std::uint64_t>::min() ||
+                value.get<double>() > std::numeric_limits<std::uint64_t>::max()) {
+                THROW(ValidityChecker::ValidationException, "agent-framework",
+                      agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
+                      ::get_out_of_range_message("Unsigned 64-bit integer",
+                          std::numeric_limits<std::uint64_t>::min(), std::numeric_limits<std::uint64_t>::max()), value);
+            }
+            if ((has_min && (value.get<std::uint64_t>() < min.ui64)) ||
+                (has_max && (value.get<std::uint64_t>() > max.ui64))) {
+                THROW(ValidityChecker::ValidationException, "agent-framework",
+                      agent_framework::exceptions::ErrorCode::INVALID_VALUE_FORMAT,
+                      ::get_out_of_range_message("Unsigned 64-bit integer", min.ui64, max.ui64), value);
             }
             break;
         case ProcedureValidator::NumberType::TYPE_DOUBLE:

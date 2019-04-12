@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@
  *
  *
  * @file resources.hpp
- * @brief Resource interface
+ * @brief GAMI Resource interface
  * */
 #pragma once
 
@@ -69,7 +69,6 @@ public:
 
     /*!
      * @brief Get uuid
-     *
      * @return Component uuid
      * */
     const Uuid& get_uuid() const {
@@ -185,6 +184,42 @@ public:
      * */
     void set_status(const attribute::Status& status) {
         m_status = status;
+    }
+
+
+    /*!
+     * @brief Gets name of the resource
+     * @return Resource's name
+     * */
+    const OptionalField<std::string>& get_name() const {
+        return m_name;
+    }
+
+
+    /*!
+     * @brief Sets name of the resource
+     * @param[in] name Resource's name
+     * */
+    void set_name(const OptionalField<std::string>& name) {
+        m_name = name;
+    }
+
+
+    /*!
+     * @brief Gets description of the resource
+     * @return Description's name
+     * */
+    const OptionalField<std::string>& get_description() const {
+        return m_description;
+    }
+
+
+    /*!
+     * @brief Sets description of the resource
+     * @param[in] description Description's name
+     * */
+    void set_description(const OptionalField<std::string>& description) {
+        m_description = description;
     }
 
 
@@ -311,20 +346,21 @@ public:
 
 
     /*!
-     * @brief Generates random UUID
-     *
-     * @return Random UUID
-     * */
-    static Uuid make_uuid();
-
+     * @brief Check if given resource has Enabled/OK status.
+     * @param resource Reference to resource.
+     * @return Returns true if resource is healthy, false othrwise.
+     */
+    static bool is_healthy(const Resource& resource) {
+        return resource.get_status().get_state() == enums::State::Enabled &&
+               resource.get_status().get_health() == enums::Health::OK;
+    }
 
 private:
+
+    /* GAMI model attributes */
+    OptionalField<std::string> m_name{};
+    OptionalField<std::string> m_description{};
     attribute::Status m_status{};
-    Uuid m_temporary_uuid{};
-    Uuid m_persistent_uuid{};
-    Uuid m_parent_uuid{};
-    OptionalField<std::string> m_unique_key{};
-    bool m_is_uuid_persistent{false};
     attribute::Oem m_oem{};
 
     /*
@@ -337,6 +373,13 @@ private:
      * */
     Collections m_collections{};
     enums::Component m_parent_type{enums::Component::None};
+
+    /* UUIDs */
+    Uuid m_temporary_uuid{};
+    Uuid m_persistent_uuid{};
+    Uuid m_parent_uuid{};
+    OptionalField<std::string> m_unique_key{};
+    bool m_is_uuid_persistent{false};
 
     /* These members are being used by REST application */
     RestId m_id{0};

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,56 +26,58 @@
 #include <sstream>
 
 
+
 using namespace psme::rest;
 using namespace psme::rest::constants;
 using namespace agent_framework::model::enums;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetInterface.EthernetInterface";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EthernetInterface.v1_1_0.EthernetInterface";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Manager NIC";
     r[Common::DESCRIPTION] = "Manager NIC description";
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
-    r[Common::MAC_ADDRESS] = json::Value::Type::NIL;
-    r[NetworkInterface::PERMANENT_MAC_ADDRESS] = json::Value::Type::NIL;
-    r[NetworkInterface::SPEED_MBPS] = json::Value::Type::NIL;
-    r[NetworkInterface::AUTO_NEG] = json::Value::Type::NIL;
-    r[NetworkInterface::FULL_DUPLEX] = json::Value::Type::NIL;
-    r[NetworkInterface::MTU_SIZE] = json::Value::Type::NIL;
-    r[NetworkInterface::HOST_NAME] = json::Value::Type::NIL;
-    r[NetworkInterface::FQDN] = json::Value::Type::NIL;
-    r[NetworkInterface::MAX_IPv6_STATIC_ADDRESSES] = json::Value::Type::NIL;
-    r[NetworkInterface::INTERFACE_ENABLED] = json::Value::Type::NIL;
-    r[NetworkInterface::LINK_STATUS] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
+    r[Common::MAC_ADDRESS] = json::Json::value_t::null;
+    r[NetworkInterface::PERMANENT_MAC_ADDRESS] = json::Json::value_t::null;
+    r[NetworkInterface::SPEED_MBPS] = json::Json::value_t::null;
+    r[NetworkInterface::AUTO_NEG] = json::Json::value_t::null;
+    r[NetworkInterface::FULL_DUPLEX] = json::Json::value_t::null;
+    r[NetworkInterface::MTU_SIZE] = json::Json::value_t::null;
+    r[NetworkInterface::HOST_NAME] = json::Json::value_t::null;
+    r[NetworkInterface::FQDN] = json::Json::value_t::null;
+    r[NetworkInterface::MAX_IPv6_STATIC_ADDRESSES] = json::Json::value_t::null;
+    r[NetworkInterface::INTERFACE_ENABLED] = json::Json::value_t::null;
+    r[NetworkInterface::LINK_STATUS] = json::Json::value_t::null;
 
-    r[NetworkInterface::IPv4_ADDRESSES] = json::Value::Type::ARRAY;
-    r[NetworkInterface::IPv6_ADDRESS_POLICY_TABLE] = json::Value::Type::ARRAY;
-    r[NetworkInterface::IPv6_ADDRESSES] = json::Value::Type::ARRAY;
-    r[NetworkInterface::IPv6_DEFAULT_GATEWAY] = json::Value::Type::NIL;
-    r[NetworkInterface::IPv6_STATIC_ADDRESSES] = json::Value::Type::ARRAY;
-    r[NetworkInterface::NAME_SERVERS] = json::Value::Type::ARRAY;
-    r[NetworkInterface::VLANS] = json::Value::Type::NIL;
+    r[NetworkInterface::IPv4_ADDRESSES] = json::Json::value_t::array;
+    r[NetworkInterface::IPv6_ADDRESS_POLICY_TABLE] = json::Json::value_t::array;
+    r[NetworkInterface::IPv6_ADDRESSES] = json::Json::value_t::array;
+    r[NetworkInterface::IPv6_DEFAULT_GATEWAY] = json::Json::value_t::null;
+    r[NetworkInterface::IPv6_STATIC_ADDRESSES] = json::Json::value_t::array;
+    r[NetworkInterface::NAME_SERVERS] = json::Json::value_t::array;
+    r[NetworkInterface::VLANS] = json::Json::value_t::null;
 
-    json::Value links{};
-    links[Fabric::ENDPOINTS] = json::Value::Type::ARRAY;
+    json::Json links = json::Json();
+    links[Fabric::ENDPOINTS] = json::Json::value_t::array;
     links[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.EthernetInterfaceLinks";
-    links[Common::OEM][Common::RACKSCALE][NetworkInterface::NEIGHBOR_PORT] = json::Value::Type::NIL;
+    links[Common::OEM][Common::RACKSCALE][NetworkInterface::NEIGHBOR_PORT] = json::Json::value_t::null;
     r[Common::LINKS] = std::move(links);
 
     r[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.EthernetInterface";
-    r[Common::OEM][Common::RACKSCALE][NetworkInterface::SUPPORTED_PROTOCOLS] = json::Value::Type::ARRAY;
+    r[Common::OEM][Common::RACKSCALE][NetworkInterface::SUPPORTED_PROTOCOLS] = json::Json::value_t::array;
 
     return r;
 }
 
-void read_interface_from_hw(json::Value& r, const std::string& nic_name) {
+
+void read_interface_from_hw(json::Json& r, const std::string& nic_name) {
     try {
         auto iface = net::NetworkInterface::for_name(nic_name);
 
@@ -85,7 +87,8 @@ void read_interface_from_hw(json::Value& r, const std::string& nic_name) {
             const auto& subnet_mask = iface.get_subnet_mask(idx);
 
             if (net::AddressFamily::IPv4 == ip_address.get_address_family()) {
-                json::Value ipv4_address;
+                json::Json ipv4_address;
+                ipv4_address[Common::ODATA_TYPE] = "#IPAddresses.v1_0_0.IPv4Address";
                 ipv4_address[IpAddress::ADDRESS] = ip_address.to_string();
                 ipv4_address[IpAddress::SUBNET_MASK] = subnet_mask.to_string();
                 r[NetworkInterface::IPv4_ADDRESSES].push_back(std::move(ipv4_address));
@@ -100,28 +103,33 @@ void read_interface_from_hw(json::Value& r, const std::string& nic_name) {
     }
 }
 
-void read_interface_from_hw(json::Value& r, std::uint64_t idx) {
-    const json::Value config = configuration::Configuration::get_instance().to_json();
-    const auto& nic_names = config["server"]["network-interface-name"];
+
+void read_interface_from_hw(json::Json& r, std::uint64_t idx) {
+    const json::Json config = configuration::Configuration::get_instance().to_json();
+    const auto& nic_names = config.value("server", json::Json::object())
+        .value("network-interface-name", json::Json::array());
     if (idx == 0 || nic_names.size() < idx) {
         THROW(agent_framework::exceptions::NotFound, "rest", "EthernetInterface entry not found.");
     }
-    read_interface_from_hw(r, nic_names[size_t(idx-1)].as_string());
+    read_interface_from_hw(r, nic_names[size_t(idx - 1)].get<std::string>());
 }
 
-void read_from_model(json::Value& r, const agent_framework::model::Manager& manager) {
-    r[Common::MAC_ADDRESS] = json::Value::Type::NIL;
-    r[NetworkInterface::IPv4_ADDRESSES] = json::Value::Type::ARRAY;
+
+void read_from_model(json::Json& r, const agent_framework::model::Manager& manager) {
+    r[Common::MAC_ADDRESS] = json::Json::value_t::null;
+    r[NetworkInterface::IPv4_ADDRESSES] = json::Json::value_t::array;
 
     if (manager.get_ipv4_address().has_value()) {
-        json::Value ipv4_address{};
+        json::Json ipv4_address = json::Json();
+        ipv4_address[Common::ODATA_TYPE] = "#IPAddresses.v1_0_0.IPv4Address";
         ipv4_address[IpAddress::ADDRESS] = manager.get_ipv4_address();
-        ipv4_address[IpAddress::SUBNET_MASK] = json::Value::Type::NIL;
+        ipv4_address[IpAddress::SUBNET_MASK] = json::Json::value_t::null;
         r[NetworkInterface::IPv4_ADDRESSES].push_back(std::move(ipv4_address));
     }
 }
 
-void read_from_network_interface(const agent_framework::model::NetworkInterface& nic, json::Value& r) {
+
+void read_from_network_interface(const agent_framework::model::NetworkInterface& nic, json::Json& r) {
 
     r[NetworkInterface::PERMANENT_MAC_ADDRESS] = nic.get_factory_mac_address();
     r[Common::MAC_ADDRESS] = nic.get_mac_address();
@@ -135,12 +143,14 @@ void read_from_network_interface(const agent_framework::model::NetworkInterface&
 
     const auto& supported_protocols = nic.get_supported_transport_protocols();
     for (const auto& supported_protocol : supported_protocols) {
-        r[Common::OEM][Common::RACKSCALE][NetworkInterface::SUPPORTED_PROTOCOLS].push_back(supported_protocol.to_string());
+        r[Common::OEM][Common::RACKSCALE][NetworkInterface::SUPPORTED_PROTOCOLS].push_back(
+            supported_protocol.to_string());
     }
 
     for (const auto& address : nic.get_ipv4_addresses()) {
-        json::Value ipv4_address{};
+        json::Json ipv4_address = json::Json();
 
+        ipv4_address[Common::ODATA_TYPE] = "#IPAddresses.v1_0_0.IPv4Address";
         ipv4_address[IpAddress::ADDRESS] = address.get_address();
         ipv4_address[IpAddress::SUBNET_MASK] = address.get_subnet_mask();
         ipv4_address[IpAddress::ADDRESS_ORIGIN] = address.get_address_origin();
@@ -150,8 +160,9 @@ void read_from_network_interface(const agent_framework::model::NetworkInterface&
     }
 
     for (const auto& address : nic.get_ipv6_addresses()) {
-        json::Value ipv6_address{};
+        json::Json ipv6_address = json::Json();
 
+        ipv6_address[Common::ODATA_TYPE] = "#IPAddresses.v1_0_0.IPv6Address";
         ipv6_address[IpAddress::ADDRESS] = address.get_address();
         ipv6_address[IpAddress::PREFIX_LENGTH] = address.get_prefix_length();
         ipv6_address[IpAddress::ADDRESS_ORIGIN] = address.get_address_origin();
@@ -173,8 +184,8 @@ endpoint::ManagerNetworkInterface::~ManagerNetworkInterface() {}
 
 void endpoint::ManagerNetworkInterface::get(const server::Request& request, server::Response& response) {
     auto id = psme::rest::endpoint::utils::id_to_uint64(request.params[PathParam::NIC_ID]);
-    auto manager = psme::rest::model::Find<agent_framework::model::Manager>(
-        request.params[PathParam::MANAGER_ID]).get();
+    auto manager = psme::rest::model::find<agent_framework::model::Manager>(
+        request.params).get();
     auto nic_uuids = agent_framework::module::get_manager<agent_framework::model::NetworkInterface>()
         .get_keys(manager.get_uuid());
 
@@ -182,16 +193,13 @@ void endpoint::ManagerNetworkInterface::get(const server::Request& request, serv
     r[Common::ODATA_ID] = PathBuilder(request).build();
     r[Common::ID] = request.params[PathParam::NIC_ID];
 
-    if (!nic_uuids.empty()) {
-        const auto nic = psme::rest::model::Find<agent_framework::model::NetworkInterface>(request.params[PathParam::NIC_ID])
-            .via<agent_framework::model::Manager>(request.params[PathParam::MANAGER_ID])
-            .get();
+    r[NetworkInterface::VLANS][Common::ODATA_ID] =
+        endpoint::PathBuilder(request).append(NetworkInterface::VLANS).build();
 
+    if (!nic_uuids.empty()) {
+        const auto nic = psme::rest::model::find<agent_framework::model::Manager,
+                                                 agent_framework::model::NetworkInterface>(request.params).get();
         ::read_from_network_interface(nic, r);
-        r[NetworkInterface::VLANS][Common::ODATA_ID] =
-            endpoint::PathBuilder(request)
-                .append(NetworkInterface::VLANS)
-                .build();
     }
     else {
         // If the manager that has this NIC controls a Drawer or an Enclosure
@@ -210,6 +218,5 @@ void endpoint::ManagerNetworkInterface::get(const server::Request& request, serv
             }
         }
     }
-
     set_response(response, r);
 }

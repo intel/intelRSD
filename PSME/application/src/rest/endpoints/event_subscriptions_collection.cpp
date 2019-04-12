@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,16 +38,16 @@ using namespace psme::rest::eventing::model;
 using namespace psme::rest::validators;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EventDestinationCollection.EventDestinationCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EventDestinationCollection.EventDestinationCollection";
     r[Common::NAME] = "Event Subscriptions Collection";
     r[Common::DESCRIPTION] = "Collection of Event Subscriptions";
-    r[Collection::ODATA_COUNT] = json::Value::Type::NIL;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::ODATA_COUNT] = json::Json::value_t::null;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
@@ -66,7 +66,7 @@ void SubscriptionCollection::get(const server::Request& req, server::Response& r
     uint32_t number = 0;
     r[Common::ODATA_ID] = PathBuilder(req).build();
     SubscriptionManager::get_instance()->for_each([&r, &req, &number](const Subscription& subscription) {
-        json::Value link_elem(json::Value::Type::OBJECT);
+        json::Json link_elem(json::Json::value_t::object);
         link_elem[Common::ODATA_ID] = PathBuilder(req).append(subscription.get_id()).build();
         r[Collection::MEMBERS].push_back(std::move(link_elem));
         number++;

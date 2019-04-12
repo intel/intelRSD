@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file rmm/discovery/helpers/discover.hpp
  */
 
@@ -54,7 +52,7 @@ ModelType<RmmType::Psu> discover<RmmType::Psu>(const std::string& parent, const 
                                                const DiscoveryParams<RmmType::Psu>& dp) {
     log_debug("rmm-discovery", "Psu discovery");
     ModelType<RmmType::Psu> res(parent);
-    res.set_status(attribute::Status(true));
+    res.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     res.set_slot_id(dp.slot_id);
 
     auto model = call_psu_command<ipmi::command::sdv::request::SendPsuReadModel,
@@ -119,7 +117,7 @@ ModelType<RmmType::Fan> discover<RmmType::Fan>(const std::string& parent, const 
                                                const DiscoveryParams<RmmType::Fan>& dp) {
     log_debug("rmm-discovery", "Fan discovery");
     ModelType<RmmType::Fan> res(parent);
-    res.set_status(attribute::Status(true));
+    res.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     res.set_slot_id(dp.slot_id);
     res.set_current_speed_units(enums::SpeedUnits::RPM);
     res.set_current_speed(dp.tachs);
@@ -171,11 +169,11 @@ ModelType<RmmType::ThermalZone> discover<RmmType::ThermalZone>(const std::string
                                                                const DiscoveryParams<RmmType::ThermalZone>&) {
     log_debug("rmm-discovery", "Thermal Zone discovery");
     ModelType<RmmType::ThermalZone> res{parent};
-    res.set_status(attribute::Status(true));
+    res.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     res.add_collection(attribute::Collection{
         enums::CollectionName::Fans,
-        enums::CollectionType::Fans,
-        {}});
+        enums::CollectionType::Fans
+    });
     return res;
 }
 
@@ -187,8 +185,8 @@ ModelType<RmmType::PowerZone> discover<RmmType::PowerZone>(const std::string& pa
     ModelType<RmmType::PowerZone> res{parent};
     res.add_collection(attribute::Collection{
         enums::CollectionName::Psus,
-        enums::CollectionType::PSUs,
-        {}});
+        enums::CollectionType::PSUs
+    });
 
     ipmi::command::sdv::response::GetPsShelfCritical critical{};
     dc.ipmi->send(ipmi::command::sdv::request::GetPsShelfCritical{}, critical);
@@ -209,15 +207,15 @@ ModelType<RmmType::Zone> discover<RmmType::Zone>(const std::string& parent, cons
                                                  const DiscoveryParams<RmmType::Zone>& dp) {
     log_debug("rmm-discovery", "Zone discovery");
     ModelType<RmmType::Zone> res{parent};
-    res.set_status(attribute::Status(true));
+    res.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     res.add_collection(attribute::Collection{
         enums::CollectionName::ThermalZones,
-        enums::CollectionType::ThermalZones,
-        {}});
+        enums::CollectionType::ThermalZones
+        });
     res.add_collection(attribute::Collection{
         enums::CollectionName::PowerZones,
-        enums::CollectionType::PowerZones,
-        {}});
+        enums::CollectionType::PowerZones});
+
     res.set_type(enums::ChassisType::Zone);
     res.set_parent_chassis(dp.rack_uuid);
     res.set_slot_id(dp.location_offset);
@@ -241,15 +239,14 @@ ModelType<RmmType::ZoneManager> discover<RmmType::ZoneManager>(const std::string
                                                                const DiscoveryParams<RmmType::ZoneManager>& dp) {
     log_debug("rmm-discovery", "Zone Manager discovery");
     ModelType<RmmType::ZoneManager> res{parent};
-    res.set_status(attribute::Status(true));
+    res.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     res.add_collection(attribute::Collection{
         enums::CollectionName::Chassis,
-        enums::CollectionType::Chassis,
-        {}});
+        enums::CollectionType::Chassis});
+
     res.add_collection(attribute::Collection{
         enums::CollectionName::NetworkInterfaces,
-        enums::CollectionType::NetworkInterfaces,
-        {}});
+        enums::CollectionType::NetworkInterfaces});
     res.set_manager_type(enums::ManagerInfoType::ManagementController);
     res.set_firmware_version(dp.firmware_version);
     res.set_allowed_reset_actions({enums::ResetType::ForceRestart});
@@ -267,7 +264,7 @@ ModelType<RmmType::Rack> discover<RmmType::Rack>(const std::string& parent, cons
     log_debug("rmm-discovery", "Rack discovery");
     ModelType<RmmType::Rack> res{parent};
     res.set_disaggregated_power_cooling_support(false);
-    res.set_status(attribute::Status(true));
+    res.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     res.set_type(enums::ChassisType::Rack);
     return res;
 }
@@ -278,15 +275,15 @@ ModelType<RmmType::RackManager> discover<RmmType::RackManager>(const std::string
                                                                const DiscoveryParams<RmmType::RackManager>&) {
     log_debug("rmm-discovery", "Rack Manager discovery");
     ModelType<RmmType::RackManager> res{parent};
-    res.set_status(attribute::Status(true));
+    res.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     res.add_collection(attribute::Collection{
         enums::CollectionName::Chassis,
-        enums::CollectionType::Chassis,
-        {}});
+        enums::CollectionType::Chassis});
+
     res.add_collection(attribute::Collection{
         enums::CollectionName::NetworkInterfaces,
-        enums::CollectionType::NetworkInterfaces,
-        {}});
+        enums::CollectionType::NetworkInterfaces});
+
     res.set_manager_type(enums::ManagerInfoType::RackManager);
     res.set_allowed_reset_actions({enums::ResetType::GracefulRestart});
     res.set_firmware_version(agent_framework::generic::Version::VERSION_STRING);
@@ -298,11 +295,11 @@ ModelType<RmmType::RackInterface> discover<RmmType::RackInterface>(const std::st
                                                                    const DiscoveryParams<RmmType::RackInterface>& dp) {
     log_debug("rmm-discovery", "Rack Interface discovery");
     ModelType<RmmType::RackInterface> res{parent};
-    res.set_status(attribute::Status(true));
+    res.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     res.add_collection(attribute::Collection{
         enums::CollectionName::EthernetSwitchPortVlans,
-        enums::CollectionType::EthernetSwitchPortVlans,
-        {}});
+        enums::CollectionType::EthernetSwitchPortVlans});
+
     res.set_name(dp.raw_data.name);
     res.set_frame_size(dp.raw_data.mtu);
     res.set_speed_mbps(dp.raw_data.speed);
@@ -323,7 +320,7 @@ ModelType<RmmType::RackVlan> discover<RmmType::RackVlan>(const std::string& pare
                                                          const DiscoveryParams<RmmType::RackVlan>& dp) {
     log_debug("rmm-discovery", "Rack Vlan discovery");
     ModelType<RmmType::RackVlan> res{parent};
-    res.set_status(attribute::Status(true));
+    res.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     res.set_vlan_id(dp.vlan_id);
     log_debug("rmm-discovery", "Vlan id: " << unsigned(dp.vlan_id));
     return res;
@@ -335,7 +332,7 @@ ModelType<RmmType::ZoneInterface> discover<RmmType::ZoneInterface>(const std::st
                                                                    const DiscoveryParams<RmmType::ZoneInterface>&) {
     log_debug("rmm-discovery", "Zone Interface discovery");
     ModelType<RmmType::ZoneInterface> res{parent};
-    res.set_status(attribute::Status(true));
+    res.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
 
     ipmi::command::generic::response::GetLanMacAddress mac_address{};
     dc.ipmi->send(ipmi::command::generic::request::GetLanMacAddress{}, mac_address);

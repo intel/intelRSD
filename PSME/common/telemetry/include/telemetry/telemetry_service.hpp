@@ -1,8 +1,7 @@
 /*!
  * @brief TelemetryService declaration.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file compute/include/telemetry/telemetry_service.hpp
  */
 
@@ -22,9 +20,10 @@
 
 #include "telemetry/metric_processor.hpp"
 #include "telemetry/resource_key.hpp"
+
 #include "agent-framework/module/model/metric.hpp"
 #include "agent-framework/module/model/metric_definition.hpp"
-#include "agent-framework/eventing/event_data.hpp"
+#include "agent-framework/module/model/attributes/event_data.hpp"
 
 #include <memory>
 #include <vector>
@@ -130,7 +129,7 @@ private:
     /*!
      * @brief Notifications to be sent after the run
      */
-    agent_framework::eventing::EventDataVec m_notifications{};
+    agent_framework::model::attribute::EventData::Vector m_notifications{};
 };
 
 }

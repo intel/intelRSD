@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,6 @@
 #include "psme/rest/constants/telemetry.hpp"
 
 
-
 namespace psme {
 namespace rest {
 namespace constants {
@@ -51,6 +50,7 @@ extern const char REDFISH[];
 extern const char METADATA_ROOT[];
 extern const char METADATA[];
 extern const char BASE_URL[];
+extern const char OEM_INTEL_RACKSCALE[];
 extern const char METADATA_FILE[];
 extern const char SUBSCRIPTION_ID[];
 extern const char CHASSIS_ID[];
@@ -59,6 +59,7 @@ extern const char ADAPTER_ID[];
 extern const char DEVICE_ID[];
 extern const char SERVICE_ID[];
 extern const char STORAGE_POOL_ID[];
+extern const char CAPACITY_SOURCE_ID[];
 extern const char VOLUME_ID[];
 extern const char DRIVE_ID[];
 extern const char MANAGER_ID[];
@@ -90,6 +91,11 @@ extern const char PSU_ID[];
 extern const char METRIC_DEFINITION_ID[];
 extern const char METRIC_REPORT_DEFINITION_ID[];
 extern const char TRIGGER_ID[];
+extern const char SESSION_ID[];
+extern const char ACCOUNT_ID[];
+extern const char ROLE_ID[];
+extern const char INTEL_RACKSCALE_REGISTRY_URL[];
+
 
 extern const char PATH_SEP;
 extern const char VARIABLE_BEGIN;
@@ -97,6 +103,7 @@ extern const char VARIABLE_END;
 extern const char REGEX_MARK;
 extern const char ID_REGEX[];
 extern const char XML_REGEX[];
+extern const char STRING_ID_REGEX[];
 }
 
 /*!
@@ -142,11 +149,16 @@ extern const char SKU[];
 extern const char RELATED_ITEM[];
 extern const char MAC_ADDRESS[];
 extern const char METRICS[];
+extern const char STORAGE_SERVICES[];
 extern const char REDUNDANCY[];
 extern const char IDENTIFIERS[];
 extern const char DURABLE_NAME[];
 extern const char DURABLE_NAME_FORMAT[];
-
+extern const char LUN[];
+extern const char ADMINISTRATOR[];
+extern const char PERFORMANCE_CONFIGURATION[];
+extern const char CURRENT_CONFIGURATION_ID[];
+extern const char CONFIGURATIONS[];
 }
 
 namespace ErrorMessage {
@@ -183,6 +195,7 @@ extern const char MEMBERS[];
 namespace Root {
 extern const char REDFISH_VERSION[];
 extern const char EVENT_SERVICE[];
+extern const char SESSION_SERVICE[];
 extern const char TASKS[];
 extern const char SYSTEMS[];
 extern const char STORAGE_SERVICES[];
@@ -194,6 +207,7 @@ extern const char FABRICS[];
 extern const char TELEMETRY_SERVICE[];
 extern const char UPDATE_SERVICE[];
 extern const char SERVICE[];
+extern const char ACCOUNT_SERVICE[];
 }
 
 /*!
@@ -232,6 +246,8 @@ extern const char COMMAND_SHELL[];
 extern const char MANAGER_FOR_CHASSIS[];
 extern const char MANAGER_FOR_SERVERS[];
 extern const char MANAGER_FOR_SWITCHES[];
+extern const char MANAGER_FOR_ETHERNET_SWITCHES[];
+extern const char MANAGER_FOR_FABRICS[];
 extern const char MANAGER_IN_CHASSIS[];
 extern const char MANAGER_FOR_SERVICES[];
 extern const char NETWORK_PROTOCOL[];
@@ -303,6 +319,7 @@ extern const char NAME_SERVERS[];
 extern const char INTERFACE_ENABLED[];
 extern const char UEFI_DEVICE_PATH[];
 extern const char VLANS[];
+extern const char VLAN[];
 extern const char NEIGHBOR_PORT[];
 extern const char SUPPORTED_PROTOCOLS[];
 extern const char LINK_STATUS[];
@@ -389,6 +406,7 @@ extern const char STORAGE[];
 extern const char PNC[];
 extern const char RMM[];
 extern const char NVME[];
+extern const char FPGAOF[];
 }
 
 /*!
@@ -441,6 +459,59 @@ extern const char MESSAGES[];
 extern const char OWNING_ENTITY[];
 extern const char REGISTRY_PREFIX[];
 extern const char REGISTRY_VERSION[];
+}
+
+/*!
+ * @brief Constant literals for SessionService endpoint
+ * */
+namespace SessionService {
+extern const char SERVICE_ENABLED[];
+extern const char SESSION_TIMEOUT[];
+extern const char SESSIONS[];
+}
+
+/*!
+ * @brief Constant literals for EventSubscription endpoint.
+ * */
+namespace Session {
+extern const char USER_NAME[];
+extern const char PASSWORD[];
+extern const char OEM[];
+}
+
+/*!
+ * @brief Constant literals for AccountService endpoint.
+ * */
+namespace AccountService {
+extern const char ACCOUNT_SERVICE[];
+extern const char SERVICE_ENABLED[];
+extern const char AUTH_FAILURE_LOGGING_THRESHOLD[];
+extern const char MIN_PASSWORD_LENGTH[];
+extern const char LOCAL_ACCOUNT_AUTH[];
+extern const char ACCOUNTS[];
+extern const char ROLES[];
+}
+
+/*!
+ * @brief Constant literals for Account endpoint.
+ * */
+namespace Account {
+extern const char ENABLED[];
+extern const char PASSWORD[];
+extern const char USER_NAME[];
+extern const char ROLE_ID[];
+extern const char LOCKED[];
+extern const char ROLE[];
+}
+
+/*!
+ * @brief Constant literals for Role endpoint.
+ * */
+namespace Role {
+extern const char IS_PREDEFINED[];
+extern const char ASSIGNED_PRIVILEGES[];
+extern const char OEM_PRIVILEGES[];
+extern const char ROLE_ID[];
 }
 
 }

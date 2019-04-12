@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of discovery.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file discovery.cpp
  */
 
@@ -25,7 +23,6 @@
 #include "tools/tools.hpp"
 #include "loader/config.hpp"
 #include "logger/logger_factory.hpp"
-#include "netlink/utils.hpp"
 
 #include "agent-framework/module/common_components.hpp"
 
@@ -72,7 +69,7 @@ void add_zone(const Uuid& fabric_uuid, const Uuid& zone_uuid) {
     Zone zone{fabric_uuid};
     zone.set_uuid(zone_uuid);
 
-    zone.set_status(attribute::Status(true));
+    zone.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     zone.add_collection(attribute::Collection(enums::CollectionName::Endpoints,
                                               enums::CollectionType::Endpoints));
     get_manager<Zone>().add_entry(zone);
@@ -98,11 +95,11 @@ void add_initiator(const Uuid& fabric, const Uuid& uuid) {
     }
     endpoint.add_identifier({uuid, enums::IdentifierType::UUID});
     endpoint.set_uuid(uuid);
-    endpoint.set_status(attribute::Status(true));
+    endpoint.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     attribute::ConnectedEntity ce{};
     ce.set_entity_role(enums::EntityRole::Initiator);
     endpoint.add_connected_entity(ce);
-    endpoint.set_protocol(enums::StorageProtocol::NVMeOverFabrics);
+    endpoint.set_protocol(enums::TransportProtocol::NVMeOverFabrics);
     get_manager<Endpoint>().add_entry(endpoint);
 }
 
@@ -131,8 +128,8 @@ void add_target(const Uuid& fabric, const Uuid& endpoint_uuid) {
     attribute::ConnectedEntity ce{};
     ce.set_entity_role(enums::EntityRole::Target);
     endpoint.add_connected_entity(ce);
-    endpoint.set_protocol(enums::StorageProtocol::NVMeOverFabrics);
-    endpoint.set_status(attribute::Status(true));
+    endpoint.set_protocol(enums::TransportProtocol::NVMeOverFabrics);
+    endpoint.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     get_manager<Endpoint>().add_entry(endpoint);
 }
 

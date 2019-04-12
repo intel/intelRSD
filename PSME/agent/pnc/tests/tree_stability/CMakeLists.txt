@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,17 +25,12 @@ add_gtest(tree_stability psme-pnc
     test_runner.cpp
 )
 
-add_library(pnc-tree_stability-libs
-    $<TARGET_OBJECTS:pnc-tree-stability>
-)
-
 target_link_libraries(${test_target}
-    pnc-libs
-    ${AGENT_FRAMEWORK_LIBRARIES}
+    pnc-tree-stability
+    agent-framework
     ${UUID_LIBRARIES}
     ${LOGGER_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
+    configuration
     md5
 )

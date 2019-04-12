@@ -1,6 +1,6 @@
 # Copyrights #
 
-Copyright (c) 2015-2018 Intel Corporation
+Copyright (c) 2015-2019 Intel Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,11 +21,6 @@ limitations under the License.
 This product bundles Andrzej Krzemieński Optional implementation for C++11,
 which is available under  Boost Software License, Version 1.0.
 For details, see [common/agent-framework/include/agent-framework/module/utils/optional/optional-lib/LICENSE_1_0.txt]
-
-## JSON-CXX library ##
-
-This product bundles json-cxx library, which is available under a BSD 3-Clause license.
-For details, see [common/json-cxx/LICENSE].
 
 ## JSON RPC ##
 This product bundles JSON RPC library, which is available under MIT license.
@@ -57,6 +52,7 @@ modification, are permitted.
 
 There's ABSOLUTELY NO WARRANTY, express or implied.
 
+(This is a heavily cut-down "BSD license".)
 
 This differs from Colin Plumb's older public domain implementation in that
 no exactly 32-bit integer data type is required (any 32-bit or wider
@@ -104,3 +100,65 @@ For details, see [application/include/psme/rest/server/multiplexer.hpp].
 ## OOSP UUID ##
 This product bundles OSSP UUID library, which is available under MIT license.
 For details, see [common/uuid/uuid-1.6.2/README]
+
+# Linked libraries #
+
+## OPAE ##
+Copyright(c) 2017, Intel Corporation
+
+Redistribution  and  use  in source  and  binary  forms,  with  or  without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of  source code  must retain the  above copyright notice,
+this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+* Neither the name  of Intel Corporation  nor the names of its contributors
+may be used to  endorse or promote  products derived  from this  software
+without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,  BUT NOT LIMITED TO,  THE
+IMPLIED WARRANTIES OF  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT  SHALL THE COPYRIGHT OWNER  OR CONTRIBUTORS BE
+LIABLE  FOR  ANY  DIRECT,  INDIRECT,  INCIDENTAL,  SPECIAL,  EXEMPLARY,  OR
+CONSEQUENTIAL  DAMAGES  (INCLUDING,  BUT  NOT LIMITED  TO,  PROCUREMENT  OF
+SUBSTITUTE GOODS OR SERVICES;  LOSS OF USE,  DATA, OR PROFITS;  OR BUSINESS
+INTERRUPTION)  HOWEVER CAUSED  AND ON ANY THEORY  OF LIABILITY,  WHETHER IN
+CONTRACT,  STRICT LIABILITY,  OR TORT  (INCLUDING NEGLIGENCE  OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,  EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+## Aardvark Software API ##
+Copyright (c) 2002-2008 Total Phase, Inc.
+All rights reserved.
+www.totalphase.com
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+- Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+- Neither the name of Total Phase, Inc. nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.

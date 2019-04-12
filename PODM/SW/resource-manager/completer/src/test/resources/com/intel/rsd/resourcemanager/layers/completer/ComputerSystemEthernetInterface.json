@@ -1,0 +1,71 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#EthernetInterface.EthernetInterface",
+  "@odata.id": "/redfish/v1/Systems/db046a90-d610-11e7-9661-419a3eff5c1e/EthernetInterfaces/87:5B:1B:11:28:F9",
+  "@odata.type": "#EthernetInterface.v1_0_0.EthernetInterface",
+  "Id": "87:5B:1B:11:28:F9",
+  "Name": "Ethernet Interface",
+  "Description": "System NIC 1",
+  "Status": {
+    "State": "Enabled",
+    "Health": "OK"
+  },
+  "LinkStatus": "LinkUp",
+  "InterfaceEnabled": true,
+  "PermanentMACAddress": "87:5B:1B:11:28:F9",
+  "MACAddress": "87:5B:1B:11:28:F9",
+  "SpeedMbps": null,
+  "AutoNeg": true,
+  "FullDuplex": null,
+  "MTUSize": 1500,
+  "HostName": "web483",
+  "FQDN": "web483.redfishspecification.org",
+  "VLAN": {
+    "VLANEnable": true,
+    "VLANId": 101
+  },
+  "VLANs": {
+    "@odata.id": "/redfish/v1/Systems/db046a90-d610-11e7-9661-419a3eff5c1e/EthernetInterfaces/87:5B:1B:11:28:F9/VLANs"
+  },
+  "IPv4Addresses": [
+    {
+      "Address": "192.168.0.10",
+      "SubnetMask": "255.255.252.0",
+      "AddressOrigin": "Static",
+      "Gateway": "192.168.0.1",
+      "Oem": {}
+    }
+  ],
+  "IPv6AddressPolicyTable": [
+    {
+      "Prefix": "::1/128",
+      "Precedence": 50,
+      "Label": 0
+    }
+  ],
+  "IPv6StaticAddresses": [
+    {
+      "Address": "fe80::1ec1:deff:fe6f:1e24",
+      "PrefixLength": 16,
+      "Oem": {}
+    }
+  ],
+  "MaxIPv6StaticAddresses": 1,
+  "IPv6DefaultGateway": "fe80::3ed9:2bff:fe34:600",
+  "IPv6Addresses": [
+    {
+      "Address": "fe80::1ec1:deff:fe6f:1e24",
+      "PrefixLength": 64,
+      "AddressOrigin": "Static",
+      "AddressState": "Preferred",
+      "Oem": {}
+    }
+  ],
+  "NameServers": [
+    "names.redfishspecification.org"
+  ],
+  "Oem": {},
+  "Links": {
+    "Oem": {
+    }
+  }
+}

@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,14 +17,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section DESCRIPTION
- *
  * */
 
 #include "agent-framework/module/model/task.hpp"
 #include "agent-framework/module/constants/common.hpp"
 #include "agent-framework/module/utils/time.hpp"
-#include "agent-framework/logger_ext.hpp"
 #include "agent-framework/exceptions/exception.hpp"
 
 
@@ -41,7 +36,7 @@ Task::Task(const std::string& parent_uuid, enums::Component parent_type) :
     Resource{parent_uuid, parent_type} {
     // Status is unused for Tasks. Its value is always "Enabled".
     // The default Health for Task is "OK"
-    set_status(attribute::Status(true));
+    set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
 }
 
 
@@ -63,7 +58,7 @@ Task Task::from_json(const json::Json& json) {
 
 
 json::Json Task::to_json() const {
-    json::Json json{};
+    json::Json json = json::Json();
 
     json[literals::Task::STATE] = get_state();
     json[literals::Task::START_TIME] = get_start_time();

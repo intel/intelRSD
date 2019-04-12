@@ -21,27 +21,21 @@
  *
  * @section DESCRIPTION
 """
-
 import json
+import re
 import time
-
-
-
+from subprocess import Popen, PIPE
 from sys import exit
 
-from subprocess import Popen, PIPE
 from nvme_framework.actions.action import Action
-from nvme_framework.helpers.constants import Constants
-from nvme_framework.helpers.uuid_generator import UuidGenerator
-
-from nvme_framework.helpers.json_parser import JsonParse
 from nvme_framework.configuration.config_manager import Config as Cfg
-
-from nvme_framework.helpers.database import update_timestamp, update_local_path, get_path
+from nvme_framework.helpers.constants import Constants
 from nvme_framework.helpers.custom_decorators import deprecated
-from nvme_framework.helpers.performer import Performer
+from nvme_framework.helpers.database import update_timestamp, update_local_path, get_path
+from nvme_framework.helpers.json_parser import JsonParse
 from nvme_framework.helpers.message import Message
-
+from nvme_framework.helpers.performer import Performer
+from nvme_framework.helpers.uuid_generator import UuidGenerator
 
 
 class ExecuteAction(Action):
@@ -61,8 +55,6 @@ class ExecuteAction(Action):
         # Additional arguments
         self.parser.add_argument('-e', '--endpoint', action='store_true',
                                  help='Run endpoint with information about script operations')
-        self.parser.add_argument('-c', '--exit_counter', action='store_true',
-                                 help='Exit script after 12 unsuccessful attempts to Discovery Service')
 
     def process_action(self, configuration):
         self.pre_action(configuration)
@@ -89,33 +81,17 @@ class ExecuteAction(Action):
         if configuration.endpoint:
             Popen(' '.join(['nvme-wheel', 'rest']), shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)
         self.configuration = configuration
-        self.exit_counter_status = configuration.exit_counter
 
     def crone(self):
         time_before_next_discovery = Cfg().get_cron_time()
 
-        MAX_EXIT_COUNTER = 12
-        exit_counter = 0
-
-        while exit_counter < MAX_EXIT_COUNTER:
+        while True:
             found = self.find_detached_targets()
-
-            if (not self.discovery()) and self.exit_counter_status:
-                exit_counter = exit_counter + 1
-                Message.info('No targets at discovery service was found (%d/%d)' %
-                             (exit_counter, MAX_EXIT_COUNTER))
-            elif self.exit_counter_status:
-                Message.info('Targets at discovery service was found')
-                exit_counter = 0
-
             self.prepare_targets_for_detach(found)
             self.disconnect_lost()
             self.connect_discovered()
 
             time.sleep(float(time_before_next_discovery))
-        Message.error('No targets at discovery service was found (%d/%d)\nExiting script...' %
-                      (exit_counter, MAX_EXIT_COUNTER))
-        exit(-1)
 
     @update_timestamp
     def discovery(self):
@@ -145,16 +121,16 @@ class ExecuteAction(Action):
         return True
 
     @update_local_path
-    def connect(self, target_name=None, target_address=None, target_port=None):
+    def connect(self, target_name=None, target_address=None, target_port=None, acceptable_uuid=None):
         # example: nvme connect -t rdma -a 10.6.0.101 -n UUID/NQN/SUBNQN -s target_port -q initiator_UUID-i 8
-        connected_elements_before = self.\
-            count_nvme_list_elements()
+        connected_elements_before = self.count_nvme_list_elements()
+
         self.run_exec(Constants.NVME_CONNECT,
                       Constants.NVME_T_RMA_PARAM,
                       '-a ', target_address,
                       '-n ', target_name,
                       '-s ', target_port,
-                      '-q ', self.uuid,
+                      '-q ', acceptable_uuid,
                       '-i ', '8')
         # verify that nvme connect works and new elem is on nvme list
         if connected_elements_before == self.count_nvme_list_elements():
@@ -177,19 +153,58 @@ class ExecuteAction(Action):
     @update_timestamp
     def connect_discovered(self):
         cfg = Cfg()
-        for target in cfg.get_available_targets():
+        targets_with_discovered_status = [tgts for tgts in cfg.get_available_targets()
+                                          if tgts['status'] == Constants.STATUS_DISCOVERED]
+
+        for target in targets_with_discovered_status:
             tgt_name = target[Constants.CONFIG_TARGET_NAME]
             tgt_address = target[Constants.CONFIG_TARGET_ADDRESS]
             tgt_port = target[Constants.CONFIG_TARGET_PORT]
 
-            if target['status'] == Constants.STATUS_DISCOVERED:
-                Message.info('Connecting to %s - %s:%s' % (tgt_name, tgt_address, tgt_port))
+            Message.info('Connecting to %s - %s:%s' % (tgt_name, tgt_address, tgt_port))
+            if not self._connect_runner(cfg, tgt_name, tgt_address, tgt_port):
+                Message.info('Connection process FAILED')
+            else:
+                Message.info('Connection process SUCCESS')
 
-                if self.connect(tgt_name, tgt_address, tgt_port):
-                    cfg.update_status(tgt_name, Constants.STATUS_CONNECTED)
-                    Message.info('Connection process SUCCESS')
-                else:
-                    Message.info('Connection process FAILED')
+    def _connect_runner(self, cfg, tgt_name, tgt_address, tgt_port):
+        regular_connection = (tgt_name, tgt_address, tgt_port, self.uuid)
+        connection_with_prefix = (self._update_nqn_with_prefix(tgt_name),
+                                  tgt_address,
+                                  tgt_port,
+                                  self._update_nqn_with_prefix(self.uuid))
+        connection_without_prefix = (self._remove_prefix_from_nqn(tgt_name),
+                                     tgt_address,
+                                     tgt_port,
+                                     self._remove_prefix_from_nqn(self.uuid))
+
+        connection_types = (regular_connection, connection_with_prefix, connection_without_prefix)
+
+        for i, connection_type in enumerate(connection_types, 1):
+            if not self.connect(*connection_type):
+                if i == len(connection_types):
+                    return False
+                continue
+
+            cfg.update_status(tgt_name, Constants.STATUS_CONNECTED)
+            Message.debug(
+                'Connected to {0} using with custom values:\n\ttarget_name: {1}\n\tinitiator uuid: {2}'.format(
+                    tgt_name,
+                    self._update_nqn_with_prefix(tgt_address),
+                    self._update_nqn_with_prefix(self.uuid)
+                ))
+            return True
+
+    @staticmethod
+    def _update_nqn_with_prefix(tgt_name):
+        if re.search(r'{}'.format(Constants.UUID_NQN_PREFIX),
+                     tgt_name):
+            return tgt_name
+        return str(''.join((Constants.UUID_NQN_PREFIX, tgt_name)))
+
+    @staticmethod
+    def _remove_prefix_from_nqn(nqn):
+        return nqn.replace(Constants.UUID_NQN_PREFIX, '')
 
     @update_timestamp
     def disconnect_lost(self):
@@ -233,7 +248,7 @@ class ExecuteAction(Action):
             # nvme-cli return empty {} or nothing in nvme-cli 1.3+ if there is not any target
             json_output = json.loads(output)
             return len(json_output['Devices'])
-        except:
+        except KeyError:
             return 0
 
     def disconnect_all_stored_in_config(self):

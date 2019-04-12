@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@
  *
  * @file fabric.hpp
  * @brief literals for Fabric endpoints
- * */
+ */
 
 #pragma once
 
@@ -105,6 +105,7 @@ extern const char INTERFACES[];
 extern const char AUTHENTICATION[];
 extern const char USERNAME[];
 extern const char PASSWORD[];
+extern const char PORTS[];
 }
 
 }

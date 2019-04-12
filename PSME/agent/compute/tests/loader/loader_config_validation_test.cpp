@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,19 +27,17 @@
 
 #include "loader/compute_loader.hpp"
 #include "configuration_full.hpp"
-#include "json/value.hpp"
-#include "json/deserializer.hpp"
+#include "json-wrapper/json-wrapper.hpp"
+
 
 using namespace agent::compute::loader;
 
 class ComputeLoaderConfigFieldValidationTest: public ::testing::Test {
 protected:
     ComputeLoader loader{};
-    json::Value config;
-    json::Deserializer deserializer{};
+    json::Json config = json::Json();
 public:
     void SetUp() {
-        deserializer << COMPUTE_FULL_CONFIGURATION;
     }
 
     virtual ~ComputeLoaderConfigFieldValidationTest();
@@ -49,7 +47,7 @@ public:
 ComputeLoaderConfigFieldValidationTest::~ComputeLoaderConfigFieldValidationTest() { }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadFullConfiguration_LoadShouldBePositive) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
     bool is_loaded = loader.load(config);
 
@@ -57,9 +55,9 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadFullConfiguration_LoadShouldB
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutAgent_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
-    config["agent"] = json::Value::Type::NIL;
+    config["agent"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -67,9 +65,9 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutAgent_Loa
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutAgentVendor_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
-    config["agent"]["vendor"] = json::Value::Type::NIL;
+    config["agent"]["vendor"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -77,9 +75,9 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutAgentVend
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutAgentCapabilities_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
-    config["agent"]["capabilities"] = json::Value::Type::NIL;
+    config["agent"]["capabilities"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -87,9 +85,9 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutAgentCapa
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutServer_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
-    config["server"] = json::Value::Type::NIL;
+    config["server"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -97,9 +95,9 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutServer_Lo
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutServerPort_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
-    config["server"]["port"] = json::Value::Type::NIL;
+    config["server"]["port"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -107,9 +105,9 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutServerPor
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutRegistration_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
-    config["registration"]= json::Value::Type::NIL;
+    config["registration"]= json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -117,9 +115,9 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutRegistrat
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutRegistrationIpv4_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
-    config["registration"]["ipv4"] = json::Value::Type::NIL;
+    config["registration"]["ipv4"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -127,9 +125,9 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutRegistrat
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutRegistrationPort_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
-    config["registration"]["port"] = json::Value::Type::NIL;
+    config["registration"]["port"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -137,9 +135,9 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutRegistrat
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutRegistrationInterval_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
-    config["registration"]["interval"] = json::Value::Type::NIL;
+    config["registration"]["interval"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -147,9 +145,9 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutRegistrat
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithManagerWithoutSlot_LoadShouldBePositive) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
-    config["logger"] = json::Value::Type::NIL;
+    config["logger"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -157,9 +155,9 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithManagerWitho
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutManagers_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
-    config["managers"] = json::Value::Type::NIL;
+    config["managers"] = json::Json::value_t::null;
 
     bool is_loaded = loader.load(config);
 
@@ -167,9 +165,9 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithoutManagers_
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithZeroManagers_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
-    config["managers"] = json::Value::Type::ARRAY;
+    config["managers"] = json::Json::value_t::array;
 
     bool is_loaded = loader.load(config);
 
@@ -177,10 +175,10 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithZeroManagers
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithManagerWithoutIpv4_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
     // Remove ipv4 field from first manager.
-    config["managers"].as_array().front()["ipv4"] = json::Value::Type::ARRAY;
+    config["managers"].front()["ipv4"] = json::Json::value_t::array;
 
     bool is_loaded = loader.load(config);
 
@@ -188,10 +186,10 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithManagerWitho
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithManagerWithoutUsername_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
     // Remove username field from first manager.
-    config["managers"].as_array().front()["username"] = json::Value::Type::ARRAY;
+    config["managers"].front()["username"] = json::Json::value_t::array;
 
     bool is_loaded = loader.load(config);
 
@@ -199,10 +197,10 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithManagerWitho
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithManagerWithoutPassword_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
     // Remove password field from first manager.
-    config["managers"].as_array().front()["password"] = json::Value::Type::ARRAY;
+    config["managers"].front()["password"] = json::Json::value_t::array;
 
     bool is_loaded = loader.load(config);
 
@@ -210,10 +208,10 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithManagerWitho
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithManagerWithoutPort_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
     // Remove port field from first manager.
-    config["managers"].as_array().front()["port"] = json::Value::Type::ARRAY;
+    config["managers"].front()["port"] = json::Json::value_t::array;
 
     bool is_loaded = loader.load(config);
 
@@ -221,10 +219,10 @@ TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithManagerWitho
 }
 
 TEST_F(ComputeLoaderConfigFieldValidationTest, LoadConfigurationWithManagerWithoutSlot_LoadShouldBeNegative) {
-    deserializer >> config;
+    config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
 
     // Remove slot field from first manager.
-    config["managers"].as_array().front()["slot"] = json::Value::Type::ARRAY;
+    config["managers"].front()["slot"] = json::Json::value_t::array;
 
     bool is_loaded = loader.load(config);
 

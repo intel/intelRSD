@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
- * @file rmm/event_collector/event_colelctor.hpp
+ * @file rmm/event_collector/event_collector.hpp
  */
 
 #pragma once
@@ -45,7 +43,8 @@ public:
      * @param resource_uuid Uuid of the resource affected by the event
      * @param parent_uuid Uuid of the parent of the affected resource
      */
-    virtual void poll_add_event(const enums::Component component, const std::string& resource_uuid,
+    virtual void poll_add_event(const agent_framework::model::enums::Component component,
+        const std::string& resource_uuid,
         const std::string& parent_uuid) override;
 
     /*!
@@ -54,7 +53,8 @@ public:
      * @param resource_uuid Uuid of the resource affected by the event
      * @param parent_uuid Uuid of the parent of the affected resource
      */
-    virtual void poll_remove_event(const enums::Component component, const std::string& resource_uuid,
+    virtual void poll_remove_event(const agent_framework::model::enums::Component component,
+        const std::string& resource_uuid,
         const std::string& parent_uuid) override;
 
     /*!
@@ -63,7 +63,8 @@ public:
      * @param resource_uuid Uuid of the resource affected by the event
      * @param parent_uuid Uuid of the parent of the affected resource
      */
-    virtual void poll_update_event(const enums::Component component, const std::string& resource_uuid,
+    virtual void poll_update_event(const agent_framework::model::enums::Component component,
+        const std::string& resource_uuid,
         const std::string& parent_uuid) override;
 
     /*!
@@ -81,15 +82,17 @@ public:
 private:
 
     /*! Generic poll event method for any event types */
-    void poll_event(const enums::Component component, const std::string& resource_uuid,
-        const std::string& parent_uuid, agent_framework::eventing::Notification event_type);
+    void poll_event(const agent_framework::model::enums::Component component,
+        const std::string& resource_uuid,
+        const std::string& parent_uuid,
+        agent_framework::model::enums::Notification event_type);
 
     /*! Returns a function used in searches */
-    static std::function<bool (const agent_framework::eventing::EventData&)> has_same_uuid(const std::string& uuid) {
-        return [&uuid] (const agent_framework::eventing::EventData& ed) { return ed.get_component() == uuid; };
+    static std::function<bool (const agent_framework::model::attribute::EventData&)> has_same_uuid(const std::string& uuid) {
+        return [&uuid] (const agent_framework::model::attribute::EventData& ed) { return ed.get_component() == uuid; };
     };
 
-    std::list<agent_framework::eventing::EventData> m_event_pool{};
+    std::list<agent_framework::model::attribute::EventData> m_event_pool{};
 };
 
 }

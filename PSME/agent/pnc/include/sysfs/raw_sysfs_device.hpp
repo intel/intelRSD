@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -182,6 +182,13 @@ struct RawSysfsDevice final {
         std::uint8_t raw[PCI_CONFIGURATION_SPACE_SIZE];
     } configuration{};
 
+};
+
+/*! Simple represenation of the PCIe Address*/
+struct PcieAddress final {
+    std::uint8_t bus{};
+    std::uint8_t device{};
+    std::uint8_t function{};
 };
 
 }

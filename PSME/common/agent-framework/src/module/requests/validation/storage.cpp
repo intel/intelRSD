@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,10 +40,23 @@ namespace validation {
 void StorageValidator::validate_set_volume_attributes(const Attributes& attributes) {
     static jsonrpc::ProcedureValidator validator{
         jsonrpc::PARAMS_BY_NAME,
-        literals::Volume::ERASED, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_BOOLEAN)),
+        literals::Volume::CAPACITY_BYTES, VALID_OPTIONAL(VALID_NULLABLE(VALID_NUMERIC_RANGE(INT64, 0, INT64_MAX))),
         literals::Volume::BOOTABLE, VALID_OPTIONAL(VALID_NULLABLE(VALID_JSON_BOOLEAN)),
         literals::Volume::INITIALIZATION, VALID_OPTIONAL(VALID_NULLABLE(VALID_ENUM(enums::VolumeInitializationType))),
         literals::Volume::OEM, VALID_OPTIONAL(VALID_JSON_OBJECT),
+        nullptr
+    };
+
+    validator.validate(attributes.to_json());
+    log_debug("storage-agent", "Request validation passed.");
+}
+
+
+void StorageValidator::validate_set_drive_attributes(const Attributes& attributes) {
+
+    static jsonrpc::ProcedureValidator validator{
+        jsonrpc::PARAMS_BY_NAME,
+        literals::Drive::LATENCY_TRACKING_ENABLED, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
         nullptr
     };
 

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
  * limitations under the License.
  *
  *
- * @file utils.hpp
+ * @file utils.cpp
  *
  * */
 
@@ -31,20 +31,31 @@ std::string psme::rest::server::build_location_header(const psme::rest::server::
                                                       bool scheme_secure,
                                                       const std::string& resource_path,
                                                       const std::uint16_t port) {
+    auto host_header = request.get_header("Host");
+
+    return build_location_header(host_header, scheme_secure, resource_path, port);
+}
+
+std::string psme::rest::server::build_location_header(const std::string& host_header,
+                                                      bool scheme_secure,
+                                                      const std::string& resource_path,
+                                                      const std::uint16_t port) {
+    auto tmp_host_header = host_header;
+
     constexpr const char HTTPS[] = "https://";
     constexpr const char HTTP[] = "http://";
 
     const auto scheme = scheme_secure ? HTTPS : HTTP;
-    auto host_header = request.get_header("Host");
     if (port) {
         auto port_pos = host_header.find_first_of(':');
         auto port_string = std::to_string(static_cast<uint>(port));
         if (std::string::npos != port_pos) {
-            host_header = host_header.substr(0, port_pos + 1) + port_string;
+            tmp_host_header = host_header.substr(0, port_pos + 1) + port_string;
         }
         else {
-            host_header = host_header + ':' + port_string;
+            tmp_host_header = host_header + ':' + port_string;
         }
     }
-    return scheme + host_header + resource_path;
+    return scheme + tmp_host_header + resource_path;
 }
+

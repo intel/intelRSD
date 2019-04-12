@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -170,19 +170,19 @@ public:
     }
 
     /*!
-     * @brief Set capacity in MB
+     * @brief Set capacity in MiB
      * @param[in] capacity Memory capacity
      * */
-    void set_capacity_mb(const OptionalField<std::uint32_t>& capacity) {
-        m_capacity_mb = capacity;
+    void set_capacity_mib(const OptionalField<std::uint32_t>& capacity) {
+        m_capacity_mib = capacity;
     }
 
     /*!
-     * @brief Get capacity in MB
+     * @brief Get capacity in MiB
      * @return memory capacity
      * */
-    OptionalField<std::uint32_t> get_capacity_mb() const {
-        return m_capacity_mb;
+    OptionalField<std::uint32_t> get_capacity_mib() const {
+        return m_capacity_mib;
     }
 
     /*!
@@ -265,61 +265,67 @@ public:
     }
 
     /*!
-     * @brief Add memory class
-     * @param[in] memory_class memory class
+     * @brief Set module manfacturer ID (Vendor ID)
+     * @param[in] module_manufacturer_id manufacturer ID
      * */
-    void add_memory_class(const enums::MemoryClass& memory_class) {
-        m_memory_classes.add_entry(memory_class);
+    void set_module_manufacturer_id(const OptionalField<std::string>& module_manufacturer_id) {
+        m_module_manufacturer_id = module_manufacturer_id;
     }
 
     /*!
-     * @brief Set memory classes
-     * @param[in] memory_classes memory classes array
+     * @brief Get module manfacturer ID (Vendor ID)
+     * @return manufacturer ID
      * */
-    void set_memory_classes(const attribute::Array<enums::MemoryClass>& memory_classes) {
-        m_memory_classes = memory_classes;
+    const OptionalField<std::string>& get_module_manufacturer_id() const {
+        return m_module_manufacturer_id;
     }
 
     /*!
-     * @brief Get memory classes
-     * @return memory classes array
+     * @brief Set module product ID (Device ID)
+     * @param[in] module_product_id product ID
      * */
-    const attribute::Array<enums::MemoryClass>& get_memory_classes() const {
-        return m_memory_classes;
+    void set_module_product_id(const OptionalField<std::string>& module_product_id) {
+        m_module_product_id = module_product_id;
     }
 
     /*!
-     * @brief Set vendor ID
-     * @param[in] vendor_id vendor ID
+     * @brief Get module product ID (Device ID)
+     * @return product ID
      * */
-    void set_vendor_id(const OptionalField<std::string>&
-        vendor_id) {
-        m_vendor_id= vendor_id;
+    const OptionalField<std::string>& get_module_product_id() const {
+        return m_module_product_id;
     }
 
     /*!
-     * @brief Get vendor ID
-     * @return vendor ID
+     * @brief Set memory subsystem controller manufacturer ID (Subystem Vendor ID)
+     * @param[in] memory_subsystem_controller_manufacturer_id memory subsystem controller manufacturer ID
      * */
-    const OptionalField<std::string>& get_vendor_id() const {
-        return m_vendor_id;
+    void set_memory_subsystem_controller_manufacturer_id(const OptionalField<std::string>& memory_subsystem_controller_manufacturer_id) {
+        m_memory_subsystem_controller_manufacturer_id = memory_subsystem_controller_manufacturer_id;
     }
 
     /*!
-     * @brief Set device ID
-     * @param[in] device_id device ID
+     * @brief Get memory subsystem controller manufacturer ID (Subsystem Vendor ID)
+     * @return memory subsystem controller manufacturer ID
      * */
-    void set_device_id(const OptionalField<std::string>&
-        device_id) {
-        m_device_id= device_id;
+    const OptionalField<std::string>& get_memory_subsystem_controller_manufacturer_id() const {
+        return m_memory_subsystem_controller_manufacturer_id;
     }
 
     /*!
-     * @brief Get device ID
-     * @return device ID
+     * @brief Set memory subsystem controller product ID (Subsystem Device ID)
+     * @param[in] memory_subsystem_controller_product_id memory subsystem controller product ID
      * */
-    const OptionalField<std::string>& get_device_id() const {
-        return m_device_id;
+    void set_memory_subsystem_controller_product_id(const OptionalField<std::string>& memory_subsystem_controller_product_id) {
+        m_memory_subsystem_controller_product_id = memory_subsystem_controller_product_id;
+    }
+
+    /*!
+     * @brief Get memory subsystem controller product ID (Subsystem Device ID)
+     * @return memory subsystem controller peoduct ID
+     * */
+    const OptionalField<std::string>& get_memory_subsystem_controller_product_id() const {
+        return m_memory_subsystem_controller_product_id;
     }
 
     /*!
@@ -360,6 +366,30 @@ public:
      * */
     const attribute::Array<std::uint32_t>& get_allowed_speeds_mhz() const {
         return m_allowed_speeds_mhz;
+    }
+
+    /*!
+     * @brief Add max TDP in milli watts
+     * @param[in] max_tdp_milliwatts max TDP (in mW)
+     * */
+    void add_max_tdp_milliwatts(const std::uint32_t max_tdp_milliwatts) {
+        m_max_tdp_milliwatts.add_entry(max_tdp_milliwatts);
+    }
+
+    /*!
+     * @brief Set max TDP in milli watts
+     * @param[in] max_tdp_milliwatts max TDP (in mW)
+     * */
+    void set_max_tdp_milliwatts(const attribute::Array<std::uint32_t>& max_tdp_milliwatts) {
+        m_max_tdp_milliwatts = max_tdp_milliwatts;
+    }
+
+    /*!
+     * @brief Get max tdp milli watts
+     * @return max TDP (in mW)
+     * */
+    const attribute::Array<std::uint32_t>& get_max_tdp_milliwats() const {
+        return m_max_tdp_milliwatts;
     }
 
     /*!
@@ -461,6 +491,102 @@ public:
     }
 
     /*!
+     * @brief Set spare device count
+     * @param[in] spare_device_count spare device count
+     * */
+    void set_spare_device_count(const OptionalField<std::uint32_t>& spare_device_count) {
+        m_spare_device_count = spare_device_count;
+    }
+
+    /*!
+     * @brief Get spare device count
+     * @return spare device count
+     * */
+    const OptionalField<std::uint32_t>& get_spare_device_count() const {
+        return m_spare_device_count;
+    }
+
+    /*!
+     * @brief Set logical memory size
+     * @param[in] volatile_size_mib logical memory size (in MiB)
+     * */
+    void set_logical_size_mib(const OptionalField<std::uint32_t>& logical_size_mib) {
+        m_logical_size_mib = logical_size_mib;
+    }
+
+    /*!
+     * @brief Get logical memory size
+     * @return logical memory size (in MiB)
+     * */
+    const OptionalField<std::uint32_t>& get_logical_size_mib() const {
+        return m_logical_size_mib;
+    }
+
+    /*!
+     * @brief Set volatile region size
+     * @param[in] volatile_size_mib volatile region size (in MiB)
+     * */
+    void set_volatile_size_mib(const OptionalField<std::uint32_t>& volatile_size_mib) {
+        m_volatile_size_mib = volatile_size_mib;
+    }
+
+    /*!
+     * @brief Get volatile region size
+     * @return volatile region size (in MiB)
+     * */
+    const OptionalField<std::uint32_t>& get_volatile_size_mib() const {
+        return m_volatile_size_mib;
+    }
+
+    /*!
+     * @brief Set non-volatile region size
+     * @param[in] non_volatile_size_mib non-volatile region size (in MiB)
+     * */
+    void set_non_volatile_size_mib(const OptionalField<std::uint32_t>& non_volatile_size_mib) {
+        m_non_volatile_size_mib = non_volatile_size_mib;
+    }
+
+    /*!
+     * @brief Get non-volatile region size
+     * @return non-volatile region size (in MiB)
+     * */
+    const OptionalField<std::uint32_t>& get_non_volatile_size_mib() const {
+        return m_non_volatile_size_mib;
+    }
+
+    /*!
+     * @brief Set volatile region size limit
+     * @param[in] volatile_region_size_limit_mib volatile region size limit (in MiB)
+     * */
+    void set_volatile_region_size_limit_mib(const OptionalField<std::uint32_t>& volatile_region_size_limit_mib) {
+        m_volatile_region_size_limit_mib = volatile_region_size_limit_mib;
+    }
+
+    /*!
+     * @brief Get volatile region size limit
+     * @return volatile region size limit (in MiB)
+     * */
+    const OptionalField<std::uint32_t>& get_volatile_region_size_limit_mib() const {
+        return m_volatile_region_size_limit_mib;
+    }
+
+    /*!
+     * @brief Set persistent region size limit
+     * @param[in] persistent_region_size_limit_mib persistent region size limit (in MiB)
+     * */
+    void set_persistent_region_size_limit_mib(const OptionalField<std::uint32_t>& persistent_region_size_limit_mib) {
+        m_persistent_region_size_limit_mib = persistent_region_size_limit_mib;
+    }
+
+    /*!
+     * @brief Get persistent region size limit
+     * @return persistent region size limit (in MiB)
+     * */
+    const OptionalField<std::uint32_t>& get_persistent_region_size_limit_mib() const {
+        return m_persistent_region_size_limit_mib;
+    }
+
+    /*!
      * @brief Set error correction
      * @param[in] error_correction memory error correction
      * */
@@ -502,6 +628,38 @@ public:
     }
 
     /*!
+     * @brief Set security capabilities
+     * @param[in] security_capabilities security capabilities
+     * */
+    void set_security_capabilities(const attribute::SecurityCapabilities& security_capabilities) {
+        m_security_capabilities = security_capabilities;
+    }
+
+    /*!
+     * @brief Get security capabilities
+     * @return security capabilities
+     * */
+    const attribute::SecurityCapabilities& get_security_capabilities() const {
+        return m_security_capabilities;
+    }
+
+    /*!
+     * @brief Set power management policy
+     * @param[in] power_management_policy power management policy
+     * */
+    void set_power_management_policy(const attribute::PowerManagementPolicy& power_management_policy) {
+        m_power_management_policy = power_management_policy;
+    }
+
+    /*!
+     * @brief Get power management policy
+     * @return power management policy
+     * */
+    const attribute::PowerManagementPolicy& get_power_management_policy() const {
+        return m_power_management_policy;
+    }
+
+    /*!
      * @brief Set smbios handle
      * @param[in] smbios_handle smbios handle
      * */
@@ -517,49 +675,41 @@ public:
         return m_smbios_handle;
     }
 
-    /*!
-     * @brief Set max tdp milliwats
-     * @param[in] max_tdp_milliwats max tdp milliwats
-     * */
-    void set_max_tdp_milliwats(const OptionalField<std::uint32_t>& max_tdp_milliwats) {
-        m_max_tdp_milliwats = max_tdp_milliwats;
-    }
-
-    /*!
-     * @brief Get max tdp milliwats
-     * @return max tdp milliwats
-     * */
-    const OptionalField<std::uint32_t>& get_max_tdp_milliwats() const {
-        return m_max_tdp_milliwats;
-    }
-
-
 private:
     OptionalField<enums::MemoryType> m_memory_type{};
     OptionalField<enums::DeviceType> m_device_type{};
     OptionalField<enums::MemoryModuleType> m_module_type{};
     attribute::Array<enums::Media> m_media{};
     attribute::Array<enums::MemoryMode> m_memory_modes{};
-    OptionalField<std::uint32_t> m_capacity_mb{};
+    OptionalField<std::uint32_t> m_capacity_mib{};
     OptionalField<std::uint32_t> m_data_width_bits{};
     OptionalField<std::uint32_t> m_bus_width_bits{};
     attribute::FruInfo m_fru_info{};
     OptionalField<std::string> m_firmware_revision{};
     OptionalField<std::string> m_firmware_api_version{};
-    attribute::Array<enums::MemoryClass> m_memory_classes{};
-    OptionalField<std::string> m_vendor_id{};
-    OptionalField<std::string> m_device_id{};
+    OptionalField<std::string> m_module_manufacturer_id{};
+    OptionalField<std::string> m_module_product_id{};
+    OptionalField<std::string> m_memory_subsystem_controller_manufacturer_id{};
+    OptionalField<std::string> m_memory_subsystem_controller_product_id{};
     OptionalField<std::uint32_t> m_operating_speed_mhz{};
     attribute::Array<std::uint32_t> m_allowed_speeds_mhz{};
-    OptionalField<std::uint32_t> m_max_tdp_milliwats{};
+    attribute::Array<std::uint32_t> m_max_tdp_milliwatts{};
     OptionalField<double> m_voltage_volt{};
     OptionalField<double> m_min_voltage_volt{};
     OptionalField<double> m_max_voltage_volt{};
     OptionalField<std::string> m_device_locator{};
     attribute::MemoryLocation m_location{};
     OptionalField<std::uint32_t> m_rank_count{};
+    OptionalField<std::uint32_t> m_spare_device_count{};
+    OptionalField<std::uint32_t> m_logical_size_mib{};
+    OptionalField<std::uint32_t> m_volatile_size_mib{};
+    OptionalField<std::uint32_t> m_non_volatile_size_mib{};
+    OptionalField<std::uint32_t> m_volatile_region_size_limit_mib{};
+    OptionalField<std::uint32_t> m_persistent_region_size_limit_mib{};
     OptionalField<enums::ErrorCorrection> m_error_correction{};
     attribute::Array<attribute::Region> m_regions{};
+    attribute::SecurityCapabilities m_security_capabilities{};
+    attribute::PowerManagementPolicy m_power_management_policy{};
 
     // needed for matching with smbios device extended structs
     OptionalField<std::uint16_t> m_smbios_handle{};

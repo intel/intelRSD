@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +25,13 @@
  *
  * */
 
+#include "agent-framework/discovery/builders/identifier_builder.hpp"
+#include "agent-framework/discovery/discoverers/system_discoverer.hpp"
 #include "discovery/discoverer.hpp"
 #include "fru_eeprom/fru_eeprom_parser.hpp"
+#include "sysfs/sysfs_interface.hpp"
+
+
 
 using namespace agent_framework::model;
 using namespace agent_framework::module;
@@ -40,10 +45,9 @@ using namespace agent::pnc::gas::mrpc;
 using namespace agent::pnc;
 using namespace fru_eeprom::parser;
 
-namespace {
 
-}
-Discoverer::~Discoverer() {}
+Discoverer::~Discoverer() = default;
+
 
 Chassis Discoverer::discover_chassis(const Toolset&, const Chassis& chassis) const {
     return m_factory->init_builder(m_factory->get_chassis_builder(), chassis)->build();
@@ -54,18 +58,21 @@ Fabric Discoverer::discover_fabric(const std::string& manager_uuid) const {
     return m_factory->init_builder(m_factory->get_fabric_builder(), manager_uuid)->build();
 }
 
+
 System Discoverer::discover_system(const std::string& manager_uuid,
                                    const std::string& chassis_uuid) const {
-    return m_factory->init_builder(m_factory->get_system_builder(), manager_uuid)
-        ->update_links(chassis_uuid).build();
+    auto sysfs = std::make_shared<::sysfs::SysfsInterface>(::sysfs::SysfsInterface{});
+    return agent_framework::discovery::SystemDiscoverer(sysfs).discover(manager_uuid, chassis_uuid);
 }
+
 
 StorageSubsystem Discoverer::discover_storage_subsystem(const std::string& system_uuid) const {
     return m_factory->init_builder(m_factory->get_storage_subsystem_builder(), system_uuid)->build();
 }
 
+
 Switch Discoverer::discover_switch(const std::string& fabric_uuid, const Toolset& tools,
-        const std::string& chassis_uuid, const SysfsSwitch& sysfs_switch) const {
+                                   const std::string& chassis_uuid, const SysfsSwitch& sysfs_switch) const {
     auto builder = m_factory->init_builder(m_factory->get_switch_builder(), fabric_uuid);
     builder->update_sysfs(sysfs_switch).update_links(chassis_uuid);
 
@@ -79,19 +86,22 @@ Switch Discoverer::discover_switch(const std::string& fabric_uuid, const Toolset
     return builder->build();
 }
 
+
 Zone Discoverer::discover_zone(const std::string& fabric_uuid, const tools::Toolset&,
-        const std::string& switch_uuid, GlobalAddressSpaceRegisters& gas, uint8_t zone_id) const {
+                               const std::string& switch_uuid, GlobalAddressSpaceRegisters& gas,
+                               uint8_t partition_id) const {
     auto builder = m_factory->init_builder(m_factory->get_zone_builder(), fabric_uuid);
-    builder->update_id(zone_id).update_links(switch_uuid);
+    builder->update_id(partition_id).update_links(switch_uuid);
     try {
-        gas.read_partition(zone_id);
+        gas.read_partition(partition_id);
         builder->update_pc(gas.partition);
     }
     catch (const std::exception& e) {
-        log_error("pnc-discovery", "Cannot read Zone " << unsigned(zone_id) << " data. " << e.what());
+        log_error("pnc-discovery", "Cannot read Zone " << unsigned(partition_id) << " data. " << e.what());
     }
     return builder->build();
 }
+
 
 bool Discoverer::update_port(Port& port, const GlobalAddressSpaceRegisters& gas, const Toolset& tools) const {
     bool changed = false;
@@ -108,16 +118,16 @@ bool Discoverer::update_port(Port& port, const GlobalAddressSpaceRegisters& gas,
         // up to this point speed and max speed are in GT/s - they have to be converted into Gbps before going further
         // for that we need currently configured width and speed in GT/s
         changed |= tools.model_tool->set_port_width_and_speed(port,
-            width, max_width,
-            tools.map_tool->gtps_to_gbps(speed, width),
-            tools.map_tool->gtps_to_gbps(max_speed, width));
+                                                              width, max_width,
+                                                              tools.map_tool->gtps_to_gbps(speed, width),
+                                                              tools.map_tool->gtps_to_gbps(max_speed, width));
 
         changed |= tools.model_tool->set_status(port,
-            tools.map_tool->get_port_status_from_link_status(lsr));
+                                                tools.map_tool->get_port_status_from_link_status(lsr));
     }
     catch (const std::exception& e) {
         log_error("pnc-discovery", "Cannot update status on port " << port.get_uuid() <<
-                                                                               ", exception: " << e.what());
+                                                                   ", exception: " << e.what());
         changed = tools.model_tool->set_status_offline(port);
     }
     return changed;
@@ -125,7 +135,7 @@ bool Discoverer::update_port(Port& port, const GlobalAddressSpaceRegisters& gas,
 
 
 Port Discoverer::discover_port(const std::string& switch_uuid, const tools::Toolset& tools,
-        GlobalAddressSpaceRegisters& gas, const PortBindingInfo& cmd, uint8_t entry_id) const {
+                               GlobalAddressSpaceRegisters& gas, const PortBindingInfo& cmd, uint8_t entry_id) const {
     auto builder = m_factory->init_builder(m_factory->get_port_builder(), switch_uuid);
     builder->update_binding_info(entry_id, cmd, gas.top);
 
@@ -137,7 +147,7 @@ Port Discoverer::discover_port(const std::string& switch_uuid, const tools::Tool
     }
     else {
         log_warning("pnc-discovery",
-            "Port configuration data not found for physical port:" << unsigned(port_id));
+                    "Port configuration data not found for physical port:" << unsigned(port_id));
         throw PncDiscoveryExceptionNoConfiguration{};
     }
 
@@ -154,103 +164,13 @@ Port Discoverer::discover_port(const std::string& switch_uuid, const tools::Tool
     return builder->build();
 }
 
+
 Endpoint Discoverer::discover_host_endpoint(const std::string& fabric_uuid) const {
-    return m_factory->init_builder(m_factory->get_endpoint_builder(), fabric_uuid)->add_host_entity().build();
+    Endpoint endpoint = m_factory->init_builder(m_factory->get_endpoint_builder(), fabric_uuid)->add_host_entity().build();
+    agent_framework::discovery::IdentifierBuilder::set_uuid(endpoint, endpoint.get_uuid());
+    return endpoint;
 }
 
-Endpoint Discoverer::discover_drive_endpoint(const std::string& fabric_uuid, const std::string& drive_uuid) const {
-    return m_factory->init_builder(m_factory->get_endpoint_builder(), fabric_uuid)
-        ->add_drive_entity(drive_uuid).build();
-}
-
-Endpoint Discoverer::discover_unknown_target_endpoint(const std::string& fabric_uuid) const {
-    return m_factory->init_builder(m_factory->get_endpoint_builder(), fabric_uuid)
-        ->add_unknown_target_entity().build();
-}
-
-PcieDevice Discoverer::discover_pcie_device(const std::string& manager_uuid,
-        const std::string& chassis_uuid, const SysfsDevice& sysfs_device) const {
-    return m_factory->init_builder(m_factory->get_pcie_device_builder(), manager_uuid)->update_sysfs(sysfs_device)
-        .update_links(chassis_uuid).build();
-}
-
-PcieFunction Discoverer::discover_pcie_function(const std::string& device_uuid,
-        const std::string& dsp_port_uuid, const SysfsFunction& sysfs_function) const {
-    return m_factory->init_builder(m_factory->get_pcie_function_builder(), device_uuid)
-        ->update_sysfs(sysfs_function).update_links(dsp_port_uuid).build();
-}
-
-Drive Discoverer::discover_ib_drive(const Drive& drive, const SysfsDevice& sysfs_device,
-        const SysfsDrive& sysfs_drive) const {
-    return m_factory->init_builder(m_factory->get_drive_builder(), drive)->update_sysfs_drive_data(sysfs_drive)
-        .update_sysfs_device_data(sysfs_device).build();
-}
-
-Drive Discoverer::discover_no_sysfs_ib_drive(const Drive& drive) const {
-    return m_factory->init_builder(m_factory->get_drive_builder(), drive)->update_critical_state().build();
-}
-
-Drive Discoverer::discover_oob_drive(const std::string& chassis_uuid, const Toolset& tools,
-        const std::string& port_uuid) const {
-    auto builder = m_factory->init_builder(m_factory->get_drive_builder(), chassis_uuid);
-
-    bool smart_failed = false;
-    bool vpd_failed = false;
-    bool fw_failed = false;
-    Port port{};
-    try {
-        port = get_manager<Port>().get_entry(port_uuid);
-        builder->update_location(port).add_dsp_port_uuid(port_uuid);
-    }
-    catch (...) {
-        log_debug("pnc-discovery", "Invalid downstream port uuid: " << port_uuid << " for the drive: " << chassis_uuid);
-        log_error("pnc-discovery", "Cannot access downstream port of a drive");
-    }
-
-    Smart smart(m_platform);
-    if (tools.i2c_tool->get_smart(smart, port)) {
-        builder->update_smart(tools, smart);
-    }
-    else {
-        log_warning("pnc-discovery", "Cannot read drive SMART data");
-        smart_failed = true;
-    }
-
-    VitalProductData vpd{m_platform};
-    if (tools.i2c_tool->get_vpd(vpd, port)) {
-        // try parsing data as VPD IPMI FRU format
-        try {
-            FruEepromParser parser(vpd.raw_data, VitalProductData::NVME_VPD_FRU_IPMI_FORMAT_SIZE_BYTES);
-            parser.parse();
-            builder->update_vpd(parser);
-        }
-        catch (...) {
-            // if parsing failed - try with SFF FORMAT
-            builder->update_vpd(vpd);
-        }
-    }
-    else {
-        log_error("pnc-discovery", "Cannot read drive VPD data.");
-        vpd_failed = true;
-    }
-
-    FirmwareVersion fw{m_platform};
-    if (tools.i2c_tool->get_firmware_version(fw, port)) {
-        builder->update_firmware_version(fw);
-    }
-    else {
-        log_error("pnc-discovery", "Cannot read drive Firmware version data");
-        fw_failed = true;
-    }
-
-    if (vpd_failed && smart_failed && fw_failed) {
-        PncDiscoveryExceptionDriveNotFound dnf{};
-        dnf.drive = builder->build();
-        throw dnf;
-    }
-
-    return builder->build();
-}
 
 Metric Discoverer::discover_port_health_metric(const agent_framework::model::Port& port, const Toolset& tools) const {
     auto builder = m_factory->init_builder(m_factory->get_metric_builder(), "");
@@ -258,6 +178,7 @@ Metric Discoverer::discover_port_health_metric(const agent_framework::model::Por
         .update_value(port.get_status().get_health());
     return builder->build();
 }
+
 
 std::vector<MetricDefinition> Discoverer::discover_metric_definitions() const {
     std::vector<MetricDefinition> pnc_metric_definitions;
@@ -269,3 +190,6 @@ std::vector<MetricDefinition> Discoverer::discover_metric_definitions() const {
 
     return pnc_metric_definitions;
 }
+
+
+

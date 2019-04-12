@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of the main function.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file main.cpp
  */
 
 #include "agent-framework/logger_loader.hpp"
-#include "logger/logger_factory.hpp"
 #include "agent-framework/eventing/utils.hpp"
-
 #include "agent-framework/registration/amc_connection_manager.hpp"
 #include "agent-framework/signal.hpp"
 #include "agent-framework/version.hpp"
 #include "agent-framework/module/common_components.hpp"
+#include "agent-framework/module/service_uuid.hpp"
 #include "agent-framework/command/context_command_server.hpp"
-#include "agent-framework/service_uuid.hpp"
+
 #include "loader/loader.hpp"
 #include "loader/config.hpp"
 #include "tools/endpoint_creator.hpp"
@@ -36,13 +33,13 @@
 #include "default_configuration.hpp"
 #include "discovery/discovery_manager.hpp"
 #include "tree_stability/nvme_key_generator.hpp"
+#include "telemetry/nvme_constants.hpp"
 #include "telemetry/nvme_telemetry_service.hpp"
 #include "tools/periodic_task.hpp"
-#include "tools/transaction_handler_factory.hpp"
 #include "tools/default_database_factory.hpp"
 #include "database/database.hpp"
+#include "utils/transaction/transaction_handler_factory.hpp"
 
-#include "nvme_agent_context.hpp"
 #include "tools/drive_discovery/drive_reader.hpp"
 #include "tools/drive_discovery/drive_handler_factory.hpp"
 #include "nvme/nvme_interface.hpp"
@@ -50,12 +47,12 @@
 #include "partition/file_drive_interface.hpp"
 #include "partition/thread_safe_drive_interface_proxy.hpp"
 #include "sysfs/sysfs_interface.hpp"
-
 #include "json-rpc/connectors/http_server_connector.hpp"
 
 #include <csignal>
 
-using namespace std;
+
+
 using namespace agent_framework;
 using namespace agent_framework::generic;
 using namespace logger_cpp;
@@ -76,10 +73,13 @@ using agent::generic::DEFAULT_FILE;
 static constexpr unsigned int DEFAULT_SERVER_PORT = 7782;
 static constexpr int CONFIGURATION_VALIDATION_ERROR_CODE = -1;
 static constexpr int INVALID_MODULES_CONFIGURATION_ERROR_CODE = -2;
-static constexpr std::chrono::seconds TELEMETRY_DELAY{10};
 
-const json::Value& init_configuration(int argc, const char** argv);
-bool check_configuration(const json::Value& json);
+
+const json::Json& init_configuration(int argc, const char** argv);
+
+
+bool check_configuration(const json::Json& json);
+
 
 /*!
  * @brief PSME NVMe Agent main method.
@@ -92,7 +92,7 @@ int main(int argc, const char* argv[]) {
     NvmeConfig::get_instance()->set_endpoint_creator(endpoint_creator);
 
     /* Initialize configuration */
-    const json::Value& configuration = ::init_configuration(argc, argv);
+    const json::Json& configuration = ::init_configuration(argc, argv);
     if (!::check_configuration(configuration)) {
         return CONFIGURATION_VALIDATION_ERROR_CODE;
     }
@@ -110,14 +110,14 @@ int main(int argc, const char* argv[]) {
     }
 
     try {
-        server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
+        server_port = configuration.value("server", json::Json::object()).value("port", std::uint16_t{});
     }
-    catch (const json::Value::Exception& e) {
+    catch (const std::exception& e) {
         log_error("nvme-agent", "Cannot read server port " << e.what());
     }
 
-    if (configuration["database"].is_object() && configuration["database"]["location"].is_string()) {
-        database::Database::set_default_location(configuration["database"]["location"].as_string());
+    if (configuration.value("database", json::Json::object()).value("location", json::Json()).is_string()) {
+        database::Database::set_default_location(configuration["database"]["location"].get<std::string>());
     }
 
     EventDispatcher event_dispatcher;
@@ -142,20 +142,20 @@ int main(int argc, const char* argv[]) {
     context->drive_handler_factory = std::make_shared<DriveHandlerFactory>(
         context->nvme_interface, context->drive_interface);
     // The factory itself is thread safe but the factories themselves don't have to be thread safe
-    context->transaction_handler_factory = std::make_shared<tools::TransactionHandlerFactory>();
+    context->transaction_handler_factory = std::make_shared<::utils::transaction::TransactionHandlerFactory>();
     // The is stateless and thread safe as long as the sysfs interface is thread safe
     context->nvme_target_handler = std::make_shared<nvme_target::SysfsNvmeTargetHandler>(std::make_shared<sysfs::SysfsInterface>());
     // The factory is stateless but the databases don't have to be thread safe
     context->db_factory = std::make_shared<DefaultDatabaseFactory>();
 
     // initialize key generator
-    NvmeKeyGenerator::set_agent_id(ServiceUuid::get_instance()->get_service_uuid());
+    NvmeKeyGenerator::set_agent_id(module::ServiceUuid::get_instance()->get_service_uuid());
     try {
         /* Start discovery manager */
         DiscoveryManager discovery_manager{};
         discovery_manager.discover(context);
     }
-    catch (exception & e) {
+    catch (std::exception& e) {
         log_error("nvme-agent", e.what());
     }
 
@@ -187,7 +187,7 @@ int main(int argc, const char* argv[]) {
     };
 
     // start periodic telemetry
-    tools::PeriodicTask telemetry_monitor{TELEMETRY_DELAY, update_metrics, initialize};
+    tools::PeriodicTask telemetry_monitor{Constants::TELEMETRY_DELAY, update_metrics, initialize};
     telemetry_monitor.start();
 
     /* Stop the program and wait for interrupt */
@@ -206,7 +206,8 @@ int main(int argc, const char* argv[]) {
     return 0;
 }
 
-const json::Value& init_configuration(int argc, const char** argv) {
+
+const json::Json& init_configuration(int argc, const char** argv) {
     log_info("nvme-agent", agent_framework::generic::Version::build_info());
     auto& basic_config = Configuration::get_instance();
     basic_config.set_default_configuration(DEFAULT_CONFIGURATION);
@@ -221,8 +222,9 @@ const json::Value& init_configuration(int argc, const char** argv) {
     return basic_config.to_json();
 }
 
-bool check_configuration(const json::Value& json) {
-    json::Value json_schema;
+
+bool check_configuration(const json::Json& json) {
+    json::Json json_schema = json::Json();
     if (configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema)) {
         log_info("nvme-agent", "JSON Schema load!");
 

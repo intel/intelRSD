@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,10 +41,10 @@ public:
 
     /*!
      * @brief Loads compute configuration file and build compute.
-     * @param[in] json instance of json::Value with loaded compute configuration.
+     * @param[in] json instance of json::Json with loaded compute configuration.
      * @return true if success otherwise false
      * */
-    bool load(const json::Value& json) override;
+    bool load(const json::Json& json) override;
 };
 
 }

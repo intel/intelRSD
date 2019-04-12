@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,24 +30,24 @@ using namespace psme::rest::constants;
 
 namespace {
 
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#VLanNetworkInterface.VLanNetworkInterface";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#VLanNetworkInterface.v1_0_0.VLanNetworkInterface";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "VLAN Network Interface";
     r[Common::DESCRIPTION] = "Ethernet Interface VLAN";
-    r[Vlan::VLAN_ENABLE] = json::Value::Type::NIL;
-    r[Vlan::VLAN_ID] = json::Value::Type::NIL;
+    r[Vlan::VLAN_ENABLE] = json::Json::value_t::null;
+    r[Vlan::VLAN_ID] = json::Json::value_t::null;
 
-    json::Value rs{};
+    json::Json rs = json::Json();
     rs[Common::ODATA_TYPE] = "#Intel.Oem.VLanNetworkInterface";
-    rs[::Vlan::TAGGED] = json::Value::Type::NIL;
-    rs[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    rs[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    rs[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    rs[::Vlan::TAGGED] = json::Json::value_t::null;
+    rs[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    rs[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    rs[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
     r[Common::OEM][Common::RACKSCALE] = std::move(rs);
 
     return r;
@@ -70,8 +70,7 @@ void ManagerVlanNetworkInterface::get(const server::Request& request, server::Re
     r[Common::ID] = request.params[PathParam::VLAN_ID];
     r[Common::NAME] = Vlan::VLAN + request.params[PathParam::VLAN_ID];
 
-    auto manager_uuid = psme::rest::model::Find<agent_framework::model::Manager>(request.params[PathParam::MANAGER_ID])
-        .get_uuid();
+    auto manager_uuid = psme::rest::model::find<agent_framework::model::Manager>(request.params).get_uuid();
     auto nic_ids = agent_framework::module::get_manager<agent_framework::model::NetworkInterface>()
         .get_ids(manager_uuid);
 
@@ -80,11 +79,9 @@ void ManagerVlanNetworkInterface::get(const server::Request& request, server::Re
             "There is no VLANs under NetworkInterface with ID: " + request.params[PathParam::NIC_ID] + ".");
     }
 
-    auto vlan =
-        psme::rest::model::Find<agent_framework::model::EthernetSwitchPortVlan>(request.params[PathParam::VLAN_ID])
-            .via<agent_framework::model::Manager>(request.params[PathParam::MANAGER_ID])
-            .via<agent_framework::model::NetworkInterface>(request.params[PathParam::NIC_ID])
-            .get();
+    auto vlan = psme::rest::model::find<agent_framework::model::Manager,
+                                        agent_framework::model::NetworkInterface,
+                                        agent_framework::model::EthernetSwitchPortVlan>(request.params).get();
 
     endpoint::status_to_json(vlan, r[Common::OEM][Common::RACKSCALE]);
 

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ static constexpr enums::ProcessorInstructionSet TEST_INSTRUCTION_SET{
     enums::ProcessorInstructionSet::ProcessorInstructionSetEnum::ARM_A32};
 static constexpr char TEST_MANUFACTURER[] = "Test Manufacturer";
 static constexpr char TEST_MODEL_NAME[] = "Test Model Name";
-static constexpr enums::ProcessorModel TEST_MODEL{enums::ProcessorModel::Unknown};
+static constexpr enums::ProcessorModel TEST_MODEL{enums::ProcessorModel::E3};
 static constexpr int TEST_MHZ = 2700;
 static constexpr int TEST_CORES = 4;
 static constexpr int TEST_ENABLED_CORES = 2;
@@ -108,8 +108,8 @@ TEST(GetProcessorInfoTest, PositiveExecute) {
     MyGetProcessorInfo command{"TestModuleId"};
     GetProcessorInfo::Request request{""};
     GetProcessorInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::Processor::PROCESSOR] = "TestModuleId";
 
@@ -161,8 +161,8 @@ TEST(GetProcessorInfoTest, NegativeModuleNotFound) {
     MyGetProcessorInfo command{"TestModuleId"};
     GetProcessorInfo::Request request{""};
     GetProcessorInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::Processor::PROCESSOR] = "OtherTestProcessorId";
 

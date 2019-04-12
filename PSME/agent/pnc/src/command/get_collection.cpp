@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@
  * @brief GetCollection implementation
  * */
 
+#include "agent-framework/module/model/model_storage.hpp"
 #include "agent-framework/module/pnc_components.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include "agent-framework/command/registry.hpp"
@@ -46,34 +47,37 @@ void get_collection(const GetCollection::Request& request, GetCollection::Respon
             Link<LinkType::Strong, model::enums::CollectionType::Fabrics, model::Fabric>
             >(uuid, name, response)) {}
     else if (process_resource_collections<model::PcieDevice,
-                Link<LinkType::Strong, model::enums::CollectionType::PCIeFunctions, model::PcieFunction>
-                >(uuid, name, response)) {}
+            Link<LinkType::Strong, model::enums::CollectionType::PCIeFunctions, model::PcieFunction>
+            >(uuid, name, response)) {}
     else if (process_resource_collections<model::Chassis,
-                Link<LinkType::Strong, model::enums::CollectionType::Drives, model::Drive>
-                >(uuid, name, response)) {}
+            Link<LinkType::Strong, model::enums::CollectionType::Drives, model::Drive>
+            >(uuid, name, response)) {}
     else if (process_resource_collections<model::Drive,
-                Link<LinkType::Weak, model::enums::CollectionType::PCIeFunctions, model::PcieFunction>
-                >(uuid, name, response)) {}
+            Link<LinkType::Weak, model::enums::CollectionType::PCIeFunctions, model::PcieFunction>
+            >(uuid, name, response)) {}
     else if (process_resource_collections<model::System,
-                Link<LinkType::Strong, model::enums::CollectionType::StorageSubsystems, model::StorageSubsystem>
-                >(uuid, name, response)) {}
+            Link<LinkType::Strong, model::enums::CollectionType::StorageSubsystems, model::StorageSubsystem>,
+            Link<LinkType::Strong, model::enums::CollectionType::Processors, model::Processor>,
+            Link<LinkType::Strong, model::enums::CollectionType::NetworkInterfaces, model::NetworkInterface>,
+            Link<LinkType::Weak, model::enums::CollectionType::StorageServices, model::StorageService>
+            >(uuid, name, response)) {}
     else if (process_resource_collections<model::StorageSubsystem,
-                Link<LinkType::Weak, model::enums::CollectionType::Drives, model::Drive>
-                >(uuid, name, response)) {}
+            Link<LinkType::Weak, model::enums::CollectionType::Drives, model::Drive>
+            >(uuid, name, response)) {}
     else if (process_resource_collections<model::Fabric,
-                Link<LinkType::Strong, model::enums::CollectionType::Endpoints, model::Endpoint>,
-                Link<LinkType::Strong, model::enums::CollectionType::Switches, model::Switch>,
-                Link<LinkType::Strong, model::enums::CollectionType::Zones, model::Zone>
-                >(uuid, name, response)) {}
+            Link<LinkType::Strong, model::enums::CollectionType::Endpoints, model::Endpoint>,
+            Link<LinkType::Strong, model::enums::CollectionType::Switches, model::Switch>,
+            Link<LinkType::Strong, model::enums::CollectionType::Zones, model::Zone>
+            >(uuid, name, response)) {}
     else if (process_resource_collections<model::Switch,
-                Link<LinkType::Strong, model::enums::CollectionType::Ports, model::Port>
-                >(uuid, name, response)) {}
+            Link<LinkType::Strong, model::enums::CollectionType::Ports, model::Port>
+            >(uuid, name, response)) {}
     else if (process_resource_collections<model::Zone,
-                Link<LinkType::Weak, model::enums::CollectionType::Endpoints, model::Endpoint>
-                >(uuid, name, response)) {}
+            Link<LinkType::Weak, model::enums::CollectionType::Endpoints, model::Endpoint>
+            >(uuid, name, response)) {}
     else if (process_resource_collections<model::Endpoint,
-                Link<LinkType::Weak, model::enums::CollectionType::Ports, model::Port>
-                >(uuid, name, response)) {}
+            Link<LinkType::Weak, model::enums::CollectionType::Ports, model::Port>
+            >(uuid, name, response)) {}
     else {
         THROW(::agent_framework::exceptions::InvalidUuid, "pnc-gami",
             "Component not found - invalid UUID: " + uuid);

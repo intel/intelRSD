@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.intel.rsd.resourcemanager.common.ResourceManagerConfiguration

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,16 +52,17 @@ endpoint::ChassisReset::~ChassisReset() {}
 
 
 void endpoint::ChassisReset::post(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PostChassisReset";
 
-    auto chassis = model::Find<agent_framework::model::Chassis>(request.params[PathParam::CHASSIS_ID]).get();
+    auto chassis = model::find<agent_framework::model::Chassis>(request.params).get();
     if (agent_framework::model::enums::ChassisType::Drawer != chassis.get_type()) {
         throw agent_framework::exceptions::NotFound("Chassis Reset can be applied only to Drawers.");
     }
 
     const auto& json = JsonValidator::validate_request_body<schema::ResetPostSchema>(request);
     agent_framework::model::attribute::Attributes attributes{};
-    if (json.is_member(constants::Common::RESET_TYPE)) {
-        const auto& reset_type = json[constants::Common::RESET_TYPE].as_string();
+    if (json.count(constants::Common::RESET_TYPE) && json[constants::Common::RESET_TYPE].is_string()) {
+        const auto& reset_type = json[constants::Common::RESET_TYPE].get<std::string>();
         const auto reset_type_enum = agent_framework::model::enums::ResetType::from_string(reset_type);
         if (!JsonValidator::validate_allowable_values(chassis.get_allowed_reset_actions().get_array(), reset_type_enum)) {
             throw error::ServerException(
@@ -101,7 +102,7 @@ void endpoint::ChassisReset::post(const server::Request& request, server::Respon
                      chassis.get_uuid(), false);
         };
 
-        gami_agent->execute_in_transaction(set_chassis_attributes);
+        gami_agent->execute_in_transaction(TRANSACTION_NAME, set_chassis_attributes);
     }
 
     response.set_status(server::status_2XX::NO_CONTENT);

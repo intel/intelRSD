@@ -1,8 +1,7 @@
 /*!
  * @brief Resource mapping implementation
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file resource_instance.cpp
  */
 
@@ -67,7 +65,20 @@ ResourceMapping memory_mapping {
     {"DIMM C2", ResourceInstance{ResourceInstance::Component::Memory, 8}},
     {"DIMM D0", ResourceInstance{ResourceInstance::Component::Memory, 9}},
     {"DIMM D1", ResourceInstance{ResourceInstance::Component::Memory, 10}},
-    {"DIMM D2", ResourceInstance{ResourceInstance::Component::Memory, 11}}
+    {"DIMM D2", ResourceInstance{ResourceInstance::Component::Memory, 11}},
+    /* AMI BIOS (Purley refresh?) Memory identifiers*/
+    {"CPU0_DIMM_A0", ResourceInstance{ResourceInstance::Component::Memory, 0}},
+    {"CPU0_DIMM_A1", ResourceInstance{ResourceInstance::Component::Memory, 1}},
+    {"CPU0_DIMM_A2", ResourceInstance{ResourceInstance::Component::Memory, 2}},
+    {"CPU0_DIMM_B0", ResourceInstance{ResourceInstance::Component::Memory, 3}},
+    {"CPU0_DIMM_B1", ResourceInstance{ResourceInstance::Component::Memory, 4}},
+    {"CPU0_DIMM_B2", ResourceInstance{ResourceInstance::Component::Memory, 5}},
+    {"CPU1_DIMM_C0", ResourceInstance{ResourceInstance::Component::Memory, 6}},
+    {"CPU1_DIMM_C1", ResourceInstance{ResourceInstance::Component::Memory, 7}},
+    {"CPU1_DIMM_C2", ResourceInstance{ResourceInstance::Component::Memory, 8}},
+    {"CPU1_DIMM_D0", ResourceInstance{ResourceInstance::Component::Memory, 9}},
+    {"CPU1_DIMM_D1", ResourceInstance{ResourceInstance::Component::Memory, 10}},
+    {"CPU1_DIMM_D2", ResourceInstance{ResourceInstance::Component::Memory, 11}}
 };
 
 ResourceInstance get_resource_instance_by_key(const std::string& key, const ResourceMapping& mapping) {

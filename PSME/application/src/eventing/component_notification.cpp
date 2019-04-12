@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,6 @@
 
 #include "agent-framework/command/registry.hpp"
 #include "agent-framework/command/psme_commands.hpp"
-#include "agent-framework/logger_ext.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
 
 using namespace agent_framework::command;
@@ -32,10 +31,6 @@ REGISTER_COMMAND(ComponentNotification,
         log_debug("rest",
                   "Got component notification with " + std::to_string(request.get_notifications().size()) + " events.");
 
-        agent_framework::eventing::ComponentNotification notification{};
-        notification.set_notifications(request.get_notifications());
-        notification.set_gami_id(request.get_gami_id());
-
-        agent_framework::eventing::EventsQueue::get_instance()->push_back(notification);
+        agent_framework::eventing::EventsQueue::get_instance()->push_back(request);
     }
 );

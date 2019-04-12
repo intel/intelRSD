@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,8 +51,8 @@ TEST(DeleteIscsiTargetTest, PositiveExecute) {
     MyDeleteIscsiTarget command{"TestTarget"};
     DeleteIscsiTarget::Request request{""};
     DeleteIscsiTarget::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[TARGET] = "TestTarget";
 
@@ -68,8 +68,8 @@ TEST(DeleteIscsiTargetTest, NegativeTargetNotFound) {
     MyDeleteIscsiTarget command{"TestTarget"};
     DeleteIscsiTarget::Request request{""};
     DeleteIscsiTarget::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[TARGET] = "OtherTestTarget";
 

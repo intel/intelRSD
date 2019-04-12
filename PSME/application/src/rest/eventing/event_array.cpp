@@ -1,8 +1,7 @@
 /*!
  * @brief Definition of EventArray class carrying events for a subscriber
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file rest/eventing/event_array.cpp
  */
 
@@ -59,8 +57,8 @@ void EventArray::remove_duplicates() {
     m_events.erase(it, m_events.end());
 }
 
-json::Value EventArray::to_json() const {
-    json::Value json(json::Value::Type::OBJECT);
+json::Json EventArray::to_json() const {
+    json::Json json(json::Json::object());
     json[constants::Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Event.Event";
     json[constants::Common::ODATA_ID] = "/redfish/v1/EventService/Events/" + std::to_string(m_id);
     json[constants::Common::ODATA_TYPE] = "#Event.v1_2_0.Event";

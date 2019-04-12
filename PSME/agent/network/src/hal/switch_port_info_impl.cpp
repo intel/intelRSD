@@ -1,8 +1,7 @@
 /*!
  * @brief Switch Port Info class implementation.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file agent/network/src/hal/switch_port_info_impl.cpp
  */
 
@@ -49,35 +47,11 @@ SwitchPortInfoImpl::SwitchPortInfoImpl(const PortIdentifier& port) :
 SwitchPortInfoImpl::~SwitchPortInfoImpl() {}
 
 
-void SwitchPortInfoImpl::set_switch_port_attr(SwAttr, SwAttrValue) {
-}
-
-void SwitchPortInfoImpl::set_switch_port_speed(uint32_t) {
-}
-
-uint32_t SwitchPortInfoImpl::get_switch_port_max_frame_size() {
-    return 0;
-}
-
-bool SwitchPortInfoImpl::get_switch_port_autoneg() {
-    return false;
-}
-
-void SwitchPortInfoImpl::set_switch_port_autoneg(bool) {
-}
-
 SwitchPortInfo::Duplex SwitchPortInfoImpl::get_switch_port_duplex() {
     return SwitchPortInfo::Duplex::UNKNOWN;
 }
 
 void SwitchPortInfoImpl::get_switch_vlan_list() {
-}
-
-void SwitchPortInfoImpl::add_member(const PortIdentifier&,
-                                    const PortIdentifier&) {
-}
-
-void SwitchPortInfoImpl::remove_member(const PortIdentifier&) {
 }
 
 bool SwitchPortInfoImpl::vlan_exists(VlanId) const {

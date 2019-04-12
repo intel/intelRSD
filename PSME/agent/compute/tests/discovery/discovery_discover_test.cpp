@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,8 +30,6 @@
 #include "mock/configuration_full.hpp"
 
 #include <gtest/gtest.h>
-#include <json/value.hpp>
-#include <json/deserializer.hpp>
 
 
 
@@ -54,11 +52,8 @@ class DiscoveryManagerTest : public ::testing::Test {
 private:
     void load_config_and_build_compute() {
         ComputeLoader loader{};
-        json::Value config;
-        json::Deserializer deserializer{};
-
-        deserializer << COMPUTE_FULL_CONFIGURATION;
-        deserializer >> config;
+        json::Json config = json::Json();
+        config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
         bool is_loaded = loader.load(config);
 
         LoggerLoader loader(configuration);
@@ -277,7 +272,7 @@ TEST_F(DiscoveryManagerTest, DiscoverMemoryModulesSizeGB) {
 
         for (const auto& memory_uuid : memory_uuid_vector) {
             auto memory = memory_manager.get_entry(memory_uuid);
-            EXPECT_EQ(memory.get_capacity_mb(), mock::MEMORY_SIZE_MB)
+            EXPECT_EQ(memory.get_capacity_mib(), mock::MEMORY_SIZE_MIB)
                             << "Memory size is not set.";
         }
     }

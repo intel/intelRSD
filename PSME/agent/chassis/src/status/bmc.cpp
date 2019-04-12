@@ -2,7 +2,7 @@
  * @brief Implementation of Bmc class
  *
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,20 +26,33 @@
 #include "status/bmc.hpp"
 #include "status/sensors_reader.hpp"
 #include "ipmi/command/generic/get_device_id.hpp"
+#include "ipmi/utils/sdv/platform_discovery.hpp"
 
 using namespace agent_framework::module;
+using agent_framework::model::attribute::ConnectionData;
+using ipmi::command::generic::BmcInterface;
 
 namespace {
 
-OptionalField<std::uint16_t> read_platform_id(agent::chassis::Bmc& bmc) {
+OptionalField<BmcInterface> read_inteface(agent::chassis::Bmc& bmc) {
     try {
-        log_debug("bmc", bmc.get_id() << " reading platform id...");
+        log_debug("bmc", bmc.get_id() << " reading sled interface");
         ipmi::command::generic::response::GetDeviceId device_rsp{};
         bmc.ipmi().send(ipmi::command::generic::request::GetDeviceId{}, device_rsp);
-        return static_cast<std::uint16_t>(device_rsp.get_product_id());
+        auto interface = ipmi::sdv::platform_discovery(device_rsp);
+        if (interface == BmcInterface::RSD_2_4) {
+            return interface;
+        }
+        else if (interface == BmcInterface::RSA_1_2 || interface == BmcInterface::RSD_2_2) {
+            log_error("bmc", "Unsupported legacy platform detected on " << bmc.get_id());
+        }
+        else {
+            log_error("bmc", "Unknown platform detected on " << bmc.get_id());
+        }
+        return {};
     }
     catch (std::exception& e) {
-        log_error("bmc", bmc.get_id() << " platform id read failed: " << e.what());
+        log_error("bmc", bmc.get_id() << " sled interface read failed: " << e.what());
     }
     return {};
 }
@@ -57,14 +70,14 @@ Bmc::Bmc(const std::string& manager_uuid, const ConnectionData& conn, Bmc::Durat
 }
 
 bool Bmc::on_become_online(const Transition&) {
-    m_platform_id = read_platform_id(*this);
+    m_interface = read_inteface(*this);
     get_manager<agent_framework::model::Manager>().get_entry_reference(get_manager_uuid())->set_presence(true);
     return true;
 }
 
 bool Bmc::on_extraction(const Transition&) {
     get_manager<agent_framework::model::Manager>().get_entry_reference(get_manager_uuid())->set_presence(false);
-    m_platform_id.reset();
+    m_interface.reset();
     return true;
 }
 

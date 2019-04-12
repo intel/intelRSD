@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,55 +35,56 @@ using namespace psme::rest::constants;
 using namespace psme::rest::validators;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#PCIeDevice.PCIeDevice";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#PCIeDevice.v1_0_0.PCIeDevice";
     r[Common::NAME] = "PCIe Device";
 
-    r[Common::ASSET_TAG] = json::Value::Type::NIL;
+    r[Common::ASSET_TAG] = json::Json::value_t::null;
     r[Common::DESCRIPTION] = "PCIe Device Description";
     // DeviceType is only filled when it's available, because it's non-nullable
-    r[constants::Common::FIRMWARE_VERSION] = json::Value::Type::NIL;
-    r[Common::ID] = json::Value::Type::NIL;
+    r[constants::Common::FIRMWARE_VERSION] = json::Json::value_t::null;
+    r[Common::ID] = json::Json::value_t::null;
 
-    r[Common::LINKS][Common::CHASSIS] = json::Value::Type::ARRAY;
-    r[Common::LINKS][constants::PcieDevice::PCIE_FUNCTIONS] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::LINKS][Common::CHASSIS] = json::Json::value_t::array;
+    r[Common::LINKS][constants::PcieDevice::PCIE_FUNCTIONS] = json::Json::value_t::array;
+    r[Common::LINKS][Common::OEM] = json::Json::value_t::object;
 
-    r[Common::MANUFACTURER] = json::Value::Type::NIL;
-    r[Common::MODEL] = json::Value::Type::NIL;
-    r[Common::OEM] = json::Value::Type::OBJECT;
-    r[Common::PART_NUMBER] = json::Value::Type::NIL;
-    r[Common::SKU] = json::Value::Type::NIL;
-    r[Common::SERIAL_NUMBER] = json::Value::Type::NIL;
+    r[Common::MANUFACTURER] = json::Json::value_t::null;
+    r[Common::MODEL] = json::Json::value_t::null;
+    r[Common::OEM] = json::Json::value_t::object;
+    r[Common::PART_NUMBER] = json::Json::value_t::null;
+    r[Common::SKU] = json::Json::value_t::null;
+    r[Common::SERIAL_NUMBER] = json::Json::value_t::null;
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
     return r;
 }
 
 
-void fill_links(const agent_framework::model::PcieDevice& device, json::Value& json) {
+void fill_links(const agent_framework::model::PcieDevice& device, json::Json& json) {
     if (device.get_chassis().has_value()) {
         try {
             auto chassis_id = agent_framework::module::get_manager<agent_framework::model::Chassis>()
-                .get_entry_reference(device.get_chassis().value())->get_id();
+                .get_entry(device.get_chassis().value()).get_id();
 
             // fill Chassis link
-            json::Value chassis_link;
+            json::Json chassis_link = json::Json();
             chassis_link[Common::ODATA_ID] = endpoint::PathBuilder(PathParam::BASE_URL)
                 .append(Common::CHASSIS)
                 .append(chassis_id).build();
             json[Common::LINKS][Common::CHASSIS].push_back(std::move(chassis_link));
 
             // fill Functions link
-            for (const auto function_id : agent_framework::module::get_manager<agent_framework::model::PcieFunction>().get_ids(device.get_uuid())) {
-                json::Value function_link;
+            for (const auto function_id : agent_framework::module::get_manager<agent_framework::model::PcieFunction>().get_ids(
+                device.get_uuid())) {
+                json::Json function_link = json::Json();
                 function_link[Common::ODATA_ID] = endpoint::PathBuilder(constants::PathParam::BASE_URL)
                     .append(constants::Common::CHASSIS)
                     .append(chassis_id)
@@ -96,7 +97,7 @@ void fill_links(const agent_framework::model::PcieDevice& device, json::Value& j
         }
         catch (agent_framework::exceptions::InvalidUuid) {
             log_error("rest", "Device " + device.get_uuid() + " has chassis "
-                                          + device.get_chassis().value() + " which does not exist as a resource");
+                              + device.get_chassis().value() + " which does not exist as a resource");
         }
     }
 }
@@ -105,6 +106,22 @@ void fill_links(const agent_framework::model::PcieDevice& device, json::Value& j
 static const std::map<std::string, std::string> gami_to_rest_attributes = {
     {agent_framework::model::literals::PcieDevice::ASSET_TAG, constants::Common::ASSET_TAG}
 };
+
+
+agent_framework::model::PcieDevice find_pci_device(const server::Request& req) {
+
+    // the devices are under the same manager as the chassis from the URL
+    auto chassis_manager_uuid= psme::rest::model::find<agent_framework::model::Chassis>(
+        req.params).get_one()->get_parent_uuid();
+
+    auto chassis_manager_id = agent_framework::module::get_manager<agent_framework::model::Manager>().get_entry(chassis_manager_uuid).get_id();
+
+    auto params_copy = req.params;
+    params_copy[constants::PathParam::MANAGER_ID] = std::to_string(chassis_manager_id);
+
+    return psme::rest::model::find<agent_framework::model::Manager, agent_framework::model::PcieDevice>(
+        params_copy).get();
+}
 
 }
 
@@ -120,12 +137,7 @@ void endpoint::PcieDevice::get(const server::Request& req, server::Response& res
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
-    // the devices are under the same manager as the chassis from the URL
-    auto chassis_manager_uuid = psme::rest::model::Find<agent_framework::model::Chassis>(
-        req.params[PathParam::CHASSIS_ID]).get_one()->get_parent_uuid();
-
-    const auto device =
-        psme::rest::model::Find<agent_framework::model::PcieDevice>(req.params[PathParam::DEVICE_ID]).via(chassis_manager_uuid).get();
+    const auto device = find_pci_device(req);
 
     json[Common::ASSET_TAG] = device.get_asset_tag();
     if (device.get_device_class().has_value()) {
@@ -153,21 +165,17 @@ void endpoint::PcieDevice::get(const server::Request& req, server::Response& res
 
 
 void endpoint::PcieDevice::patch(const server::Request& request, server::Response& response) {
-    // the devices are under the same manager as the chassis from the URL
-    auto chassis_manager_uuid = psme::rest::model::Find<agent_framework::model::Chassis>(
-        request.params[PathParam::CHASSIS_ID]).get_one()->get_parent_uuid();
+    static const constexpr char TRANSACTION_NAME[] = "PatchPcieDevice";
 
-    const auto device =
-        psme::rest::model::Find<agent_framework::model::PcieDevice>(request.params[PathParam::DEVICE_ID])
-            .via(chassis_manager_uuid).get();
+    const auto device = find_pci_device(request);
 
     const auto json = JsonValidator::validate_request_body<schema::PcieDevicePatchSchema>(request);
 
     agent_framework::model::attribute::Attributes attributes{};
 
-    if (json.is_member(constants::Common::ASSET_TAG)) {
-        const auto& asset_tag = json[constants::Common::ASSET_TAG].as_string();
-        attributes.set_value(agent_framework::model::literals::PcieDevice::ASSET_TAG, asset_tag);
+    if (json.count(constants::Common::ASSET_TAG)) {
+        attributes.set_value(agent_framework::model::literals::PcieDevice::ASSET_TAG,
+                             json[constants::Common::ASSET_TAG]);
     }
 
     if (!attributes.empty()) {
@@ -197,7 +205,7 @@ void endpoint::PcieDevice::patch(const server::Request& request, server::Respons
                      false);
         };
 
-        gami_agent->execute_in_transaction(set_pcie_device_attributes);
+        gami_agent->execute_in_transaction(TRANSACTION_NAME, set_pcie_device_attributes);
     }
     get(request, response);
 }

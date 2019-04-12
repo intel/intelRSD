@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2018 Intel Corporation.
+ * @copyright Copyright (c) 2018-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file nvmf-discovery/discovery_controller.cpp
  */
 
@@ -23,6 +21,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <cstring>
+#include <cmath>
 
 using namespace nvme;
 
@@ -57,6 +56,7 @@ DiscoveryController::DiscoveryController(FiInfo finfo, fid_domain& domain, fid_f
 
 
 DiscoveryController::~DiscoveryController() {
+
 }
 
 void DiscoveryController::accept_connection() {
@@ -119,7 +119,7 @@ void DiscoveryController::handle_connect(NvmfRequest& request) {
         status.status_code_type = static_cast<uint8_t>(NvmeStatusCodeType::Generic);
         status.status_code = static_cast<uint8_t>(NvmeGenericCommandStatusCode::InvalidField);
         status.do_not_retry = 1;
-        throw NvmfException("Invalid controller id", std::move(status));
+        throw NvmfException("Invalid controller start_idx", std::move(status));
     }
 }
 
@@ -165,8 +165,8 @@ void DiscoveryController::handle_property_set(NvmfRequest& request) {
 
 void DiscoveryController::handle_identify(NvmfRequest& request) {
     log_debug("nvmf-discovery", "handle_identify");
-    ControllerData *id = reinterpret_cast<ControllerData*>(m_data.buffer.get());
-    *id = {};
+    ControllerData *start_idx = reinterpret_cast<ControllerData*>(m_data.buffer.get());
+    *start_idx = {};
     void* desc = fi_mr_desc(m_data.mr.get());
 
     uint64_t addr = request.cmd->nvme_cmd.data_pointer.sgl1.address;
@@ -181,87 +181,95 @@ void DiscoveryController::handle_identify(NvmfRequest& request) {
         throw NvmfException("Invalid field requested", std::move(status));
     }
 
-    id->mdts = 0;
-    id->controller_id = 0;
-    id->version = static_cast<uint32_t>(NvmeVersion::NVME_1_2_1);
-    id->lpa = LOG_PAGE_ATTRIBUTES;
-    id->maxcmd = FabricEndpoint::MAX_QUEUE_DEPTH;
-    id->sgls = SGL_SUPPORT;
-    std::copy_n(DiscoverySubsystemNqn, array_size(DiscoverySubsystemNqn), id->subsystem_nqn);
+    start_idx->mdts = 0;
+    start_idx->controller_id = 0;
+    start_idx->version = static_cast<uint32_t>(NvmeVersion::NVME_1_2_1);
+    start_idx->lpa = LOG_PAGE_ATTRIBUTES;
+    start_idx->maxcmd = FabricEndpoint::MAX_QUEUE_DEPTH;
+    start_idx->sgls = SGL_SUPPORT;
+    std::copy_n(DiscoverySubsystemNqn, array_size(DiscoverySubsystemNqn), start_idx->subsystem_nqn);
 
-    if (length > sizeof(*id)) {
-        length = sizeof(*id);
+    if (length > sizeof(*start_idx)) {
+        length = sizeof(*start_idx);
     }
 
-    rma_write(m_scq.get(), id, length, desc, addr, key);
+    rma_write(m_scq.get(), start_idx, length, desc, addr, key);
 }
 
 void DiscoveryController::handle_get_log_pages(NvmfRequest& request) {
-    log_debug("nvmf-discovery", "handle_get_log_pages");
     uint64_t addr = request.cmd->nvme_cmd.data_pointer.sgl1.address;
     uint64_t key = request.cmd->nvme_cmd.data_pointer.sgl1.keyed.key;
-    uint64_t length = request.cmd->nvme_cmd.data_pointer.sgl1.keyed.length;
+    uint64_t keyed_length = request.cmd->nvme_cmd.data_pointer.sgl1.keyed.length;
+    uint64_t response_length = (request.cmd->nvme_cmd.get_log_page.num_of_dwords + 1) * BYTES_IN_DWORD;
 
-    uint64_t requested_length = (request.cmd->nvme_cmd.get_log_page.num_of_dwords + 1) * BYTES_IN_DWORD;
-    if (requested_length > length) {
+    // Validating GetLogPage request.
+    if (response_length > keyed_length) {
         nvme::NvmeStatus status{};
         status.status_code_type = static_cast<uint8_t>(NvmeStatusCodeType::Generic);
         status.status_code = static_cast<uint8_t>(NvmeGenericCommandStatusCode::InvalidField);
         status.do_not_retry = 1;
-        throw NvmfException("Requested length " + std::to_string(requested_length)
-                             + " greater than buffer size " + std::to_string(length), std::move(status));
+        throw NvmfException("Requested length " + std::to_string(response_length)
+                             + " greater than buffer size " + std::to_string(keyed_length), std::move(status));
     }
+
+    auto buffer_size = m_data.length;
 
     MemoryBuffer* buffer = &m_data;
     MemoryBuffer buf{};
-    if (length > m_data.length) {
-        buf.allocate_and_register(m_domain, length);
+    if (response_length  > buffer_size) {
+        // MemoryBuffer uses posix_memalign allocation which requires memory to be aligned to 2^n address.
+        auto size = pow(2, ceil(log(double(keyed_length))/log(2)));
+        buf.allocate_and_register(m_domain, size_t(size));
         buffer = &buf;
+        log_debug("nvmf-discovery", "Reallocate to size: " << size_t(size));
     }
 
     auto* log = reinterpret_cast<LogPageDiscoveryHeader*>(buffer->buffer.get());
     log->number_of_records = m_discovery_entries_provider->get_discovery_entries_count(m_host_nqn);
     log->generation_counter = m_discovery_entries_provider->get_generation_counter(m_host_nqn);
 
-    if (length > sizeof(LogPageDiscoveryHeader)) {
+    if (keyed_length > sizeof(LogPageDiscoveryHeader)) {
         const auto discovery_entries = m_discovery_entries_provider->get_discovery_entries(m_host_nqn);
-        const auto discovery_entries_count = discovery_entries.size();
-        if (discovery_entries_count != log->number_of_records ) {
+
+        // According to NVMe over Fabrics 1.0a Discovery Service must return RestartDiscovery status code
+        // if number of entries change during 
+        if (discovery_entries.size() != log->number_of_records ) {
             log_info("nvmf-discovery", " number of records changed, restart discovery");
             request.rsp->nvme_cpl.status.status_code_type = static_cast<uint8_t>(NvmeStatusCodeType::CommandSpecific);
             request.rsp->nvme_cpl.status.status_code = static_cast<uint8_t>(NvmfCommandStatusCode::RestartDiscovery);
             return;
         }
 
-        auto* entry = reinterpret_cast<LogPageDiscoveryEntry*>(&log[1]);
+        auto start_idx = uint64_t(request.cmd->nvme_cmd.get_log_page.log_page_offset / sizeof(LogPageDiscoveryHeader));
+        auto stop_idx = start_idx + uint64_t((response_length - 1) / sizeof(LogPageDiscoveryHeader));
 
-        for (uint64_t j = 0u; j < discovery_entries_count; j++) {
-            const auto& discovery_entry = discovery_entries[j];
-            entry->transport_type = discovery_entry.transport_type;
-            entry->treq_secure_channel = discovery_entry.treq_secure_channel;
-            entry->address_family = discovery_entry.address_family;
-            entry->controller_id = discovery_entry.controller_id;
-            entry->tsas.rdma.qptype = RdmaQPType::ReliableConnected;
-            entry->tsas.rdma.prtype = RdmaProviderType::None;
-            entry->tsas.rdma.cms = RdmaCMS::RdmaCm;
-            entry->subsystem_type = discovery_entry.subsystem_type;
-            entry->admin_max_sq_size = discovery_entry.admin_max_sq_size;
-            std::copy(std::begin(discovery_entry.subsystem_nqn), std::end(discovery_entry.subsystem_nqn),
-                      entry->subsystem_nqn);
-            std::copy(std::begin(discovery_entry.transport_address), std::end(discovery_entry.transport_address),
-                      entry->transport_address);
-            std::copy(std::begin(discovery_entry.transport_service_id), std::end(discovery_entry.transport_service_id),
-                      entry->transport_service_id);
+        auto* entries_buffer = reinterpret_cast<LogPageDiscoveryEntry*>(&log[1]);
+        for (uint64_t j = start_idx; j < stop_idx; j++) {
+            const auto& entry = discovery_entries[j];
 
-            entry++;
+            entries_buffer->transport_type = entry.transport_type;
+            entries_buffer->treq_secure_channel = entry.treq_secure_channel;
+            entries_buffer->address_family = entry.address_family;
+            entries_buffer->controller_id = entry.controller_id;
+            entries_buffer->tsas.rdma.qptype = RdmaQPType::ReliableConnected;
+            entries_buffer->tsas.rdma.prtype = RdmaProviderType::None;
+            entries_buffer->tsas.rdma.cms = RdmaCMS::RdmaCm;
+            entries_buffer->subsystem_type = entry.subsystem_type;
+            entries_buffer->admin_max_sq_size = entry.admin_max_sq_size;
 
-            log_debug("nvmf-discovery", " subnqn: " << discovery_entry.subsystem_nqn
-                                       << " at " << discovery_entry.transport_address
-                                       << ":" << discovery_entry.transport_service_id);
+            std::copy(std::begin(entry.subsystem_nqn), std::end(entry.subsystem_nqn), entries_buffer->subsystem_nqn);
+            std::copy(std::begin(entry.transport_address), std::end(entry.transport_address), entries_buffer->transport_address);
+            std::copy(std::begin(entry.transport_service_id), std::end(entry.transport_service_id), entries_buffer->transport_service_id);
+
+            entries_buffer++;
+
+            log_debug("nvmf-discovery", " subnqn: " << entry.subsystem_nqn << " at " << entry.transport_address << ":"
+                                                    << entry.transport_service_id);
         }
     }
 
-    rma_write(m_scq.get(), log, length, fi_mr_desc(buffer->mr.get()), addr, key);
+    rma_write(m_scq.get(), log, keyed_length, fi_mr_desc(buffer->mr.get()), addr, key);
+    log_debug("nvmf-discovery", "Sent GetLogPage response: " << m_data.length << " bytes.");
 }
 
 void DiscoveryController::handle_request(NvmfRequest& request) {

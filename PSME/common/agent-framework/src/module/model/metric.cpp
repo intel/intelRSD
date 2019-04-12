@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,6 @@
 #include "agent-framework/module/model/metric.hpp"
 #include "agent-framework/module/constants/common.hpp"
 #include "agent-framework/module/utils/time.hpp"
-#include "agent-framework/logger_ext.hpp"
 #include "agent-framework/exceptions/exception.hpp"
 
 
@@ -32,10 +31,8 @@ using namespace agent_framework::model;
 const enums::Component Metric::component = enums::Component::Metric;
 const enums::CollectionName Metric::collection_name = enums::CollectionName::Metrics;
 
-Metric::Metric(const std::string& parent_uuid, enums::Component parent_type) :
-    Resource{parent_uuid, parent_type} {
-    // the default status for Metric is Enabled/OK
-    set_status(attribute::Status(true));
+Metric::Metric(const std::string& parent_uuid, enums::Component parent_type) : Resource{parent_uuid, parent_type} {
+    set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
 }
 
 
@@ -43,7 +40,6 @@ Metric::~Metric() { }
 
 
 Metric Metric::from_json(const json::Json& json) {
-
     Metric metric{};
 
     metric.set_uuid(json[literals::Metric::UUID]);
@@ -60,7 +56,7 @@ Metric Metric::from_json(const json::Json& json) {
 
 
 json::Json Metric::to_json() const {
-    json::Json json{};
+    json::Json json = json::Json();
 
     json[literals::Metric::UUID] = get_uuid();
     json[literals::Metric::NAME] = get_name();

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,13 +29,7 @@
 #include <vector>
 
 #include "agent-framework/module/enum/enum_builder.hpp"
-
-
-
-namespace json {
-/* Forward declaration */
-class Value;
-}
+#include "json-wrapper/json-wrapper.hpp"
 
 namespace psme {
 namespace rest {
@@ -158,8 +152,8 @@ public:
     }
 
 
-    /*! @brief Conversion operator to json::Value */
-    operator json::Value() const;
+    /*! @brief Conversion operator to json::Json */
+    operator json::Json() const;
 
 
 private:

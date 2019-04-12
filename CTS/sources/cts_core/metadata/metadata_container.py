@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,7 @@ from cts_core.commons.error import cts_error, cts_warning
 from cts_core.metadata.comparator import Comparator
 from cts_core.metadata.model.metadata_types import EnumType, ComplexType, TypeDefinition
 from cts_core.metadata.model.metadata_types.primitive_types.primitive_type import PrimitiveType
-#force all primitive types to be loaded and registered
+# force all primitive types to be loaded and registered
 from cts_core.metadata.model.metadata_types.primitive_types import *
 from cts_framework.commons.progress_bar import ProgressBar
 
@@ -54,7 +54,6 @@ class EntitiesContainer(dict):
         :type other: cts_core.metadata.metadata_container.EntitiesContainer
         :return: int
         '''
-
         cmp = Comparator(level=0)
 
         entities = set(self.keys())
@@ -66,22 +65,24 @@ class EntitiesContainer(dict):
         for entity in all:
             if progress_bar is not None:
                 progress_bar.set_label(entity)
+
             if entity in both:
                 cmp.merge_result(self.__getitem__(entity).compare(other.__getitem__(entity)))
             elif entity in entities:
                 cmp.set_not_equal()
-                cmp.message_left(fmt.format(entity = entity))
+                cmp.message_left(fmt.format(entity=entity))
                 cmp.message_right('?')
                 cmp.separator()
             else:
                 cmp.set_not_equal()
                 cmp.message_left('?')
-                cmp.message_right(fmt.format(entity = entity))
+                cmp.message_right(fmt.format(entity=entity))
                 cmp.separator()
+
             if progress_bar is not None:
                 progress_bar.make_progress()
-
         return cmp
+
 
 class TypesContainer(dict):
     def __init__(self, type_mapping_func, *params, **kwargs):
@@ -112,6 +113,7 @@ class TypesContainer(dict):
         '''
 
         cmp = Comparator(level=0)
+
         types = set(self.keys())
         types_other = set(other.keys())
         all = sorted(list(types.union(types_other)))
@@ -121,6 +123,7 @@ class TypesContainer(dict):
         for type in all:
             if progress_bar is not None:
                 progress_bar.set_label(type)
+
             if type in both:
                 cmp.merge_result(self.__getitem__(type).compare(other.__getitem__(type)))
             elif type in types:
@@ -133,10 +136,11 @@ class TypesContainer(dict):
                 cmp.message_left('?')
                 cmp.message_right(fmt.format(type=type))
                 cmp.separator()
+
             if progress_bar is not None:
                 progress_bar.make_progress()
-
         return cmp
+
 
 class MetadataContainer:
     def __init__(self, ignore_types=None, map_types=None):
@@ -158,10 +162,29 @@ class MetadataContainer:
         for key in sorted(self.types.iterkeys()):
             print "DEBUG::\t%s" % key
 
+    @property
+    def get_ignored_types(self):
+        return self._ignore_types
+
     def to_be_ignored(self, *types):
-        for type in types:
-            if type in self._ignore_types:
+        ignored_types = self.get_ignored_types
+        for type in set(types):
+            if self._wide_types(type, ignored_types):
+                return True
+            elif type in ignored_types:
                 cts_warning("User declared to skip validation of type {type}", type=type)
+                return True
+        return False
+
+    @staticmethod
+    def _wide_types(type, ignored_types):
+        import re
+        for i in ignored_types:
+            prog = re.compile(i)
+            if prog.match(type):
+                cts_warning("User declared to skip validation of type {type} using this pattern {pattern}",
+                            type=type,
+                            pattern=prog.pattern)
                 return True
         return False
 
@@ -182,7 +205,8 @@ class MetadataContainer:
 
     def compare(self, other, with_progress_bar=False):
         '''
-        :type other: cts_core.metadata.metadata_container.MetadataContainer
+        :param other: cts_core.metadata.metadata_container.MetadataContainer
+        :param with_progress_bar:
         :return: cts_core.metadata.compare_result.CompareResult
         '''
         if with_progress_bar:
@@ -200,7 +224,9 @@ class MetadataContainer:
             progress_bar = None
 
         cmp = Comparator()
-        cmp.merge_result(self.entities.compare(other.entities, progress_bar),
-                         self.types.compare(other.types, progress_bar))
 
+        entities_compare_results = self.entities.compare(other.entities, progress_bar)
+        types_compare_results = self.types.compare(other.types, progress_bar)
+
+        cmp.merge_result(entities_compare_results, types_compare_results)
         return cmp

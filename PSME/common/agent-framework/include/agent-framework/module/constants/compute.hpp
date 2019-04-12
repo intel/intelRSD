@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,6 +43,7 @@ public:
     static constexpr const char BOOT_OVERRIDE_SUPPORTED[] = "bootOverrideSupported";
     static constexpr const char UEFI_TARGET[] = "uefiTarget";
     static constexpr const char POWER_STATE[] = "powerState";
+    static constexpr const char RESET[] = "reset";
     static constexpr const char USB_DEVICES[] = "usbDevices";
     static constexpr const char PCI_DEVICES[] = "pciDevices";
     static constexpr const char FRU_INFO[] = "fruInfo";
@@ -56,6 +57,11 @@ public:
     static constexpr const char CABLE_IDS[] = "cableIds";
     static constexpr const char TXT_ENABLED[] = "txtEnabled";
     static constexpr const char USER_MODE_ENABLED[] = "userModeEnabled";
+    static constexpr const char ERASE_DCPMEM[] = "eraseOptaneDCPersistentMemory";
+    static constexpr const char RESET_CONFIGURATION[] = "resetConfiguration";
+    static constexpr const char ERASE_CONFIGURATION_KEYS[] = "eraseConfigurationKeys";
+    static constexpr const char CURRENT_PERFORMANCE_CONFIGURATION[] = "currentPerformanceConfiguration";
+    static constexpr const char PERFORMANCE_CONFIGURATIONS[] = "performanceConfigurations";
 };
 
 /*!
@@ -64,10 +70,33 @@ public:
 class Fpga {
 public:
     static constexpr char TYPE[] = "type";
+    static constexpr char MODEL[] = "model";
+    static constexpr char MANUFACTURER[] = "manufacturer";
     static constexpr char BIT_STREAM_VERSION[] = "bitStreamVersion";
     static constexpr char HSSI_CONFIGURATION[] = "hssiConfiguration";
     static constexpr char HSSI_SIDEBAND[] = "hssiSideband";
+    static constexpr char HOST_INTERFACE[] = "hostInterface";
+    static constexpr char EXTERNAL_INTERFACES[] = "externalInterfaces";
+    static constexpr char SIDEBAND_INTERFACE[] = "sidebandInterface";
+    static constexpr char PCIE_VIRTUAL_FUNCTIONS[] = "pcieVirtualFunctions";
     static constexpr char RECONFIGURATION_SLOTS[] = "reconfigurationSlots";
+    static constexpr char RECONFIGURATION_SLOTS_DETAILS[] = "reconfigurationSlotsDetails";
+    static constexpr char PROGRAMMABLE_FROM_HOST[] = "programmableFromHost";
+    static constexpr char FW_ID[] = "fwId";
+    static constexpr char FW_MANUFACTURER[] = "fwManufacturer";
+    static constexpr char FW_VERSION[] = "fwVersion";
+    static constexpr char ERASED[] = "erased";
+    static constexpr char SECURELY_ERASE[] = "securelyErase";
+};
+
+/*!
+ * @brief Class consisting of literals for FpgaReconfigurationSlot model objects
+ */
+class FpgaReconfigurationSlot {
+public:
+    static constexpr char SLOT_ID[] = "SlotId";
+    static constexpr char UUID[] = "UUID";
+    static constexpr char PROGRAMMABLE_FROM_HOST[] = "ProgrammableFromHost";
 };
 
 /*!
@@ -143,7 +172,6 @@ public:
     static constexpr const char CAPABILITIES[] = "capabilities";
     static constexpr const char THERMAL_DESIGN_POWER_WATT[] = "thermalDesignPowerWatt";
     static constexpr const char FPGA[] = "fpga";
-    static constexpr const char ON_PACKAGE_MEMORY[] = "onPackageMemory";
     static constexpr const char OEM[] = "oem";
 };
 
@@ -175,6 +203,8 @@ public:
  */
 class Memory {
 public:
+    static constexpr const char NAME[] = "name";
+    static constexpr const char DESCRIPTION[] = "description";
     static constexpr const char MEMORY[] = "memory";
     static constexpr const char STATUS[] = "status";
     static constexpr const char MEMORY_TYPE[] = "memoryType";
@@ -182,15 +212,12 @@ public:
     static constexpr const char MODULE_TYPE[] = "moduleType";
     static constexpr const char MEDIA[] = "media";
     static constexpr const char OPERATING_MEMORY_MODES[] = "operatingMemoryModes";
-    static constexpr const char CAPACITY_MB[] = "capacityMB";
+    static constexpr const char CAPACITY_MIB[] = "capacityMiB";
     static constexpr const char DATA_WIDTH_BITS[] = "dataWidthBits";
     static constexpr const char BUS_WIDTH_BITS[] = "busWidthBits";
     static constexpr const char FRU_INFO[] = "fruInfo";
     static constexpr const char FIRMWARE_REVISION[] = "firmwareRevision";
     static constexpr const char FIRMWARE_API_VERSION[] = "firmwareApiVersion";
-    static constexpr const char MEMORY_CLASSES[] = "functionClasses";
-    static constexpr const char VENDOR_ID[] = "vendorID";
-    static constexpr const char DEVICE_ID[] = "deviceID";
     static constexpr const char OPERATING_SPEED_MHZ[] = "operatingSpeedMHz";
     static constexpr const char ALLOWED_SPEEDS_MHZ[] = "allowedSpeedsMHz";
     static constexpr const char VOLTAGE[] = "voltageVolt";
@@ -202,7 +229,75 @@ public:
     static constexpr const char ERROR_CORRECTION[] = "errorCorrection";
     static constexpr const char REGIONS[] = "regions";
     static constexpr const char OPERATING_MODES[] = "operatingModes";
+    static constexpr const char MODULE_MANUFACTURER_ID[] = "moduleManufacturerID";
+    static constexpr const char MODULE_PRODUCT_ID[] = "moduleProductID";
+    static constexpr const char MEMORY_SUBSYSTEM_CONTROLLER_MANUFACTURER_ID[] = "memorySubsystemControllerManufacturerID";
+    static constexpr const char MEMORY_SUBSYSTEM_CONTROLLER_PRODUCT_ID[] = "memorySubsystemControllerProductID";
+    static constexpr const char SECURITY_CAPABILITIES[] = "securityCapabilities";
+    static constexpr const char SPARE_DEVICE_COUNT[] = "spareDeviceCount";
+    static constexpr const char LOGICAL_SIZE_MIB[] = "logicalSizeMiB";
+    static constexpr const char VOLATILE_SIZE_MIB[] = "volatileSizeMiB";
+    static constexpr const char NON_VOLATILE_SIZE_MIB[] = "nonVolatileSizeMiB";
+    static constexpr const char VOLATILE_REGION_SIZE_LIMIT_MIB[] = "volatileRegionSizeLimitMiB";
+    static constexpr const char PERSISTENT_REGION_SIZE_LIMIT_MIB[] = "persistentRegionSizeLimitMiB";
+    static constexpr const char POWER_MANAGEMENT_POLICY[] = "powerManagementPolicy";
+    static constexpr const char MAX_TDP_MILLIWATTS[] = "maxTDPMilliWatts";
     static constexpr const char OEM[] = "oem";
+};
+
+/*!
+ * @brief Class consisting of literals for MemoryDomain model objects
+ */
+class MemoryDomain {
+public:
+    static constexpr const char MEMORY_DOMAIN[] = "memoryDomain";
+    static constexpr const char NAME[] = "name";
+    static constexpr const char DESCRIPTION[] = "description";
+    static constexpr const char STATUS[] = "status";
+    static constexpr const char ALLOWS_MEMORY_CHUNK_CREATION[] = "allowsMemoryChunkCreation";
+    static constexpr const char ALLOWS_BLOCK_PROVISIONING[] = "allowsBlockProvisioning";
+    static constexpr const char ALLOWS_MIRRORING[] = "allowsMirroring";
+    static constexpr const char ALLOWS_SPARING[] = "allowsSparing";
+    static constexpr const char INTERLEAVABLE_MEMORY_SETS[] = "interleavableMemorySets";
+    static constexpr const char COLLECTIONS[] = "collections";
+    static constexpr const char OEM[] = "oem";
+};
+
+/*!
+ * @brief Class consisting of literals for MemorySet in MemoryDomain model objects
+ */
+class MemorySet {
+public:
+    static constexpr const char MEMORY_SET[] = "memorySet";
+};
+
+/*!
+ * @brief Class consisting of literals for MemoryChunks model objects
+ */
+class MemoryChunks {
+public:
+    static constexpr const char MEMORY_CHUNKS[] = "memoryChunks";
+    static constexpr const char NAME[] = "name";
+    static constexpr const char DESCRIPTION[] = "description";
+    static constexpr const char STATUS[] = "status";
+    static constexpr const char MEMORY_CHUNK_SIZE_MIB[] = "memoryChunkSizeMiB";
+    static constexpr const char ADDRESS_RANGE_TYPE[] = "addressRangeType";
+    static constexpr const char IS_MIRROR_ENABLED[] = "isMirrorEnabled";
+    static constexpr const char IS_SPARE[] = "isSpare";
+    static constexpr const char INTERLEAVE_SETS[] = "interleaveSets";
+    static constexpr const char OEM[] = "oem";
+};
+
+/*!
+ * @brief Class consisting of literals for InterleaveSet in MemoryChunks model objects
+ */
+class InterleaveSet {
+public:
+    static constexpr const char MEMORY[] = "memory";
+    static constexpr const char REGION_ID[] = "regionId";
+    static constexpr const char OFFSET_MIB[] = "offsetMiB";
+    static constexpr const char SIZE_MIB[] = "sizeMiB";
+    static constexpr const char MEMORY_LEVEL[] = "memoryLevel";
 };
 
 /*!
@@ -243,8 +338,8 @@ class Region {
 public:
     static constexpr const char REGION_ID[] = "regionId";
     static constexpr const char MEMORY_TYPE[] = "memoryType";
-    static constexpr const char OFFSET_MB[] = "offsetMB";
-    static constexpr const char SIZE_MB[] = "sizeMB";
+    static constexpr const char OFFSET_MIB[] = "offsetMiB";
+    static constexpr const char SIZE_MIB[] = "sizeMiB";
 };
 
 /*!
@@ -256,6 +351,27 @@ public:
     static constexpr const char CONTROLLER[] = "controller";
     static constexpr const char CHANNEL[] = "channel";
     static constexpr const char SLOT[] = "slot";
+};
+
+/*!
+ * @brief Class consisting of literals for SecurityCapabilities in Memory model objects
+ */
+class SecurityCapabilities {
+public:
+    static constexpr const char PASSPHRASE_CAPABLE[] = "passphraseCapable";
+    static constexpr const char MAX_PASSPHRASE_COUNT[] = "maxPassphraseCount";
+    static constexpr const char SECURITY_STATES[] = "securityStates";
+};
+
+/*!
+ * @brief Class consisting of literals for PowerManagementPolicy in Memory model objects
+ */
+class PowerManagementPolicy {
+public:
+    static constexpr const char POLICY_ENABLED[] = "policyEnabled";
+    static constexpr const char MAX_TDP_MILLIWATTS[] = "maxTDPMilliWatts";
+    static constexpr const char PEAK_POWER_BUDGET_MILLIWATTS[] = "peakPowerBudgetMilliWatts";
+    static constexpr const char AVERAGE_POWER_BUDGET_MILLIWATTS[] = "averagePowerBudgetMilliWatts";
 };
 
 /*!
@@ -330,6 +446,23 @@ public:
     static constexpr const char CHAP_SECRET[] = "chapSecret";
     static constexpr const char MUTUAL_CHAP_USERNAME[] = "mutualChapUsername";
     static constexpr const char MUTUAL_CHAP_SECRET[] = "mutualChapSecret";
+};
+
+/*!
+ * @brief Class consisting of literals for PerformanceConfiguration model attribute
+ */
+class PerformanceConfiguration {
+public:
+    static constexpr const char CONFIGURATION_ID[] = "configurationId";
+    static constexpr const char TYPE[] = "type";
+    static constexpr const char HIGH_PRIORITY_CORE_COUNT[] = "highPriorityCoreCount";
+    static constexpr const char LOW_PRIORITY_CORE_COUNT[] = "lowPriorityCoreCount";
+    static constexpr const char HIGH_PRIORITY_BASE_FREQUENCY[] = "highPriorityBaseFrequency";
+    static constexpr const char LOW_PRIORITY_BASE_FREQUENCY[] = "lowPriorityBaseFrequency";
+    static constexpr const char ACTIVE_CORES[] = "activeCores";
+    static constexpr const char BASE_CORE_FREQUENCY[] = "baseCoreFrequency";
+    static constexpr const char TDP[] = "tdp";
+    static constexpr const char MAX_JUNCTION_TEMP_CELSIUS[] = "maxJunctionTempCelsius";
 };
 
 }

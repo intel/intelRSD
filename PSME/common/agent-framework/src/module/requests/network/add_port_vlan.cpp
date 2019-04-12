@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,7 @@ AddPortVlan::AddPortVlan(const std::string& port,
                 m_oem{} {}
 
 json::Json AddPortVlan::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[EthernetSwitchPortVlan::PORT] = m_port;
     value[EthernetSwitchPortVlan::VLAN_NAME] = m_vlan_name;
     value[EthernetSwitchPortVlan::VLAN_ID] = m_vlan_id;

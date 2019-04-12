@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file compute_commands.cpp
+ * @file compute_commands.hpp
  *
  * @brief Declarations of all compute commands
  * */
@@ -53,6 +53,8 @@ using GetMetrics = Command<model::requests::GetMetrics, model::attribute::Array<
 // declarations of all get info methods
 using GetChassisInfo = Command<model::requests::GetChassisInfo, model::Chassis>;
 using GetMemoryInfo = Command<model::requests::GetMemoryInfo, model::Memory>;
+using GetMemoryDomainInfo = Command<model::requests::GetMemoryDomainInfo, model::MemoryDomain>;
+using GetMemoryChunksInfo = Command<model::requests::GetMemoryChunksInfo, model::MemoryChunks>;
 using GetDriveInfo = Command<model::requests::GetDriveInfo, model::Drive>;
 using GetManagerInfo = Command<model::requests::GetManagerInfo, model::Manager>;
 using GetNetworkInterfaceInfo = Command<model::requests::GetNetworkInterfaceInfo, model::NetworkInterface>;
@@ -75,7 +77,10 @@ using GetFanInfo = Command<model::requests::GetFanInfo, model::Fan>;
 
 // declarations of all set methods
 using SetComponentAttributes = Command<model::requests::SetComponentAttributes, model::responses::SetComponentAttributes>;
+
+//declerations of all delete methods
 using DeleteTask = Command<model::requests::DeleteTask, model::responses::DeleteTask>;
+using DeleteDrive = Command<model::requests::DeleteDrive, model::responses::DeleteDrive>;
 
 }
 }

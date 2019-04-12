@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file nvme/nvme_interface.cpp
  */
 
@@ -24,30 +22,38 @@
 #include "nvme/commands/identify.hpp"
 #include "nvme/commands/namespace_attachment.hpp"
 #include "nvme/commands/namespace_management.hpp"
+#include "nvme/commands/get_features.hpp"
+#include "nvme/commands/set_features.hpp"
+
 
 using namespace nvme;
 using namespace nvme::commands;
 
+
 NvmeInterface::NvmeInterface(std::shared_ptr<AbstractNvmeInvoker> invoker)
-: AbstractNvmeInterface(invoker) {
-}
+    : AbstractNvmeInterface(invoker) {}
+
 
 NvmeInterface::~NvmeInterface() {}
+
 
 void NvmeInterface::reset(const std::string& target) const {
     ControllerReset cmd{};
     m_invoker->execute(target, cmd);
 }
 
+
 void NvmeInterface::flush(const std::string& target, uint32_t namespace_id) const {
     Flush cmd{namespace_id};
     m_invoker->execute(target, cmd);
 }
 
+
 void NvmeInterface::format(const std::string& target, uint32_t namespace_id, FormatNvmSes format_type) const {
     FormatNvm cmd{namespace_id, format_type};
     m_invoker->execute(target, cmd);
 }
+
 
 LogPageSmart NvmeInterface::get_smart_log(const std::string& target, uint32_t namespace_id) const {
     GetLogPage cmd{namespace_id, LogPageId::Smart};
@@ -55,11 +61,34 @@ LogPageSmart NvmeInterface::get_smart_log(const std::string& target, uint32_t na
     return std::move(cmd.get_smart_log());
 }
 
+
 LogPageFirmware NvmeInterface::get_firmware_log(const std::string& target, uint32_t namespace_id) const {
     GetLogPage cmd{namespace_id, LogPageId::Firmware};
     m_invoker->execute(target, cmd);
     return std::move(cmd.get_firmware_log());
 }
+
+LogPageIOQueues NvmeInterface::get_ioq_log(const std::string& target, std::uint32_t namespace_id) const {
+    GetLogPage cmd{namespace_id, LogPageId::IntelVendorIOQsMetrics};
+    m_invoker->execute(target, cmd);
+    return std::move(cmd.get_io_queues_log());
+}
+
+LogPageLatencyStats NvmeInterface::get_write_latency_histogram(const std::string& target,
+                                                               std::uint32_t namespace_id) const {
+    GetLogPage cmd{namespace_id, LogPageId::IntelVendorLatencyHistogramWrite};
+    m_invoker->execute(target, cmd);
+    return std::move(cmd.get_latency_log());
+}
+
+
+LogPageLatencyStats NvmeInterface::get_read_latency_histogram(const std::string& target,
+                                                              std::uint32_t namespace_id) const {
+    GetLogPage cmd{namespace_id, LogPageId::IntelVendorLatencyHistogramRead};
+    m_invoker->execute(target, cmd);
+    return std::move(cmd.get_latency_log());
+}
+
 
 ControllerData NvmeInterface::get_controller_info(const std::string& target, uint16_t controller_id) const {
     Identify cmd{controller_id, 0, IdentifyCns::Controller};
@@ -67,11 +96,13 @@ ControllerData NvmeInterface::get_controller_info(const std::string& target, uin
     return std::move(cmd.get_controller_data());
 }
 
+
 NamespaceData NvmeInterface::get_namespace_info(const std::string& target, uint32_t namespace_id) const {
     Identify cmd{0, namespace_id, IdentifyCns::Namespace};
     m_invoker->execute(target, cmd);
     return std::move(cmd.get_namespace_data());
 }
+
 
 NamespaceIdList NvmeInterface::get_active_namespaces(const std::string& target) const {
     Identify cmd{0, 0, IdentifyCns::NamespaceIdList};
@@ -79,11 +110,13 @@ NamespaceIdList NvmeInterface::get_active_namespaces(const std::string& target) 
     return std::move(cmd.get_namespace_id_list());
 }
 
+
 NamespaceIdList NvmeInterface::get_allocated_namespaces(const std::string& target) const {
     Identify cmd{0, 0, IdentifyCns::AllocatedNamespaceIdList};
     m_invoker->execute(target, cmd);
     return std::move(cmd.get_namespace_id_list());
 }
+
 
 ControllerIdList NvmeInterface::get_controllers(const std::string& target) const {
     Identify cmd{0, 0, IdentifyCns::ControllerIdList};
@@ -91,11 +124,13 @@ ControllerIdList NvmeInterface::get_controllers(const std::string& target) const
     return std::move(cmd.get_controller_id_list());
 }
 
+
 ControllerIdList NvmeInterface::get_namespace_controllers(const std::string& target, uint32_t namespace_id) const {
     Identify cmd{0, namespace_id, IdentifyCns::NamespaceControllerIdList};
     m_invoker->execute(target, cmd);
     return std::move(cmd.get_controller_id_list());
 }
+
 
 void NvmeInterface::attach_namespace(const std::string& target, uint16_t controller_id, uint32_t namespace_id) const {
     NamespaceAttachment cmd{namespace_id, NamespaceAttachmentSel::Attach};
@@ -103,11 +138,13 @@ void NvmeInterface::attach_namespace(const std::string& target, uint16_t control
     m_invoker->execute(target, cmd);
 }
 
+
 void NvmeInterface::detach_namespace(const std::string& target, uint16_t controller_id, uint32_t namespace_id) const {
     NamespaceAttachment cmd{namespace_id, NamespaceAttachmentSel::Detach};
     cmd.add_controller(controller_id);
     m_invoker->execute(target, cmd);
 }
+
 
 void NvmeInterface::delete_namespace(const std::string& target, uint32_t namespace_id) const {
     NamespaceManagement cmd{NamespaceManagementSel::Delete};
@@ -115,7 +152,11 @@ void NvmeInterface::delete_namespace(const std::string& target, uint32_t namespa
     m_invoker->execute(target, cmd);
 }
 
-uint32_t NvmeInterface::create_namespace(const std::string& target, uint64_t size, uint64_t capacity, bool is_private) const {
+
+uint32_t NvmeInterface::create_namespace(const std::string& target,
+                                         uint64_t size,
+                                         uint64_t capacity,
+                                         bool is_private) const {
     NamespaceManagement cmd{NamespaceManagementSel::Create};
     cmd.set_size(size);
     cmd.set_capacity(capacity);
@@ -127,4 +168,26 @@ uint32_t NvmeInterface::create_namespace(const std::string& target, uint64_t siz
     }
     m_invoker->execute(target, cmd);
     return cmd.get_namespace_id();
+}
+
+
+std::uint32_t NvmeInterface::get_latency_tracking_feature(const std::string& target, std::uint32_t namespace_id) {
+    static const constexpr std::uint8_t INTEL_LATENCY_TRACKING = 0xe2;
+    GetFeatures cmd{namespace_id, INTEL_LATENCY_TRACKING};
+    m_invoker->execute(target, cmd);
+    return cmd.get_data().result;
+}
+
+
+void NvmeInterface::enable_latency_tracking_feature(const std::string& target, std::uint32_t namespace_id) {
+    static const constexpr std::uint8_t INTEL_LATENCY_TRACKING = 0xe2;
+    SetFeatures cmd{namespace_id, INTEL_LATENCY_TRACKING, 1};
+    m_invoker->execute(target, cmd);
+}
+
+
+void NvmeInterface::disable_latency_tracking_feature(const std::string& target, std::uint32_t namespace_id) {
+    static const constexpr std::uint8_t INTEL_LATENCY_TRACKING = 0xe2;
+    SetFeatures cmd{namespace_id, INTEL_LATENCY_TRACKING, 0};
+    m_invoker->execute(target, cmd);
 }

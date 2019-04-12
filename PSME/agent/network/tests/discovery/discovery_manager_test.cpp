@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,8 +32,8 @@
 #include "loader/network_loader.hpp"
 #include "configuration_full.hpp"
 
-#include "json/value.hpp"
-#include "json/deserializer.hpp"
+#include "json-wrapper/json-wrapper.hpp"
+
 
 #include <string>
 
@@ -43,13 +43,12 @@ using namespace agent_framework::module;
 class DiscoveryManagerTest: public ::testing::Test {
 protected:
     agent::network::loader::NetworkLoader loader{};
-    json::Value config;
-    json::Deserializer deserializer{};
+    json::Json config = json::Json();
 public:
     virtual ~DiscoveryManagerTest();
 
     void SetUp() {
-        deserializer << NETWORK_FULL_CONFIGURATION;
+        config = json::Json::parse(NETWORK_FULL_CONFIGURATION);
     }
 
     std::string get_manager_uuid() {
@@ -61,7 +60,6 @@ DiscoveryManagerTest::~DiscoveryManagerTest() {}
 
 TEST_F(DiscoveryManagerTest, discovery) {
     DiscoveryManager dm{};
-    deserializer >> config;
     ASSERT_TRUE(loader.load(config));
     dm.discovery(get_manager_uuid());
 }

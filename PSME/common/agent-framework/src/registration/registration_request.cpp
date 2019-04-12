@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,12 +25,9 @@
 
 #include "agent-framework/registration/registration_request.hpp"
 #include "agent-framework/module/constants/psme.hpp"
-#include "agent-framework/service_uuid.hpp"
-#include "agent-framework/logger_ext.hpp"
+#include "agent-framework/module/service_uuid.hpp"
 
 #include "configuration/configuration.hpp"
-
-using configuration::Configuration;
 
 using namespace agent_framework::generic;
 using namespace agent_framework::model::literals;
@@ -41,7 +38,7 @@ RegistrationRequest::RegistrationRequest() {
 
 json::Json RegistrationRequest::to_json() {
     return json::Json {
-        {Attach::GAMI_ID, ServiceUuid::get_instance()->get_service_uuid()},
+        {Attach::GAMI_ID, module::ServiceUuid::get_instance()->get_service_uuid()},
         {Attach::VERSION, m_version},
         {Attach::VENDOR, m_vendor},
         {Attach::IPV4_ADDRESS, m_ipv4address},
@@ -51,33 +48,33 @@ json::Json RegistrationRequest::to_json() {
 }
 
 void RegistrationRequest::load_configuration() {
-    const json::Value& configuration = Configuration::get_instance().to_json();
+    const json::Json& configuration = configuration::Configuration::get_instance().to_json();
 
-    auto ipv4_json = configuration["server"]["ipv4"];
-    auto port_json = configuration["server"]["port"];
-    auto type_json = configuration["agent"]["type"];
-    auto vendor_json = configuration["agent"]["vendor"];
-    auto capabilities = configuration["agent"]["capabilities"];
+    auto ipv4_json = configuration.value("server", json::Json::object()).value("ipv4", json::Json::object());
+    auto port_json = configuration.value("server", json::Json::object()).value("port", json::Json::object());
+    auto type_json = configuration.value("agent", json::Json::object()).value("type", json::Json::object());
+    auto vendor_json = configuration.value("agent", json::Json::object()).value("vendor", json::Json::object());
+    auto capabilities = configuration.value("agent", json::Json::object()).value("capabilities", json::Json::object());
 
     if (ipv4_json.is_string()) {
-        m_ipv4address = ipv4_json.as_string();
+        m_ipv4address = ipv4_json.get<std::string>();
     }
 
-    if (port_json.is_uint()) {
-        m_port = static_cast<std::uint16_t>(port_json.as_uint());
+    if (port_json.is_number_unsigned()) {
+        m_port = port_json.get<std::uint16_t>();
     }
 
     if (type_json.is_string()) {
-        m_type = type_json.as_string();
+        m_type = type_json.get<std::string>();
     }
 
     if (vendor_json.is_string()) {
-        m_vendor = vendor_json.as_string();
+        m_vendor = vendor_json.get<std::string>();
     }
 
     if (capabilities.is_array()) {
         for (const auto& capability : capabilities) {
-            m_capabilities.emplace_back(Capability(capability.as_string()));
+            m_capabilities.emplace_back(Capability(capability.get<std::string>()));
         }
     }
 }

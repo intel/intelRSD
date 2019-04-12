@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,21 +17,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file constext_registry.cpp
+ * @file constext_registry.hpp
  *
  * @brief Registry implementation
  * */
 
 #pragma once
 
+
+
 #include "agent-framework/generic/singleton.hpp"
 #include "agent-framework/command/context_command.hpp"
-#include "agent-framework/logger_ext.hpp"
 
 #include <vector>
 
-/*
- * This macro registers the command in the Registry.
+#pragma once
+
+/*!
+ * @brief This macro registers the command in the Registry.
  *
  * Parameter CONTEXT is the type of the Context parameters that are passed
  * as the first argument to all method calls
@@ -46,9 +49,6 @@
  * application starts.
  *
  * */
-
-#pragma once
-
 #define REGISTER_CONTEXT_COMMAND(CONTEXT, CMD_HANDLER, CMD_FUNC)             \
     class context_dummy_##CMD_HANDLER {                                      \
         static bool m_dummy;                                                 \
@@ -56,6 +56,7 @@
     bool context_dummy_##CMD_HANDLER::m_dummy =                              \
         agent_framework::command::ContextRegistry<CONTEXT>::get_instance()-> \
         add_handler<CMD_HANDLER>(CMD_FUNC)
+
 
 /*! Agent Framework */
 namespace agent_framework {
@@ -65,26 +66,28 @@ namespace command {
 /*
  * @brief Registry of JSON RPC Commands
  * */
-template <typename CONTEXT>
+template<typename CONTEXT>
 class ContextRegistry final : public agent_framework::generic::Singleton<ContextRegistry<CONTEXT>> {
 public:
 
     using Commands = std::vector<std::shared_ptr<ContextCommandBase<CONTEXT>>>;
 
+
     ~ContextRegistry() {}
+
 
     /*!
      * @brief Adds command handler to the registry
      * @param[in] command_handler Command handler
      * @return Dummy value used for command registration, always true
      */
-    template <typename T>
+    template<typename T>
     bool add_handler(typename T::HandlerFunc command_handler) {
-        log_info("agent", "Method " +
-                 T::Request::get_command() + " has been registered");
+        log_info("agent", "Method " + T::Request::get_command() + " has been registered");
         m_commands.emplace_back(std::shared_ptr<ContextCommandBase<CONTEXT>>(new T(command_handler)));
         return true;
     }
+
 
     /*!
      * @brief Returns collections of all commands
@@ -94,8 +97,9 @@ public:
         return m_commands;
     }
 
+
 private:
-    Commands m_commands {};
+    Commands m_commands{};
 };
 
 }

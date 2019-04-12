@@ -1,0 +1,4 @@
+apiVersion: v1
+description: event-service
+name: event-service
+version: 0.1.0

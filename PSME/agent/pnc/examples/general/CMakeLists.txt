@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2016-2018 Intel Corporation
+# Copyright (c) 2016-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
 # limitations under the License.
 #
 # </license_header>
-project(gas-examples C CXX)
+project(pnc-examples C CXX)
 
 include_directories(SYSTEM ${IPMI_INCLUDE_DIRS} ${SAFESTRING_INCLUDE_DIRS})
 
-add_executable(gas-example main.cpp)
+add_executable(pnc-example main.cpp)
 
-target_link_libraries(gas-example
+target_link_libraries(pnc-example
     ${LOGGER_LIBRARIES}
     pnc-libs
     ipmi

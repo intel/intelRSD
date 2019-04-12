@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,13 +28,13 @@
 
 #pragma once
 #include "validator.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
-namespace json { class Value; }
 
 namespace configuration {
 
 /*! Json min validator class */
-class MinValidator final : public Validator<json::Value> {
+class MinValidator final : public Validator<json::Json> {
 public:
     /*!
      * @brief Construct MinValidator for given value
@@ -48,7 +48,7 @@ public:
      * @param value JSON object
      * @return On success true is returned, otherwise false
      */
-    bool is_valid(const json::Value& value) const override final;
+    bool is_valid(const json::Json& value) const override final;
 
     /*!
      * @brief Get min error message

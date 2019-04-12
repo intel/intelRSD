@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ using namespace agent_framework::model::literals;
 GetPcieFunctionInfo::GetPcieFunctionInfo(const std::string& function): m_function{function} {}
 
 json::Json GetPcieFunctionInfo::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[PcieFunction::FUNCTION] = m_function;
     return value;
 }

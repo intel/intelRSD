@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2016-2018 Intel Corporation.
+ * @copyright Copyright (c) 2016-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,33 +11,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
- * @file delete_zone_endpoints.cpp
+ * @file add_zone_endpoints.cpp
  */
 
 #include "agent-framework/module/requests/common/add_zone_endpoints.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
 #include "json-wrapper/json-wrapper.hpp"
 
+
+
 using namespace agent_framework::model;
 using namespace agent_framework::model::requests;
 using namespace agent_framework::model::literals;
 
-AddZoneEndpoints::AddZoneEndpoints(const std::string& zone, const StringArray& endpoints,
-                         const attribute::Oem& oem)
-                         : m_zone(zone), m_endpoints(endpoints), m_oem(oem) {}
+
+AddZoneEndpoints::AddZoneEndpoints(const Uuid& zone, const UuidArray& endpoints, const attribute::Oem& oem)
+    : m_zone(zone), m_endpoints(endpoints), m_oem(oem) {}
+
 
 json::Json AddZoneEndpoints::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Zone::ZONE] = m_zone;
     value[Zone::ENDPOINTS] = m_endpoints.to_json();
     value[Zone::OEM] = m_oem.to_json();
     return value;
 }
 
+
 AddZoneEndpoints AddZoneEndpoints::from_json(const json::Json& json) {
     return AddZoneEndpoints{
         json[Zone::ZONE],
-        StringArray::from_json(json[Zone::ENDPOINTS]),
-        attribute::Oem::from_json(json[Zone::OEM])};
+        UuidArray::from_json(json[Zone::ENDPOINTS]),
+        attribute::Oem::from_json(json[Zone::OEM])
+    };
 }

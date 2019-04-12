@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of EndpointCreator tests.
  *
- * @header{License}
- * @copyright Copyright (c) 2018 Intel Corporation
+ * @copyright Copyright (c) 2018-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file endpoint_creator_test.cpp
  */
 
@@ -28,13 +26,16 @@
 #include "mocks/mock_transaction_handler.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include "agent-framework/module/model/model_storage.hpp"
-#include "tools/default_transaction_handler.hpp"
+#include "utils/transaction/default_transaction_handler.hpp"
 
 #include <map>
 #include <ostream>
 #include <errno.h>
 
+
+
 using namespace agent::nvme::tools;
+using namespace utils::transaction;
 using namespace agent_framework::model;
 using namespace agent_framework::module;
 using namespace std;
@@ -54,6 +55,7 @@ const uint16_t GOOD_PORT{3260};
 const uint16_t BAD_PORT_1{1234};
 const uint16_t BAD_PORT_2{1235};
 
+
 void set_errno_exists() {
     errno = EEXIST;
 }
@@ -64,29 +66,36 @@ class UTDatabase final : public Database {
 public:
     UTDatabase(const Uuid&, const string&) {}
 
+
     void put(const string& key, const string& value) override {
         m_map[key] = value;
     }
+
 
     string get(const string& key) const override {
         return m_map.at(key);
     }
 
+
     void del(const string& key) override {
         m_map.erase(key);
     }
+
 
     void append(const string&, const string&) override {
         throw runtime_error("Not implemented");
     }
 
+
     vector<string> get_multiple_values(const string&) const override {
         throw runtime_error("Not implemented");
     }
 
+
     void remove() override {
         throw runtime_error("Not implemented");
     }
+
 
 private:
     static map<string, string> m_map;
@@ -94,7 +103,7 @@ private:
 
 map<string, string> UTDatabase::m_map{};
 
-class EndpointCreatorTest: public ::testing::Test {
+class EndpointCreatorTest : public ::testing::Test {
 protected:
     EndpointCreator ec{};
     std::shared_ptr<agent::nvme::NvmeAgentContext> ctx{};
@@ -110,23 +119,23 @@ public:
         Drive d1{}, d2{};
         Volume v1{};
         // define systemPath identifier for only one drive
-        d2.add_identifier({DRIVE_PATH, enums::IdentifierType::SystemPath});
+        d2.set_name(DRIVE_PATH);
         get_manager<Drive>().add_entry(d1);
         get_manager<Drive>().add_entry(d2);
-        v1.add_identifier({VOLUME_PATH, enums::IdentifierType::SystemPath});
+        v1.set_name(VOLUME_PATH);
         get_manager<Volume>().add_entry(v1);
 
         // add NetworkInterface
         static auto called_once = []() {
             NetworkInterface ni{};
-            ni.set_status(attribute::Status(true));
+            ni.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
             attribute::Ipv4Address ipv4_address{};
             ipv4_address.set_address(IPV4_ADDRESS);
             ni.add_ipv4_address(ipv4_address);
             get_manager<NetworkInterface>().add_entry(ni);
             return 0;
         }();
-        (void)called_once;
+        (void) called_once;
 
         database = std::make_shared<UTDatabase>("", "");
         ctx = std::make_shared<agent::nvme::NvmeAgentContext>();
@@ -149,16 +158,20 @@ public:
         db->put("nvme_port", "0");
     }
 
+
     virtual ~EndpointCreatorTest();
 
 };
 
-EndpointCreatorTest::~EndpointCreatorTest() { }
+
+EndpointCreatorTest::~EndpointCreatorTest() {}
+
 
 TEST_F(EndpointCreatorTest, CreateSingleEndpoint) {
     // set the default actions for the implementation of the transaction handler
     DefaultTransactionHandler handler;
-    ON_CALL(*transaction_mock, add_handler_pair(_)).WillByDefault(Invoke(&handler, &DefaultTransactionHandler::add_handler_pair));
+    ON_CALL(*transaction_mock, add_handler_pair(_)).WillByDefault(
+        Invoke(&handler, &DefaultTransactionHandler::add_handler_pair));
     ON_CALL(*transaction_mock, commit()).WillByDefault(Invoke(&handler, &DefaultTransactionHandler::commit));
 
     EXPECT_CALL(*transaction_factory_mock, get_handler()).WillOnce(Return(transaction_mock));
@@ -168,7 +181,8 @@ TEST_F(EndpointCreatorTest, CreateSingleEndpoint) {
     EXPECT_CALL(*target_handler_mock, set_subsystem_allow_all_hosts(StrEq(ENDPOINT_NQN), false));
 
     EXPECT_CALL(*target_handler_mock, add_subsystem_namespace(StrEq(ENDPOINT_NQN), StrEq("1")));
-    EXPECT_CALL(*target_handler_mock, set_subsystem_namespace_device(StrEq(ENDPOINT_NQN),  StrEq("1"), StrEq(DEVICE_PATH)));
+    EXPECT_CALL(*target_handler_mock,
+                set_subsystem_namespace_device(StrEq(ENDPOINT_NQN), StrEq("1"), StrEq(DEVICE_PATH)));
     EXPECT_CALL(*target_handler_mock, set_subsystem_namespace_enable(StrEq(ENDPOINT_NQN), StrEq("1"), false));
 
     EXPECT_CALL(*target_handler_mock, get_ports()).WillOnce(Return(nvme_target::IdList()));
@@ -180,10 +194,12 @@ TEST_F(EndpointCreatorTest, CreateSingleEndpoint) {
     ec.create_target_endpoint(ctx, GOOD_IP, GOOD_PORT, ENDPOINT_NQN, DEVICE_PATH);
 }
 
+
 TEST_F(EndpointCreatorTest, ExistingPortsNoMatch) {
     // set the default actions for the implementation of the transaction handler
     DefaultTransactionHandler handler;
-    ON_CALL(*transaction_mock, add_handler_pair(_)).WillByDefault(Invoke(&handler, &DefaultTransactionHandler::add_handler_pair));
+    ON_CALL(*transaction_mock, add_handler_pair(_)).WillByDefault(
+        Invoke(&handler, &DefaultTransactionHandler::add_handler_pair));
     ON_CALL(*transaction_mock, commit()).WillByDefault(Invoke(&handler, &DefaultTransactionHandler::commit));
 
     EXPECT_CALL(*transaction_factory_mock, get_handler()).WillOnce(Return(transaction_mock));
@@ -193,14 +209,19 @@ TEST_F(EndpointCreatorTest, ExistingPortsNoMatch) {
     EXPECT_CALL(*target_handler_mock, set_subsystem_allow_all_hosts(StrEq(ENDPOINT_NQN), false));
 
     EXPECT_CALL(*target_handler_mock, add_subsystem_namespace(StrEq(ENDPOINT_NQN), StrEq("1")));
-    EXPECT_CALL(*target_handler_mock, set_subsystem_namespace_device(StrEq(ENDPOINT_NQN),  StrEq("1"), StrEq(DEVICE_PATH)));
+    EXPECT_CALL(*target_handler_mock,
+                set_subsystem_namespace_device(StrEq(ENDPOINT_NQN), StrEq("1"), StrEq(DEVICE_PATH)));
     EXPECT_CALL(*target_handler_mock, set_subsystem_namespace_enable(StrEq(ENDPOINT_NQN), StrEq("1"), false));
 
     EXPECT_CALL(*target_handler_mock, get_ports()).WillOnce(Return(nvme_target::IdList{"1", "2"}));
-    EXPECT_CALL(*target_handler_mock, get_port_params(StrEq("1"))).WillOnce(Return(std::make_tuple(BAD_IP_1, BAD_PORT_1, "", "")));
-    EXPECT_CALL(*target_handler_mock, get_port_params(StrEq("2"))).WillOnce(Return(std::make_tuple(BAD_IP_2, BAD_PORT_2, "", "")));
-    EXPECT_CALL(*target_handler_mock, add_port(StrEq("1"))).WillOnce(DoAll(InvokeWithoutArgs(set_errno_exists), Throw(std::runtime_error(""))));
-    EXPECT_CALL(*target_handler_mock, add_port(StrEq("2"))).WillOnce(DoAll(InvokeWithoutArgs(set_errno_exists), Throw(std::runtime_error(""))));
+    EXPECT_CALL(*target_handler_mock, get_port_params(StrEq("1"))).WillOnce(
+        Return(std::make_tuple(BAD_IP_1, BAD_PORT_1, "", "")));
+    EXPECT_CALL(*target_handler_mock, get_port_params(StrEq("2"))).WillOnce(
+        Return(std::make_tuple(BAD_IP_2, BAD_PORT_2, "", "")));
+    EXPECT_CALL(*target_handler_mock, add_port(StrEq("1"))).WillOnce(
+        DoAll(InvokeWithoutArgs(set_errno_exists), Throw(std::runtime_error(""))));
+    EXPECT_CALL(*target_handler_mock, add_port(StrEq("2"))).WillOnce(
+        DoAll(InvokeWithoutArgs(set_errno_exists), Throw(std::runtime_error(""))));
     EXPECT_CALL(*target_handler_mock, add_port(StrEq("3")));
     EXPECT_CALL(*target_handler_mock, set_port_params("3", _));
 
@@ -209,10 +230,12 @@ TEST_F(EndpointCreatorTest, ExistingPortsNoMatch) {
     ec.create_target_endpoint(ctx, GOOD_IP, GOOD_PORT, ENDPOINT_NQN, DEVICE_PATH);
 }
 
+
 TEST_F(EndpointCreatorTest, ExistingPortsMatch) {
     // set the default actions for the implementation of the transaction handler
     DefaultTransactionHandler handler;
-    ON_CALL(*transaction_mock, add_handler_pair(_)).WillByDefault(Invoke(&handler, &DefaultTransactionHandler::add_handler_pair));
+    ON_CALL(*transaction_mock, add_handler_pair(_)).WillByDefault(
+        Invoke(&handler, &DefaultTransactionHandler::add_handler_pair));
     ON_CALL(*transaction_mock, commit()).WillByDefault(Invoke(&handler, &DefaultTransactionHandler::commit));
 
     EXPECT_CALL(*transaction_factory_mock, get_handler()).WillOnce(Return(transaction_mock));
@@ -222,22 +245,27 @@ TEST_F(EndpointCreatorTest, ExistingPortsMatch) {
     EXPECT_CALL(*target_handler_mock, set_subsystem_allow_all_hosts(StrEq(ENDPOINT_NQN), false));
 
     EXPECT_CALL(*target_handler_mock, add_subsystem_namespace(StrEq(ENDPOINT_NQN), StrEq("1")));
-    EXPECT_CALL(*target_handler_mock, set_subsystem_namespace_device(StrEq(ENDPOINT_NQN),  StrEq("1"), StrEq(DEVICE_PATH)));
+    EXPECT_CALL(*target_handler_mock,
+                set_subsystem_namespace_device(StrEq(ENDPOINT_NQN), StrEq("1"), StrEq(DEVICE_PATH)));
     EXPECT_CALL(*target_handler_mock, set_subsystem_namespace_enable(StrEq(ENDPOINT_NQN), StrEq("1"), false));
 
     EXPECT_CALL(*target_handler_mock, get_ports()).WillOnce(Return(nvme_target::IdList{"1", "2"}));
-    EXPECT_CALL(*target_handler_mock, get_port_params(StrEq("1"))).WillOnce(Return(std::make_tuple(BAD_IP_1, BAD_PORT_1, "", "")));
-    EXPECT_CALL(*target_handler_mock, get_port_params(StrEq("2"))).WillOnce(Return(std::make_tuple(GOOD_IP, GOOD_PORT, "", "")));
+    EXPECT_CALL(*target_handler_mock, get_port_params(StrEq("1"))).WillOnce(
+        Return(std::make_tuple(BAD_IP_1, BAD_PORT_1, "", "")));
+    EXPECT_CALL(*target_handler_mock, get_port_params(StrEq("2"))).WillOnce(
+        Return(std::make_tuple(GOOD_IP, GOOD_PORT, "", "")));
 
     EXPECT_CALL(*target_handler_mock, add_port_subsystem(StrEq("2"), StrEq(ENDPOINT_NQN)));
 
     ec.create_target_endpoint(ctx, GOOD_IP, GOOD_PORT, ENDPOINT_NQN, DEVICE_PATH);
 }
 
+
 TEST_F(EndpointCreatorTest, NoMorePortsAvailable) {
     // set the default actions for the implementation of the transaction handler
     DefaultTransactionHandler handler;
-    ON_CALL(*transaction_mock, add_handler_pair(_)).WillByDefault(Invoke(&handler, &DefaultTransactionHandler::add_handler_pair));
+    ON_CALL(*transaction_mock, add_handler_pair(_)).WillByDefault(
+        Invoke(&handler, &DefaultTransactionHandler::add_handler_pair));
     ON_CALL(*transaction_mock, commit()).WillByDefault(Invoke(&handler, &DefaultTransactionHandler::commit));
 
     EXPECT_CALL(*transaction_factory_mock, get_handler()).WillOnce(Return(transaction_mock));
@@ -248,11 +276,13 @@ TEST_F(EndpointCreatorTest, NoMorePortsAvailable) {
     EXPECT_CALL(*target_handler_mock, set_subsystem_allow_all_hosts(StrEq(ENDPOINT_NQN), false));
 
     EXPECT_CALL(*target_handler_mock, add_subsystem_namespace(StrEq(ENDPOINT_NQN), StrEq("1")));
-    EXPECT_CALL(*target_handler_mock, set_subsystem_namespace_device(StrEq(ENDPOINT_NQN),  StrEq("1"), StrEq(DEVICE_PATH)));
+    EXPECT_CALL(*target_handler_mock,
+                set_subsystem_namespace_device(StrEq(ENDPOINT_NQN), StrEq("1"), StrEq(DEVICE_PATH)));
     EXPECT_CALL(*target_handler_mock, set_subsystem_namespace_enable(StrEq(ENDPOINT_NQN), StrEq("1"), false));
 
     EXPECT_CALL(*target_handler_mock, get_ports()).WillOnce(Return(nvme_target::IdList()));
-    EXPECT_CALL(*target_handler_mock, add_port(_)).WillRepeatedly(DoAll(InvokeWithoutArgs(set_errno_exists), Throw(std::runtime_error(""))));
+    EXPECT_CALL(*target_handler_mock, add_port(_)).WillRepeatedly(
+        DoAll(InvokeWithoutArgs(set_errno_exists), Throw(std::runtime_error(""))));
 
     EXPECT_THROW(ec.create_target_endpoint(ctx, GOOD_IP, GOOD_PORT, ENDPOINT_NQN, DEVICE_PATH), std::runtime_error);
 }

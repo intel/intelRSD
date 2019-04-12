@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2018 Intel Corporation.
+ * @copyright Copyright (c) 2018-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,12 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file nvmf-discovery/memory_buffer.hpp
  */
 
 #pragma once
 
+#include "logger/logger_factory.hpp"
 #include "fabric.hpp"
 
 namespace nvmf_discovery {
@@ -43,7 +42,7 @@ struct MemoryBuffer final {
 
     FidMr mr{};
     using pointer = std::unique_ptr<char, void(*)(char*)>;
-    pointer buffer{nullptr, [](char* ptr){ free(ptr);}};
+    pointer buffer{nullptr, [](char* ptr) { free(ptr); }};
     size_t length{};
 };
 

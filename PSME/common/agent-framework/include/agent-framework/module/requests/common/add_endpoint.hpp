@@ -1,8 +1,7 @@
 /*!
  * @brief Definition of AddEndpoint class.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file add_endpoint.hpp
  */
 
 #pragma once
+
+
+
 #include "agent-framework/module/constants/common.hpp"
 #include "agent-framework/module/constants/command.hpp"
 #include "agent-framework/module/model/attributes/array.hpp"
@@ -32,6 +33,8 @@
 
 #include <string>
 
+
+
 namespace agent_framework {
 namespace model {
 namespace requests {
@@ -43,6 +46,7 @@ public:
     using IpTransportDetails = agent_framework::model::attribute::Array<agent_framework::model::attribute::IpTransportDetail>;
     using Identifiers = agent_framework::model::attribute::Array<agent_framework::model::attribute::Identifier>;
     using ConnectedEntities = agent_framework::model::attribute::Array<agent_framework::model::attribute::ConnectedEntity>;
+    using Ports = agent_framework::model::attribute::Array<Uuid>;
 
 
     explicit AddEndpoint(const Uuid& fabric,
@@ -51,11 +55,14 @@ public:
                          const ConnectedEntities& connected_entities,
                          const OptionalField<std::string>& username,
                          const OptionalField<std::string>& password,
+                         const Ports& ports,
                          const attribute::Oem& oem);
+
 
     static std::string get_command() {
         return literals::Command::ADD_ENDPOINT;
     }
+
 
     /*!
      * @brief Get IP transport details.
@@ -66,6 +73,7 @@ public:
         return m_ip_transport_details;
     }
 
+
     /*!
      * @brief Get identifiers.
      *
@@ -74,6 +82,7 @@ public:
     const Identifiers& get_identifiers() const {
         return m_identifiers;
     }
+
 
     /*!
      * @brief Get fabric Uuid
@@ -84,6 +93,17 @@ public:
         return m_fabric;
     }
 
+
+    /*!
+     * @brief Get ports Uuids
+     *
+     * @return Array of ports Uuids
+     */
+    const Ports& get_ports() const {
+        return m_ports;
+    }
+
+
     /*!
      * @brief Get connected entities.
      *
@@ -92,6 +112,7 @@ public:
     const ConnectedEntities& get_connected_entities() const {
         return m_connected_entities;
     }
+
 
     /*!
      * @brief Get username.
@@ -102,6 +123,7 @@ public:
         return m_username;
     }
 
+
     /*!
      * @brief Get password.
      *
@@ -110,6 +132,7 @@ public:
     const OptionalField<std::string>& get_password() const {
         return m_password;
     }
+
 
     /*!
      * @brief Get oem from request
@@ -120,11 +143,13 @@ public:
         return m_oem;
     }
 
+
     /*!
      * @brief Transform request to Json
      * @return created Json value
      */
     json::Json to_json() const;
+
 
     /*!
      * @brief create AddEndpoint from Json
@@ -133,26 +158,30 @@ public:
      */
     static AddEndpoint from_json(const json::Json& json);
 
+
     /*!
      * @brief Returns procedure scheme
      * @return ProcedureValidator scheme
      */
     static const jsonrpc::ProcedureValidator& get_procedure() {
         static const jsonrpc::ProcedureValidator procedure{
-                get_command(),
-                jsonrpc::PARAMS_BY_NAME,
-                jsonrpc::JSON_OBJECT,
-                literals::Endpoint::FABRIC, VALID_UUID,
-                literals::Endpoint::IP_TRANSPORT_DETAILS, VALID_ARRAY_OF(VALID_ATTRIBUTE(IpTransportDetailSchema)),
-                literals::Endpoint::IDENTIFIERS, VALID_ARRAY_OF(VALID_ATTRIBUTE(IdentifierSchema)),
-                literals::Endpoint::CONNECTED_ENTITIES, VALID_ARRAY_OF(VALID_ATTRIBUTE(ConnectedEntitySchema)),
-                literals::Endpoint::USERNAME, VALID_NULLABLE(VALID_JSON_STRING),
-                literals::Endpoint::PASSWORD, VALID_NULLABLE(VALID_JSON_STRING),
-                literals::Endpoint::OEM, VALID_OPTIONAL(jsonrpc::JSON_OBJECT),
-                nullptr
+            get_command(),
+            jsonrpc::PARAMS_BY_NAME,
+            jsonrpc::JSON_OBJECT,
+            literals::Endpoint::FABRIC, VALID_UUID,
+            literals::Endpoint::IP_TRANSPORT_DETAILS, VALID_ARRAY_OF(VALID_ATTRIBUTE(IpTransportDetailSchema)),
+            literals::Endpoint::IDENTIFIERS, VALID_ARRAY_OF(VALID_ATTRIBUTE(IdentifierSchema)),
+            literals::Endpoint::CONNECTED_ENTITIES, VALID_ARRAY_OF(VALID_ATTRIBUTE(ConnectedEntitySchema)),
+            literals::Endpoint::USERNAME, VALID_NULLABLE(VALID_JSON_STRING),
+            literals::Endpoint::PASSWORD, VALID_NULLABLE(VALID_JSON_STRING),
+            literals::Endpoint::PORTS, VALID_OPTIONAL(VALID_NULLABLE(VALID_ARRAY_OF(VALID_UUID))),
+            literals::Endpoint::OEM, VALID_OPTIONAL(jsonrpc::JSON_OBJECT),
+            nullptr
         };
         return procedure;
     }
+
+
 private:
     class IpTransportDetailSchema {
     public:
@@ -231,6 +260,7 @@ private:
                 literals::ConnectedEntity::ROLE, VALID_ENUM(enums::EntityRole),
                 literals::ConnectedEntity::ENTITY, VALID_NULLABLE(VALID_UUID),
                 literals::ConnectedEntity::IDENTIFIERS, VALID_ARRAY_OF(VALID_ATTRIBUTE(IdentifierSchema)),
+                literals::ConnectedEntity::LUN, VALID_NULLABLE(VALID_NUMERIC_TYPED(INT64)),
                 nullptr
             };
             return procedure;
@@ -238,6 +268,7 @@ private:
     };
 
     Uuid m_fabric{};
+    Ports m_ports{};
     IpTransportDetails m_ip_transport_details{};
     Identifiers m_identifiers{};
     ConnectedEntities m_connected_entities{};

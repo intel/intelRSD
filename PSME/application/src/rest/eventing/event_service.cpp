@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,6 @@
 #include "psme/rest/eventing/manager/subscription_manager.hpp"
 #include "psme/rest/server/content_types.hpp"
 #include "configuration/configuration.hpp"
-#include "agent-framework/logger_ext.hpp"
 
 using namespace psme::rest::eventing;
 using namespace psme::rest::eventing::manager;
@@ -39,10 +38,10 @@ constexpr char EventService::DELIVERY_RETRY_ATTEMPTS_PROP[];
 constexpr char EventService::DELIVERY_RETRY_INTERVAL_PROP[];
 
 EventService::EventService() {
-    const json::Value& config = configuration::Configuration::get_instance().to_json();
+    const json::Json& config = configuration::Configuration::get_instance().to_json();
     const auto& event_service_config = config["event-service"];
-    m_delivery_retry_attempts = event_service_config[DELIVERY_RETRY_ATTEMPTS_PROP].as_uint();
-    m_delivery_retry_interval = std::chrono::seconds(event_service_config[DELIVERY_RETRY_INTERVAL_PROP].as_uint());
+    m_delivery_retry_attempts = event_service_config.value(DELIVERY_RETRY_ATTEMPTS_PROP, std::uint16_t{});
+    m_delivery_retry_interval = std::chrono::seconds(event_service_config.value(DELIVERY_RETRY_INTERVAL_PROP, std::uint16_t{}));
 }
 
 void EventService::start() {
@@ -91,7 +90,7 @@ void EventService::send_event_array(const EventArray& event_array) {
 
     const auto& destination = subscription.get_destination();
     try {
-        std::string notification = json::Serializer(event_array.to_json());
+        std::string notification = event_array.to_json().dump();
         psme::rest::eventing::RestClient rest_client("");
         rest_client.set_default_content_type(psme::rest::server::ContentType::JSON);
         rest_client.post(destination, notification);
@@ -139,7 +138,7 @@ void EventService::m_handle_events() {
         if (const auto event_array = get_event_array_queue().wait_for_and_pop(std::chrono::seconds(1))) {
 
             log_debug("rest", " Popped Event Array: "
-                        << json::Serializer(event_array->to_json()));
+                        << event_array->to_json().dump());
 
             try {
                 if (!event_array->get_subscriber_id().has_value()) {

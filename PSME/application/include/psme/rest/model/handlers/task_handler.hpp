@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -162,11 +162,11 @@ private:
     }
 
     /*!
-     * @brief construct task Message from a json::Value carrying a Redfish message object
+     * @brief construct task Message from a json::Json carrying a Redfish message object
      * @param json the message object
      * @returns the constructed task Message attribute
      */
-    agent_framework::model::attribute::Message task_message_from_redfish_message(const json::Value& json) {
+    agent_framework::model::attribute::Message task_message_from_redfish_message(const json::Json& json) {
         using namespace psme::rest::constants;
         using StringArray = agent_framework::model::attribute::Array<std::string>;
 
@@ -177,14 +177,18 @@ private:
         message.set_resolution(json[MessageObject::RESOLUTION]);
 
         StringArray related_properties{};
-        for (const auto& property : json[MessageObject::RELATED_PROPERTIES].as_array()) {
-            related_properties.add_entry(property.as_string());
+        if (json.count(MessageObject::RELATED_PROPERTIES) && json[MessageObject::RELATED_PROPERTIES].is_array()) {
+            for (const auto& property : json[MessageObject::RELATED_PROPERTIES]) {
+                related_properties.add_entry(property.get<std::string>());
+            }
         }
         message.set_related_properties(related_properties);
 
         StringArray arguments{};
-        for (const auto& argument : json[MessageObject::MESSAGE_ARGS].as_array()) {
-            arguments.add_entry(argument.as_string());
+        if (json.count(MessageObject::MESSAGE_ARGS) && json[MessageObject::MESSAGE_ARGS].is_array()) {
+            for (const auto& argument : json[MessageObject::MESSAGE_ARGS]) {
+                arguments.add_entry(argument.get<std::string>());
+            }
         }
         message.set_message_args(arguments);
 

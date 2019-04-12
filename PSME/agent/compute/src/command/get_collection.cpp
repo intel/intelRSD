@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,6 +75,9 @@ void process_system(const Collection& collection, const std::string& uuid,
     }
     else if (enums::CollectionType::Memory == collection.get_type()) {
         response_add_subcomponents(get_manager<Memory>().get_keys(uuid), response);
+    }
+    else if (enums::CollectionType::MemoryDomains == collection.get_type()) {
+        response_add_subcomponents(get_manager<MemoryDomain>().get_keys(uuid), response);
     }
     else if (enums::CollectionType::StorageSubsystems == collection.get_type()) {
         response_add_subcomponents(get_manager<StorageSubsystem>().get_keys(uuid), response);
@@ -214,6 +217,30 @@ void process_pcie_device(const Collection& collection, const std::string& uuid,
     }
 }
 
+void process_memory_domain(const Collection& collection, const std::string& uuid,
+                         GetCollection::Response& response, const std::string& name) {
+    // Only one possible collection
+    if (enums::CollectionType::MemoryChunks == collection.get_type()) {
+        response_add_subcomponents(get_manager<MemoryChunks>().get_keys(uuid), response);
+    }
+    else {
+        THROW(::agent_framework::exceptions::InvalidCollection,
+              "compute-agent", "Collection not found: \'" + name + "\'.");
+    }
+}
+
+void process_processor(const Collection& collection, const std::string& uuid,
+                           GetCollection::Response& response, const std::string& name) {
+    // Only one possible collection
+    if (enums::CollectionType::Processors == collection.get_type()) {
+        response_add_subcomponents(get_manager<Processor>().get_keys(uuid), response);
+    }
+    else {
+        THROW(::agent_framework::exceptions::InvalidCollection,
+              "compute-agent", "Collection not found: \'" + name + "\'.");
+    }
+}
+
 
 void do_get_collection(const GetCollection::Request& request, GetCollection::Response& response) {
 
@@ -287,8 +314,21 @@ void do_get_collection(const GetCollection::Request& request, GetCollection::Res
 
         process_pcie_device(collection, uuid, response, name);
     }
+    else if (get_manager<MemoryDomain>().entry_exists(uuid)) {
+
+        const MemoryDomain memory_domain = get_manager<MemoryDomain>().get_entry(uuid);
+        const Collection& collection = find_collection(memory_domain.get_collections(), name);
+
+        process_memory_domain(collection, uuid, response, name);
+    }
+    else if (get_manager<Processor>().entry_exists(uuid)) {
+
+        const Processor processor = get_manager<Processor>().get_entry(uuid);
+        const Collection& collection = find_collection(processor.get_collections(), name);
+
+        process_processor(collection, uuid, response, name);
+    }
     else if (get_manager<Memory>().entry_exists(uuid)
-             || get_manager<Processor>().entry_exists(uuid)
              || get_manager<NetworkDeviceFunction>().entry_exists(uuid)
              || get_manager<Drive>().entry_exists(uuid)
              || get_manager<PowerZone>().entry_exists(uuid)

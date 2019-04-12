@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@
 #include "agent-framework/module/responses/common.hpp"
 #include "agent-framework/module/network_components.hpp"
 
-#include <json/json.hpp>
+#include "json-wrapper/json-wrapper.hpp"
 
 
 
@@ -45,44 +45,47 @@ using namespace psme::rest::validators;
 using namespace agent_framework::model::attribute;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#VLanNetworkInterface.VLanNetworkInterface";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#VLanNetworkInterface.v1_0_1.VLanNetworkInterface";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "VLAN Network Interface";
     r[Common::DESCRIPTION] = "VLAN Network Interface description";
-    r[Vlan::VLAN_ENABLE] = json::Value::Type::NIL;
-    r[Vlan::VLAN_ID] = json::Value::Type::NIL;
+    r[Vlan::VLAN_ENABLE] = json::Json::value_t::null;
+    r[Vlan::VLAN_ID] = json::Json::value_t::null;
 
-    json::Value rs;
+    json::Json rs = json::Json();
     rs[Common::ODATA_TYPE] = "#Intel.Oem.VLanNetworkInterface";
-    rs[::Vlan::TAGGED] = json::Value::Type::NIL;
-    rs[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    rs[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    rs[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    rs[::Vlan::TAGGED] = json::Json::value_t::null;
+    rs[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    rs[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    rs[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
     r[Common::OEM][Common::RACKSCALE] = std::move(rs);
 
     return r;
 }
 
-Attributes fill_attributes(json::Value& json) {
+
+Attributes fill_attributes(json::Json& json) {
     Attributes attributes{};
 
-    if (json.is_member(constants::Vlan::VLAN_ID)) {
+    if (json.count(constants::Vlan::VLAN_ID)) {
         attributes.set_value(agent_framework::model::literals::Vlan::VLAN_ID,
-                             json[constants::Vlan::VLAN_ID].as_int64());
+                             json[constants::Vlan::VLAN_ID].get<std::int64_t>());
     }
     return attributes;
 }
+
 
 static const std::map<std::string, std::string> gami_to_rest_attributes = {
     {agent_framework::model::literals::Vlan::VLAN_ID,
         constants::Vlan::VLAN_ID}
 };
 }
+
 
 endpoint::VlanNetworkInterface::VlanNetworkInterface(const std::string& path) : EndpointBase(path) {}
 
@@ -98,10 +101,8 @@ void endpoint::VlanNetworkInterface::get(const server::Request& request, server:
     r[Common::NAME] = Vlan::VLAN + request.params[PathParam::VLAN_ID];
 
     auto vlan =
-        psme::rest::model::Find<agent_framework::model::EthernetSwitchPortVlan>(request.params[PathParam::VLAN_ID])
-            .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
-            .via<agent_framework::model::EthernetSwitchPort>(request.params[PathParam::SWITCH_PORT_ID])
-            .get();
+        psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort, agent_framework::model::EthernetSwitchPortVlan>(
+            request.params).get();
 
     endpoint::status_to_json(vlan, r[Common::OEM][Common::RACKSCALE]);
 
@@ -114,34 +115,30 @@ void endpoint::VlanNetworkInterface::get(const server::Request& request, server:
 
 
 void endpoint::VlanNetworkInterface::del(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "DeleteVlanNetworkInterface";
+
     using AgentManager = psme::core::agent::AgentManager;
     using HandlerManager = psme::rest::model::handler::HandlerManager;
 
     auto vlan_interface =
-        psme::rest::model::Find<agent_framework::model::EthernetSwitchPortVlan>(request.params[PathParam::VLAN_ID])
-            .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
-            .via<agent_framework::model::EthernetSwitchPort>(request.params[PathParam::SWITCH_PORT_ID])
-            .get();
+        psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort, agent_framework::model::EthernetSwitchPortVlan>(
+            request.params).get();
     auto gami_agent = AgentManager::get_instance()->get_agent(vlan_interface.get_agent_id());
 
     auto delete_vlan = [&, gami_agent] {
         // Those resources are needed to properly lock the resource tree and avoid deadlocks
-        auto parent_switch = psme::rest::model::Find
-            <agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID]).get_one();
-        auto parent_switch_port = psme::rest::model::Find
-            <agent_framework::model::EthernetSwitchPort>(request.params[PathParam::SWITCH_PORT_ID])
-            .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID]).get_one();
+        auto parent_switch = psme::rest::model::find<agent_framework::model::EthernetSwitch>(request.params).get_one();
+        auto parent_switch_port = psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort>(
+            request.params).get_one();
         auto vlan =
-            psme::rest::model::Find<agent_framework::model::EthernetSwitchPortVlan>(request.params[PathParam::VLAN_ID])
-                .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
-                .via<agent_framework::model::EthernetSwitchPort>(request.params[PathParam::SWITCH_PORT_ID])
-                .get_one();
+            psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort, agent_framework::model::EthernetSwitchPortVlan>(
+                request.params).get_one();
 
         auto port_uuid = vlan->get_parent_uuid();
         auto switch_uuid = parent_switch->get_uuid();
 
-        auto gami_req = agent_framework::model::requests::DeletePortVlan{vlan->get_uuid()};
-        gami_agent->execute<agent_framework::model::responses::DeletePortVlan>(gami_req);
+        auto gami_request = agent_framework::model::requests::DeletePortVlan{vlan->get_uuid()};
+        gami_agent->execute<agent_framework::model::responses::DeletePortVlan>(gami_request);
 
         // remove the resource
         HandlerManager::get_instance()->
@@ -154,27 +151,24 @@ void endpoint::VlanNetworkInterface::del(const server::Request& request, server:
         response.set_status(server::status_2XX::NO_CONTENT);
     };
 
-    gami_agent->execute_in_transaction(delete_vlan);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, delete_vlan);
 }
 
-void endpoint::VlanNetworkInterface::patch(const server::Request& request,
-                                           server::Response& response) {
+
+void endpoint::VlanNetworkInterface::patch(const server::Request& request, server::Response& response) {
     using HandlerManager = psme::rest::model::handler::HandlerManager;
+    static const constexpr char TRANSACTION_NAME[] = "PatchVlanNetworkInterface";
+
     auto json = JsonValidator::validate_request_body<schema::VlanNetworkInterfacePatchSchema>(request);
     auto attributes = fill_attributes(json);
 
     // Holding reference to parent object ensures that locks are acquired in the same order in each thread
-    auto parent_switch = psme::rest::model::Find<agent_framework::model::EthernetSwitch>(
-        request.params[PathParam::ETHERNET_SWITCH_ID]).get();
-    auto port = psme::rest::model::Find<agent_framework::model::EthernetSwitchPort>(
-        request.params[PathParam::SWITCH_PORT_ID])
-        .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
-        .get();
+    auto parent_switch = psme::rest::model::find<agent_framework::model::EthernetSwitch>(request.params).get();
+    auto port = psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort>(
+        request.params).get();
     auto vlan =
-        psme::rest::model::Find<agent_framework::model::EthernetSwitchPortVlan>(request.params[PathParam::VLAN_ID])
-            .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
-            .via<agent_framework::model::EthernetSwitchPort>(request.params[PathParam::SWITCH_PORT_ID])
-            .get();
+        psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort, agent_framework::model::EthernetSwitchPortVlan>(
+            request.params).get();
     auto gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(port.get_agent_id());
 
     auto patch_vlan = [&, gami_agent] {
@@ -184,7 +178,7 @@ void endpoint::VlanNetworkInterface::patch(const server::Request& request,
                 agent_framework::model::requests::SetComponentAttributes{vlan.get_uuid(), attributes};
             const auto& set_component_attributes_response =
                 gami_agent->execute<agent_framework::model::responses::SetComponentAttributes>
-                (set_component_attributes_request);
+                    (set_component_attributes_request);
 
             const auto& result_statuses = set_component_attributes_response.get_statuses();
             if (!result_statuses.empty()) {
@@ -203,7 +197,7 @@ void endpoint::VlanNetworkInterface::patch(const server::Request& request,
         }
     };
 
-    gami_agent->execute_in_transaction(patch_vlan);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, patch_vlan);
 
     get(request, response);
 }

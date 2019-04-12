@@ -27,7 +27,7 @@ from setuptools import setup
 setup(
     name='NVME Wheel',
     description='NVME Wheel package written in Python',
-    version='1.3.14',
+    version='1.3.21',
     author='Tomasz (tmacieje) Maciejewski',
     author_email='tomasz.maciejewski@intel.com',
     classifiers=[
@@ -35,7 +35,7 @@ setup(
         'Environment :: Console',
         'Programming Language :: Python :: 2.7'
     ],
-    packages=['main',
+    packages=['nvme_main',
               'nvme_framework',
               'nvme_framework.actions',
               'nvme_framework.actions.execute',
@@ -47,7 +47,7 @@ setup(
     license='',
     entry_points={
         'console_scripts': [
-            'nvme-wheel = main.main:main',
+            'nvme-wheel = nvme_main.main:main',
         ],
     },
 )

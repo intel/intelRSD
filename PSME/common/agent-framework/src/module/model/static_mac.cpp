@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ StaticMac::StaticMac(const std::string& parent_uuid, enums::Component parent_typ
 StaticMac::~StaticMac() {}
 
 json::Json StaticMac::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::StaticMac::STATUS] = get_status().to_json();
     result[literals::StaticMac::ADDRESS] = get_address();
     result[literals::StaticMac::VLAN_ID] = get_vlan_id();

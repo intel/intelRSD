@@ -1,0 +1,15 @@
+providedType: resource-manager
+requiredType: psme
+layers:
+  - type: RequestEnhancer
+  - type: QueryParameter
+  - type: Tagger
+  - type: Completer
+  - type: Merger
+  - type: Unifier
+  - type: Adapter
+  - type: Filter
+  - type: Cacher
+eventsUpstream:
+  - type: Unifier
+  - type: EventSubmitter

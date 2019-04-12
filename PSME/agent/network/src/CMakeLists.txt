@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,22 +40,6 @@ else()
     )
 endif()
 
-set(NETWORK_COMMON_LIBRARIES
-    network-utils
-    ${NET_LIBRARIES}
-    ${AGENT_FRAMEWORK_LIBRARIES}
-    ${UUID_LIBRARIES}
-    ${LOGGER_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
-    ${PCA95XX_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
-    pthread
-    ${MICROHTTPD_LIBRARIES}
-    ${CURL_LIBRARIES}
-    dl
-)
-
 if (BUILD_EOS_SDK)
     set(network_commands_targets
         $<TARGET_OBJECTS:network-command>
@@ -78,13 +62,25 @@ if (BUILD_EOS_SDK)
         agent
         generic
         "AGENT_NETWORK_CONFIGURATION_FILE"
+        ../include/default_configuration.hpp
+        ..
     )
 
     target_link_libraries(psme-network
         eos
         ${AGENT_NETWORK_COMMANDS}
         network-utils
-        ${NETWORK_COMMON_LIBRARIES}
+        agent-framework
+        ${NET_LIBRARIES}
+        ${UUID_LIBRARIES}
+        ${LOGGER_LIBRARIES}
+        configuration
+        ${PCA95XX_LIBRARIES}
+        ${SAFESTRING_LIBRARIES}
+        pthread
+        ${MICROHTTPD_LIBRARIES}
+        ${CURL_LIBRARIES}
+        dl
         md5
     )
 endif()

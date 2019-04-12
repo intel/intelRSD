@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 if (NOT GTEST_FOUND)
     return()
-endif()
+endif ()
 
 add_gtest(endpoints psme-rest-server
     test_runner.cpp
@@ -31,16 +31,12 @@ add_gtest(endpoints psme-rest-server
 target_link_libraries(${test_target}
     application-rest
     application-core
-    ${AGENT_FRAMEWORK_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
-    ${JSONPTR_LIBRARIES}
+    agent-framework
+    configuration
     ${CURL_LIBRARIES}
     ${MICROHTTPD_LIBRARIES}
-    ${SSDP_LIBRARIES}
+    ssdp
     ${LOGGER_LIBRARIES}
-    ${DATABASE_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
     ${UUID_LIBRARIES}
-    ${MD5_LIBRARIES}
 )

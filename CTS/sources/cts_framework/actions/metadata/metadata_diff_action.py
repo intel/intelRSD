@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2017 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -81,7 +81,7 @@ class MetadataDiffAction(Action):
                         msg = "\n\nMetadata sets {metadata} differ\n\n".format(metadata=" and ".join(configuration.METADATA))
                         sys.stderr.write(msg)
                         sys.stdout.write(msg)
-                        print result.getside_by_side(*configuration.METADATA)
+                        print result.get_side_by_side(*configuration.METADATA)
 
             sys.stdout = sys.__stdout__
             print "Report has been written to: {name}".format(name=report)

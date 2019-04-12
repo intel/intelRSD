@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,7 @@ AclAddress::AclAddress() { }
 AclAddress::~AclAddress() { }
 
 json::Json AclAddress::to_json() const {
-    json::Json result;
+    json::Json result = json::Json();
     result[literals::AclRule::ADDRESS] = get_address();
     result[literals::AclRule::MASK] = get_mask();
     return result;

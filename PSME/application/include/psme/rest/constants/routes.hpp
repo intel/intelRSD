@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,12 +45,16 @@ public:
     static const std::string EVENT_SERVICE_PATH;
     static const std::string SUBSCRIPTION_COLLECTION_PATH;
     static const std::string SUBSCRIPTION_PATH;
+    static const std::string SESSION_SERVICE_PATH;
+    static const std::string SESSION_COLLECTION_PATH;
+    static const std::string SESSION_PATH;
     static const std::string TASK_SERVICE_PATH;
     static const std::string TASK_COLLECTION_PATH;
     static const std::string TASK_PATH;
     static const std::string MESSAGE_REGISTRY_FILE_COLLECTION_PATH;
     static const std::string MESSAGE_REGISTRY_FILE_PATH;
     static const std::string MESSAGE_REGISTRY_PATH;
+    static const std::string INTEL_RACKSCALE_REGISTRY_PATH;
     static const std::string MONITOR_PATH;
 
     static const std::string CHASSIS_COLLECTION_PATH;
@@ -82,6 +86,7 @@ public:
     static const std::string SYSTEM_PATH;
     static const std::string SYSTEM_METRICS_PATH;
     static const std::string SYSTEM_RESET_PATH;
+    static const std::string SYSTEM_STORAGE_SERVICES_PATH;
     static const std::string SYSTEM_CHANGE_TPM_STATE_PATH;
     static const std::string STORAGE_SUBSYSTEMS_COLLECTION_PATH;
     static const std::string STORAGE_SUBSYSTEM_PATH;
@@ -90,9 +95,11 @@ public:
     static const std::string MEMORY_COLLECTION_PATH;
     static const std::string MEMORY_PATH;
     static const std::string MEMORY_METRICS_PATH;
+    static const std::string MEMORY_ERASE_DCPMEM_PATH;
     static const std::string PROCESSORS_COLLECTION_PATH;
     static const std::string PROCESSOR_PATH;
     static const std::string PROCESSORS_METRICS_PATH;
+    static const std::string PROCESSORS_SECURE_ERASE_PATH;
     static const std::string VOLUMES_COLLECTION_PATH;
     static const std::string NETWORK_INTERFACES_COLLECTION_PATH;
     static const std::string NETWORK_INTERFACE_PATH;
@@ -120,12 +127,20 @@ public:
     static const std::string STORAGE_SERVICE_PATH;
     static const std::string STORAGE_POOL_COLLECTION_PATH;
     static const std::string STORAGE_POOL_PATH;
+    static const std::string STORAGE_POOL_CAPACITY_SOURCE;
+    static const std::string STORAGE_POOL_PROVIDING_DRIVES_COLLECTION;
+    static const std::string STORAGE_POOL_PROVIDING_POOLS_COLLECTION;
+    static const std::string STORAGE_POOL_PROVIDING_VOLUMES_COLLECTION;
     static const std::string ALLOCATED_VOLUMES_COLLECTION_PATH;
     static const std::string ALLOCATED_POOLS_COLLECTION_PATH;
     static const std::string VOLUME_COLLECTION_PATH;
     static const std::string VOLUME_PATH;
     static const std::string VOLUME_INITIALIZE_PATH;
     static const std::string VOLUME_METRICS_PATH;
+    static const std::string VOLUME_CAPACITY_SOURCE;
+    static const std::string VOLUME_PROVIDING_DRIVES_COLLECTION;
+    static const std::string VOLUME_PROVIDING_POOLS_COLLECTION;
+    static const std::string VOLUME_PROVIDING_VOLUMES_COLLECTION;
     static const std::string DRIVE_COLLECTION_PATH;
 
     static const std::string FABRICS_COLLECTION_PATH;
@@ -149,6 +164,12 @@ public:
     static const std::string METRIC_REPORT_DEFINITIONS_COLLECTION_PATH;
     static const std::string TRIGGER_PATH;
     static const std::string TRIGGERS_COLLECTION_PATH;
+
+    static const std::string ACCOUNT_SERVICE_PATH;
+    static const std::string ACCOUNTS_COLLECTION_PATH;
+    static const std::string ACCOUNT_PATH;
+    static const std::string ROLES_COLLECTION_PATH;
+    static const std::string ROLE_PATH;
 };
 
 }

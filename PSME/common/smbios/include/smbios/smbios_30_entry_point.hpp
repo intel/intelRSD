@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  *
  * @brief SMBIOS 3.0 entry point structure
  *
- * @header{Filesystem}
  * @file smbios_30_entry_point.hpp
  */
 
@@ -69,12 +67,22 @@ public:
     std::uint8_t get_revision() const override;
 
     /*!
-     * @brief Get struct table address
-     * @return return offset of start of struct table within the MDR region
+     * @brief Get data struct offset within table
+     * @return start offset of data struct within the MDR region
      */
     std::uint64_t get_struct_table_address() const override;
 
+    /*!
+     * @brief Get data struct end offset within table
+     * @return end offset of data struct within the MDR region
+     */
+    std::uint64_t get_struct_table_end_address() const override;
 
+    /*!
+     * @brief Get structure length in MDR
+     * @return structure length in bytes
+     */
+    std::uint32_t get_length() const override;
 
 #pragma pack(push, 1)
 
@@ -97,6 +105,7 @@ public:
 #pragma pack(pop)
 private:
     const EntryPointStructure* m_entry_point;
+    std::uint32_t m_region_length{0};
 };
 
 }

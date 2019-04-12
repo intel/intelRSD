@@ -1,0 +1,43 @@
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+
+server:
+  port: 8089
+  servlet:
+    session:
+      timeout: PT20S
+
+spring:
+  datasource:
+    data: classpath:/initial-test-data.sql
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    database: h2
+    properties:
+      hibernate:
+        ddl-auto: create-drop
+        dialect: org.hibernate.dialect.H2Dialect
+
+
+aaa-config:
+  password-policy:
+    minLength: 4
+    maxLength: 20
+  authority-data:
+    data: "/initial-test-data.sql"
+  datasource:
+    url: jdbc:h2:mem:db;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: sa
+
+
+podm:
+  security:
+    session-timeout: 5

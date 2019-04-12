@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@
  * */
 
 #pragma once
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <string>
 #include <bitset>
@@ -62,7 +62,7 @@ public:
      *
      * @return  JSON C++ object that contain configuration settings
      * */
-    const json::Value& to_json();
+    const json::Json& to_json();
 
     /*!
      * @brief Set default configuration
@@ -142,9 +142,10 @@ private:
     std::string m_default_configuration{DEFAULT_CONFIGURATION};
     std::string m_default_env_file{DEFAULT_ENV_FILE};
     std::string m_default_file{DEFAULT_FILE};
-    json::Value m_json_configuration{};
+    json::Json m_json_configuration{};
     std::vector<std::string> m_configuration_files{};
     std::string m_encryption_key{};
+    std::string m_encryption_init_vector{};
 
     Configuration() { }
     Configuration(const Configuration&) = delete;
@@ -156,10 +157,10 @@ private:
     std::string get_key_file_path(const std::string& configuration_file_name) const;
     bool try_load_key_file(const std::string& key_file_path);
     FileContentList create_file_content_list() const;
-    static void update_json(json::Value& new_value,
-            const json::Value& old_value);
-    static void update_json_with_defaults(json::Value& new_value,
-            const json::Value& old_value,  std::string& in_path);
+    static void update_json(json::Json& new_value,
+            const json::Json& old_value);
+    static void update_json_with_defaults(json::Json& new_value,
+            const json::Json& old_value,  std::string& in_path);
 };
 
 } /* namespace configuration */

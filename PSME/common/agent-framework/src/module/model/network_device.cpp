@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ NetworkDevice::NetworkDevice(const std::string& parent_uuid, enums::Component pa
 NetworkDevice::~NetworkDevice() {}
 
 json::Json NetworkDevice::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::NetworkDevice::STATUS] = get_status().to_json();
     result[literals::NetworkDevice::COLLECTIONS] = get_collections().to_json();
     result[literals::NetworkDevice::OEM] = get_oem().to_json();

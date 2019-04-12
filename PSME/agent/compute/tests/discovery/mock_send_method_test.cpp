@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +25,6 @@
 #include "mock/mock_const.hpp"
 #include "mock/configuration_full.hpp"
 
-#include <json/deserializer.hpp>
-#include <json/value.hpp>
 #include <gtest/gtest.h>
 #include <memory>
 
@@ -44,8 +42,7 @@ using namespace agent::compute::discovery;
 class MockSendMethodTest: public ::testing::Test {
 private:
     void load_config_and_build_compute() {
-        deserializer << COMPUTE_FULL_CONFIGURATION;
-        deserializer >> config;
+        config = json::Json::parse(COMPUTE_FULL_CONFIGURATION);
         bool is_loaded = loader.load(config);
 
         if (!is_loaded) {
@@ -67,8 +64,7 @@ private:
 protected:
 
     ComputeLoader loader{};
-    json::Value config;
-    json::Deserializer deserializer{};
+    json::Json config = json::Json();
     string manager_uuid{};
 public:
 

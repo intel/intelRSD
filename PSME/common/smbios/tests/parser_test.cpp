@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -228,8 +228,8 @@ TEST_F(SmbiosParserTest, IterateOverFPGA) {
     EXPECT_EQ(0x21, fpga.data.fpga_pcie_function_identifier);
     EXPECT_EQ(uint32_t(((0x12 << 8 | 0x61) << 8 | 0x32) << 8 | 0x02), fpga.data.thermal_design_power);
     EXPECT_EQ(0x02, static_cast<uint8_t>(fpga.data.memory_technology));
-    EXPECT_EQ(uint32_t(((0x38 << 8 | 0x47) << 8 | 0x55) << 8 | 0x01), fpga.data.on_package_memory_capacity);
-    EXPECT_EQ(uint16_t(0x63 << 8 | 0x42), fpga.data.on_package_memory_speed);
+    EXPECT_EQ(uint32_t(((0x38 << 8 | 0x47) << 8 | 0x55) << 8 | 0x01), fpga.data.integrated_memory_capacity);
+    EXPECT_EQ(uint16_t(0x63 << 8 | 0x42), fpga.data.integrated_memory_speed);
 }
 
 
@@ -268,8 +268,8 @@ TEST_F(SmbiosParserTest, IterateOverFPGAOem) {
     EXPECT_EQ(0x21, fpga.data.fpga_pcie_function_identifier);
     EXPECT_EQ(uint32_t(((0x12 << 8 | 0x61) << 8 | 0x32) << 8 | 0x02), fpga.data.thermal_design_power);
     EXPECT_EQ(0x02, static_cast<uint8_t>(fpga.data.memory_technology));
-    EXPECT_EQ(uint32_t(((0x38 << 8 | 0x47) << 8 | 0x55) << 8 | 0x01), fpga.data.on_package_memory_capacity);
-    EXPECT_EQ(uint16_t(0x63 << 8 | 0x42), fpga.data.on_package_memory_speed);
+    EXPECT_EQ(uint32_t(((0x38 << 8 | 0x47) << 8 | 0x55) << 8 | 0x01), fpga.data.integrated_memory_capacity);
+    EXPECT_EQ(uint16_t(0x63 << 8 | 0x42), fpga.data.integrated_memory_speed);
 }
 
 
@@ -354,4 +354,61 @@ TEST_F(SmbiosParserTest, IterateOverMemoryExtended) {
     EXPECT_STREQ("XYZ_5678", memory.get_string(memory.data.firmware_api_version).c_str());
     EXPECT_EQ(uint32_t(((0x67 << 8 | 0x45) << 8 | 0x23) << 8 | 0x12), memory.data.max_tdp);
     EXPECT_EQ(0x07, memory.data.smbus_address);
+}
+
+
+TEST_F(SmbiosParserTest, SpeedSelectWithZeroConfigs) {
+    SmbiosParser parser(reinterpret_cast<const uint8_t*>(fixture::smbios_v3_with_zero_speed_select_configs),
+                        sizeof(fixture::smbios_v3_with_zero_speed_select_configs));
+    auto speed_select_infos = parser.get_all<SMBIOS_SPEED_SELECT_INFO_DATA>();
+    ASSERT_EQ(1, speed_select_infos.size());
+    auto speed_select = speed_select_infos.front();
+    EXPECT_EQ(210, speed_select.header.type);
+    EXPECT_EQ(16, speed_select.header.length);
+    EXPECT_EQ(1, speed_select.header.handle);
+    EXPECT_EQ(0, speed_select.data.socket_number);
+    EXPECT_EQ(1, speed_select.data.structure_version);
+    EXPECT_EQ(0, speed_select.data.number_of_configs);
+    EXPECT_EQ(0, speed_select.data.current_config);
+    ASSERT_EQ(0, speed_select.configs.size());
+}
+
+TEST_F(SmbiosParserTest, SpeedSelectWithOneConfig) {
+    SmbiosParser parser(reinterpret_cast<const uint8_t*>(fixture::smbios_v3_with_one_speed_select_config),
+        sizeof(fixture::smbios_v3_with_one_speed_select_config));
+    auto speed_select_infos = parser.get_all<SMBIOS_SPEED_SELECT_INFO_DATA>();
+    ASSERT_EQ(1, speed_select_infos.size());
+    auto speed_select = speed_select_infos.front();
+    EXPECT_EQ(210, speed_select.header.type);
+    EXPECT_EQ(48, speed_select.header.length);
+    EXPECT_EQ(1, speed_select.header.handle);
+    EXPECT_EQ(0, speed_select.data.socket_number);
+    EXPECT_EQ(1, speed_select.data.structure_version);
+    EXPECT_EQ(1, speed_select.data.number_of_configs);
+    EXPECT_EQ(0, speed_select.data.current_config);
+    ASSERT_EQ(1, speed_select.configs.size());
+    auto config = speed_select.configs.front();
+    EXPECT_EQ(0, config.configuration_number);
+    EXPECT_EQ(18, config.high_priority_core_count);
+}
+
+
+TEST_F(SmbiosParserTest, SpeedSelectWithThreeConfigs) {
+    SmbiosParser parser(reinterpret_cast<const uint8_t*>(fixture::smbios_v3_with_three_speed_select_configs),
+                        sizeof(fixture::smbios_v3_with_three_speed_select_configs));
+    auto speed_select_infos = parser.get_all<SMBIOS_SPEED_SELECT_INFO_DATA>();
+    ASSERT_EQ(1, speed_select_infos.size());
+    auto speed_select = speed_select_infos.front();
+    EXPECT_EQ(210, speed_select.header.type);
+    EXPECT_EQ(112, speed_select.header.length);
+    EXPECT_EQ(1, speed_select.header.handle);
+    EXPECT_EQ(0, speed_select.data.socket_number);
+    EXPECT_EQ(1, speed_select.data.structure_version);
+    EXPECT_EQ(3, speed_select.data.number_of_configs);
+    EXPECT_EQ(0, speed_select.data.current_config);
+    ASSERT_EQ(3, speed_select.configs.size());
+    auto config = speed_select.configs.front();
+    EXPECT_EQ(0, config.configuration_number);
+    EXPECT_EQ(18, config.high_priority_core_count);
+    EXPECT_EQ("TBD0", speed_select.get_string(config.high_priority_code_apic_ids));
 }

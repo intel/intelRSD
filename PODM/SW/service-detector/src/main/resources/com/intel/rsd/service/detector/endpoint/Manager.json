@@ -1,0 +1,18 @@
+{
+  "@odata.context": "/redfish/v1/$metadata$Manager.Manager",
+  "@odata.id": null,
+  "@odata.type": "#Manager.v1_5_0.Manager",
+  "Id": null,
+  "Name": null,
+  "Status": {
+    "State": null
+  },
+  "ServiceEntryPointUUID": null,
+  "RemoteRedfishServiceUri": null,
+  "RemoteRedfishServiceType": null,
+  "Oem":{
+    "Intel_RackScale": {
+      "Trusted": false
+    }
+  }
+}

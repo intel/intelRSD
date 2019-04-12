@@ -1,8 +1,7 @@
 /*!
  * @brief Definition of NvmeConfig class.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file config.hpp
  */
 
@@ -94,20 +92,6 @@ public:
     std::string get_parent_id();
 
     /*!
-     * @brief Set "is-target" boolean attribute
-     *
-     * @param[in] is_target boolean value
-     */
-    void set_is_target(bool is_target);
-
-    /*!
-     * @brief Get "is-target" boolean attribute
-     *
-     * @return Is target
-     */
-    bool get_is_target();
-
-    /*!
      * @brief Set rdma port
      * @param rdma_port
      */
@@ -163,7 +147,6 @@ private:
     uint32_t m_location_offset{};
     uint32_t m_rdma_port{};
     std::string m_parent_id{};
-    bool m_is_target{};
     EndpointCreatorPtr m_endpoint_creator{};
     std::map<Uuid, uint16_t> m_endpoint_nvme_port_map{};
 };

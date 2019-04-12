@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,12 +23,9 @@
 
 #pragma once
 #include "is_framework_enum.hpp"
-#include "optional/optional-lib/optional.hpp"
-#include "optional/extensions.hpp"
 #include "json_converter.hpp"
 #include "json-wrapper/json-wrapper.hpp"
-
-#include "json/json.hpp"
+#include "optional/optional.hpp"
 
 #include <cstdint>
 #include <string>
@@ -50,13 +47,13 @@ template<typename T>
 class OptionalField : public std::experimental::optional<T> {
     template<class U>
     using optional = std::experimental::optional<U>;
+
 public:
     /* Enable copy and move construction */
     OptionalField() = default;
     OptionalField(const OptionalField&) = default;
     OptionalField(OptionalField&&) = default;
     ~OptionalField() = default;
-
     /* Enable assignment and move assignment */
     OptionalField& operator=(const OptionalField& in_optional_field) = default;
     OptionalField& operator=(OptionalField&& in_optional_field) = default;
@@ -82,13 +79,6 @@ public:
     }
 
     /*!
-     * @brief json::Value to OptionalField conversion constructor
-     * */
-    OptionalField(const json::Value& json) {
-        *this = JsonConverter<json::Value>::from_json<T>(json);
-    }
-
-    /*!
      * @brief Assignment operator
      *
      * The template character of this converting constructor is needed so that
@@ -103,11 +93,6 @@ public:
         if(!(this->has_value()) || rhs != *this) { optional<T>::operator=(T(rhs)); }
         return *this;
     }
-
-    /*!
-     * @brief ObjectField to json::Value conversion operator
-     * */
-    operator json::Value() const;
 
     /*!
      * @brief ObjectField to template parameter conversion operator
@@ -494,15 +479,6 @@ bool operator!=(const  T& lhs, const OptionalField<T>& rhs) {
 template<typename T, typename std::enable_if<model::utils::is_framework_enum<T>::value>::type* = nullptr>
 bool operator!=(const typename T::underlying_type& lhs, const OptionalField<T>& rhs) {
     return !(rhs == lhs);
-}
-
-template<typename T>
-OptionalField<T>::operator json::Value() const {
-    if(this->has_value()) {
-        return JsonConverter<json::Value>::to_json(this->value());
-    } else {
-        return JsonConverter<json::Value>::to_json(json::Value::Type::NIL);
-    }
 }
 
 template<typename T, typename std::enable_if<!model::utils::is_framework_enum<T>::value>::type* = nullptr>

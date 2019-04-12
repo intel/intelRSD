@@ -1,5 +1,5 @@
 {
-    "service" : "nvme",
+    "service" : "gpt-nvme",
     "agent": {
         "vendor" : "Intel Corporation",
         "capabilities" : [ "NVMe" ]
@@ -18,12 +18,11 @@
             "locationOffset": 10,
             "parentId": "1",
             "nic-drivers": "ixgbe i40e mlx5_core mlx4_core",
-            "is-target": true,
             "rdma-port": 4420
         }
     ],
     "database": {
-        "location": "/var/opt/psme/nvme"
+        "location": "/var/opt/psme/gpt-nvme"
     },
     "loggers" : [
         {

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,8 +68,8 @@ TEST(GetRemoteEthernetSwitchInfoTest, PositiveExecute) {
     MyGetRemoteEthernetSwitchInfo command{TEST_UUID};
     GetRemoteEthernetSwitchInfo::Request request{""};
     GetRemoteEthernetSwitchInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::RemoteEthernetSwitch::SWITCH] = TEST_UUID;
 
@@ -102,8 +102,8 @@ TEST(GetRemoteEthernetSwitchInfoTest, NegativeComponentNotFound) {
     MyGetRemoteEthernetSwitchInfo command{TEST_UUID};
     GetRemoteEthernetSwitchInfo::Request request{""};
     GetRemoteEthernetSwitchInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::RemoteEthernetSwitch::SWITCH] = "8d2c1ac0-2f82-11e5-8333-0002a5d5c51c";
 
@@ -116,8 +116,8 @@ TEST(GetRemoteEthernetSwitchInfoTest, NegativeInvalidUUIDFormat) {
     MyGetRemoteEthernetSwitchInfo command{TEST_UUID};
     GetRemoteEthernetSwitchInfo::Request request{""};
     GetRemoteEthernetSwitchInfo::Response response{};
-    json::Json params;
-    json::Json result;
+    json::Json params = json::Json();
+    json::Json result = json::Json();
 
     params[literals::RemoteEthernetSwitch::SWITCH] = "TestUUID";
 

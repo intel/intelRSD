@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  *
  * @brief Grantley MDR region accessor declaration
  *
- * @header{Filesystem}
  * @file grantley_mdr_region_accessor.hpp
  */
 
@@ -41,6 +39,7 @@ public:
 
 private:
     std::uint8_t get_mdr_region_checksum() override;
+    [[noreturn]] std::uint8_t get_mdr_region_update_count() override;
 };
 
 }

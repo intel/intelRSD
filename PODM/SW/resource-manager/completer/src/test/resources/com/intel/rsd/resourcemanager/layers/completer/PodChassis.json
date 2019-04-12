@@ -1,0 +1,45 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Chassis.Chassis",
+  "@odata.id": "/redfish/v1/Chassis/pod",
+  "@odata.type": "#Chassis.v1_3_0.Chassis",
+  "Id": "pod",
+  "ChassisType": "Pod",
+  "Name": "Pod",
+  "Description": "Pod",
+  "UUID": null,
+  "Status": {
+    "State": "Enabled",
+    "Health": "OK",
+    "HealthRollup": null
+  },
+  "Oem": {
+    "Intel_RackScale": {
+      "@odata.type": "#Intel.Oem.Chassis",
+      "Location": {
+        "Id": "Pod1",
+        "ParentId": null
+      }
+    }
+  },
+  "Links": {
+    "@odata.type": "#Chassis.v1_2_0.Links",
+    "Contains": [],
+    "ContainedBy": null,
+    "ComputerSystems": [],
+    "ManagedBy": [],
+    "ManagersInChassis": [],
+    "Storage": [],
+    "CooledBy": [],
+    "PoweredBy": [],
+    "Drives": [],
+    "Oem": {
+      "Intel_RackScale": {
+        "@odata.type": "#Intel.Oem.ChassisLinks",
+        "Switches": []
+      }
+    }
+  },
+  "Actions": {
+    "Oem": {}
+  }
+}

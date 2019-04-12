@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ using namespace agent_framework::model::literals;
 GetPortVlanInfo::GetPortVlanInfo(const std::string& port_vlan): m_port_vlan(port_vlan){}
 
 json::Json GetPortVlanInfo::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[EthernetSwitchPortVlan::PORT_VLAN] = m_port_vlan;
     return value;
 }

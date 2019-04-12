@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ DeleteVolume::DeleteVolume(attribute::Oem oem) : m_oem{oem} {}
 
 
 json::Json DeleteVolume::to_json() const {
-    json::Json value{};
+    json::Json value = json::Json();
     value[Volume::OEM] = m_oem.to_json();
     if (m_task.has_value()) {
         value[TaskEntry::TASK] = m_task;

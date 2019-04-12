@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -116,6 +116,24 @@ public:
 
 
     /*!
+     * @brief Set latency tracking enabled
+     * @param latency_tracking_enabled Drive's latency tracking status
+     * */
+    void set_latency_tracking_enabled(const OptionalField<bool>& latency_tracking_enabled) {
+        m_latency_tracking_enabled = latency_tracking_enabled;
+    }
+
+
+    /*!
+     * @brief Get latency tracking enabled
+     * @return Latency tracking enabled
+     * */
+    const OptionalField<bool>& get_latency_tracking_enabled() const {
+        return m_latency_tracking_enabled;
+    }
+
+
+    /*!
      * Gets FRU info
      * @return FRU info reference
      * */
@@ -191,7 +209,7 @@ public:
      * Gets the interface
      * @return Drive's interface
      * */
-    const OptionalField<enums::StorageProtocol>& get_interface() const {
+    const OptionalField<enums::TransportProtocol>& get_interface() const {
         return m_interface;
     }
 
@@ -200,7 +218,7 @@ public:
      * Sets drive interface
      * @param[in] interface Drive interface
      * */
-    void set_interface(const OptionalField<enums::StorageProtocol>& interface) {
+    void set_interface(const OptionalField<enums::TransportProtocol>& interface) {
         m_interface = interface;
     }
 
@@ -646,11 +664,12 @@ public:
 
 private:
 
-    OptionalField<enums::StorageProtocol> m_interface{};
+    OptionalField<enums::TransportProtocol> m_interface{};
     OptionalField<enums::DriveType> m_type{};
     OptionalField<double> m_capacity_gb{};
     attribute::FruInfo m_fru_info{};
     OptionalField<std::string> m_firmware_version{};
+    OptionalField<bool> m_latency_tracking_enabled{};
     OptionalField<std::uint32_t> m_rpm{};
     OptionalField<enums::IndicatorLed> m_indicator_led{};
     OptionalField<std::string> m_asset_tag{};
@@ -683,7 +702,6 @@ private:
     std::vector<std::string> m_dsp_port_uuids{};
     // stores health previously read from smart
     enums::Health m_last_smart_health{enums::Health::OK};
-
 
 };
 

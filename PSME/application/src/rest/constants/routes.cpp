@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -95,6 +95,24 @@ const std::string Routes::SUBSCRIPTION_PATH =
         .append_regex(constants::PathParam::SUBSCRIPTION_ID, constants::PathParam::ID_REGEX)
         .build();
 
+// "/redfish/v1/SessionService"
+const std::string Routes::SESSION_SERVICE_PATH =
+    endpoint::PathBuilder(constants::PathParam::BASE_URL)
+        .append(constants::Root::SESSION_SERVICE)
+        .build();
+
+// "/redfish/v1/SessionService/Sessions"
+const std::string Routes::SESSION_COLLECTION_PATH =
+    PathBuilder(SESSION_SERVICE_PATH)
+        .append(constants::SessionService::SESSIONS)
+        .build();
+
+// "/redfish/v1/SessionService/Sessions/{sessionId:[0-9]+}"
+const std::string Routes::SESSION_PATH =
+    PathBuilder(SESSION_COLLECTION_PATH)
+        .append_regex(constants::PathParam::SESSION_ID, constants::PathParam::ID_REGEX)
+        .build();
+
 // "/redfish/v1/MessageRegistryFiles"
 const std::string Routes::MESSAGE_REGISTRY_FILE_COLLECTION_PATH =
     PathBuilder(constants::PathParam::BASE_URL)
@@ -105,12 +123,6 @@ const std::string Routes::MESSAGE_REGISTRY_FILE_COLLECTION_PATH =
 const std::string Routes::MESSAGE_REGISTRY_FILE_PATH =
     PathBuilder(MESSAGE_REGISTRY_FILE_COLLECTION_PATH)
         .append_regex(constants::PathParam::MESSAGE_REGISTRY_FILE_ID, constants::PathParam::ID_REGEX)
-        .build();
-
-// "/redfish/v1/MessageRegistry"
-const std::string Routes::MESSAGE_REGISTRY_PATH =
-    PathBuilder(constants::PathParam::BASE_URL)
-        .append(constants::Root::MESSAGE_REGISTRY)
         .build();
 
 // "/redfish/v1/TaskService"
@@ -179,7 +191,7 @@ const std::string Routes::DRIVE_METRICS_PATH =
 const std::string Routes::DRIVE_SECURE_ERASE_PATH =
     PathBuilder(DRIVE_PATH)
         .append(constants::Common::ACTIONS)
-        .append(constants::PncDrive::SECURE_ERASE_ENDPOINT)
+        .append(constants::Drive::SECURE_ERASE_ENDPOINT)
         .build();
 
 // "/redfish/v1/Chassis/{chassisId:[0-9]+}/PCIeDevices"
@@ -311,6 +323,14 @@ const std::string Routes::SYSTEM_CHANGE_TPM_STATE_PATH =
         .append(constants::System::INTEL_OEM_CHANGE_TPM_STATE)
         .build();
 
+// "/redfish/v1/Systems/{systemId:[0-9]+}/Actions/Oem/Intel.Oem.EraseOptaneDCPersistentMemory"
+const std::string Routes::MEMORY_ERASE_DCPMEM_PATH =
+    PathBuilder(SYSTEM_PATH)
+        .append(constants::Common::ACTIONS)
+        .append(constants::Common::OEM)
+        .append(constants::System::INTEL_OEM_ERASE_OPTANE_DC_PERSISTENT_MEMORY)
+        .build();
+
 // "/redfish/v1/Systems/{systemId:[0-9]+}/Storage"
 const std::string Routes::STORAGE_SUBSYSTEMS_COLLECTION_PATH =
     PathBuilder(SYSTEM_PATH)
@@ -395,16 +415,31 @@ const std::string Routes::NETWORK_DEVICE_FUNCTION_PATH =
         .append_regex(constants::PathParam::NETWORK_DEVICE_FUNCTION_ID, constants::PathParam::ID_REGEX)
         .build();
 
-// "/redfish/v1/Systems/{systemId:[0-9]+}/Processors/{processorId:[0-9]+}/Metrics"
+// "/redfish/v1/Systems/{systemId:[0-9]+}/Processors/{processorId:[0-9]+}/Oem/Intel_RackScale/Metrics"
 const std::string Routes::PROCESSORS_METRICS_PATH =
     PathBuilder(PROCESSOR_PATH)
+        .append(constants::PathParam::OEM_INTEL_RACKSCALE)
         .append(constants::Common::METRICS)
+        .build();
+
+// "/redfish/v1/Systems/{systemId:[0-9]+}/Processors/{processorId:[0-9]+}/Actions/Oem/Intel.Oem.SecureErase"
+const std::string Routes::PROCESSORS_SECURE_ERASE_PATH =
+    PathBuilder(PROCESSOR_PATH)
+        .append(constants::Common::ACTIONS)
+        .append(constants::Common::OEM)
+        .append(constants::Fpga::SECURE_ERASE)
         .build();
 
 // "/redfish/v1/Systems/{systemId:[0-9]+}/Metrics"
 const std::string Routes::SYSTEM_METRICS_PATH =
     PathBuilder(SYSTEM_PATH)
         .append(constants::Common::METRICS)
+        .build();
+
+// "/redfish/v1/Systems/{systemId:[0-9]+}/StorageServices"
+const std::string Routes::SYSTEM_STORAGE_SERVICES_PATH =
+    PathBuilder(SYSTEM_PATH)
+        .append(constants::Common::STORAGE_SERVICES)
         .build();
 
 // "/redfish/v1/EthernetSwitches"
@@ -523,26 +558,47 @@ const std::string Routes::STORAGE_POOL_COLLECTION_PATH =
         .append(constants::StorageService::STORAGE_POOLS)
         .build();
 
-// "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{StoragePoolId:[0-9]+}/AllocatedVolumes"
-const std::string Routes::ALLOCATED_VOLUMES_COLLECTION_PATH =
-    PathBuilder(STORAGE_SERVICE_PATH)
-        .append(constants::StorageService::STORAGE_POOLS)
-        .append_regex(constants::PathParam::STORAGE_POOL_ID, constants::PathParam::ID_REGEX)
-        .append(constants::Swordfish::ALLOCATED_VOLUMES)
-        .build();
-
-// "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{StoragePoolId:[0-9]+}/AllocatedPools"
-const std::string Routes::ALLOCATED_POOLS_COLLECTION_PATH =
-        PathBuilder(STORAGE_SERVICE_PATH)
-                .append(constants::StorageService::STORAGE_POOLS)
-                .append_regex(constants::PathParam::STORAGE_POOL_ID, constants::PathParam::ID_REGEX)
-                .append(constants::Swordfish::ALLOCATED_POOLS)
-                .build();
-
 // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}"
 const std::string Routes::STORAGE_POOL_PATH =
     PathBuilder(STORAGE_POOL_COLLECTION_PATH)
         .append_regex(constants::PathParam::STORAGE_POOL_ID, constants::PathParam::ID_REGEX)
+        .build();
+
+// "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}/AllocatedVolumes"
+const std::string Routes::ALLOCATED_VOLUMES_COLLECTION_PATH =
+    PathBuilder(STORAGE_POOL_PATH)
+        .append(constants::Swordfish::ALLOCATED_VOLUMES)
+        .build();
+
+// "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}/AllocatedPools"
+const std::string Routes::ALLOCATED_POOLS_COLLECTION_PATH =
+    PathBuilder(STORAGE_POOL_PATH)
+        .append(constants::Swordfish::ALLOCATED_POOLS)
+        .build();
+
+// "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+}
+const std::string Routes::STORAGE_POOL_CAPACITY_SOURCE =
+    PathBuilder(STORAGE_POOL_PATH)
+        .append(constants::Swordfish::CAPACITY_SOURCES)
+        .append_regex(constants::PathParam::CAPACITY_SOURCE_ID, constants::PathParam::ID_REGEX)
+        .build();
+
+// "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+/ProvidingDrives}
+const std::string Routes::STORAGE_POOL_PROVIDING_DRIVES_COLLECTION =
+    PathBuilder(STORAGE_POOL_CAPACITY_SOURCE)
+        .append(constants::Swordfish::PROVIDING_DRIVES)
+        .build();
+
+// "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+/ProvidingPools}
+const std::string Routes::STORAGE_POOL_PROVIDING_POOLS_COLLECTION =
+    PathBuilder(STORAGE_POOL_CAPACITY_SOURCE)
+        .append(constants::Swordfish::PROVIDING_POOLS)
+        .build();
+
+// "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{storagePoolId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+/ProvidingVolumes}
+const std::string Routes::STORAGE_POOL_PROVIDING_VOLUMES_COLLECTION =
+    PathBuilder(STORAGE_POOL_CAPACITY_SOURCE)
+        .append(constants::Swordfish::PROVIDING_VOLUMES)
         .build();
 
 // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/Volumes/"
@@ -561,6 +617,31 @@ const std::string Routes::VOLUME_PATH =
 const std::string Routes::VOLUME_METRICS_PATH =
     PathBuilder(VOLUME_PATH)
         .append(constants::Common::METRICS)
+        .build();
+
+// "redfish/v1/StorageServices/{serviceId:[0-9]+}/Volumes/{volumeId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+}"
+const std::string Routes::VOLUME_CAPACITY_SOURCE =
+    PathBuilder(VOLUME_PATH)
+        .append(constants::Swordfish::CAPACITY_SOURCES)
+        .append_regex(constants::PathParam::CAPACITY_SOURCE_ID, constants::PathParam::ID_REGEX)
+        .build();
+
+// "/redfish/v1/StorageServices/{serviceId:[0-9]+}/Volumes/{VolumeId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+/ProvidingPools}
+const std::string Routes::VOLUME_PROVIDING_POOLS_COLLECTION =
+    PathBuilder(VOLUME_CAPACITY_SOURCE)
+        .append(constants::Swordfish::PROVIDING_POOLS)
+        .build();
+
+// "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{StoragePoolId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+/ProvidingVolumes}
+const std::string Routes::VOLUME_PROVIDING_VOLUMES_COLLECTION =
+    PathBuilder(VOLUME_CAPACITY_SOURCE)
+        .append(constants::Swordfish::PROVIDING_VOLUMES)
+        .build();
+
+// "/redfish/v1/StorageServices/{serviceId:[0-9]+}/StoragePools/{StoragePoolId:[0-9]+}/CapacitySources/{capacitySourceId:[0-9]+/ProvidingDrives}
+const std::string Routes::VOLUME_PROVIDING_DRIVES_COLLECTION =
+    PathBuilder(VOLUME_CAPACITY_SOURCE)
+        .append(constants::Swordfish::PROVIDING_DRIVES)
         .build();
 
 // "/redfish/v1/StorageServices/{serviceId:[0-9]+}/Volumes/{volumeId:[0-9]+}/Actions/Volume.Initialize"
@@ -656,44 +737,80 @@ const std::string Routes::PORT_RESET_PATH =
         .append(constants::Port::PORT_RESET_ENDPOINT)
         .build();
 
-// "/redfish/v1/TelemetryService"
+// "/redfish/v1/Oem/Intel_RackScale/TelemetryService"
 const std::string Routes::TELEMETRY_SERVICE_PATH =
     endpoint::PathBuilder(constants::PathParam::BASE_URL)
+        .append(constants::PathParam::OEM_INTEL_RACKSCALE)
         .append(constants::Root::TELEMETRY_SERVICE)
         .build();
 
-// "/redfish/v1/TelemetryService/MetricDefinitions"
+// "/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricDefinitions"
 const std::string Routes::METRIC_DEFINITIONS_COLLECTION_PATH =
     endpoint::PathBuilder(TELEMETRY_SERVICE_PATH)
         .append(constants::TelemetryService::METRIC_DEFINITIONS)
         .build();
 
-// "/redfish/v1/TelemetryService/MetricDefinitions/{metricDefinitionId}"
+// "/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricDefinitions/{metricDefinitionId}"
 const std::string Routes::METRIC_DEFINITION_PATH =
     endpoint::PathBuilder(METRIC_DEFINITIONS_COLLECTION_PATH)
         .append_regex(constants::PathParam::METRIC_DEFINITION_ID, constants::PathParam::ID_REGEX)
         .build();
 
-// "/redfish/v1/TelemetryService/MetricReportDefinitions"
+// "/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricReportDefinitions"
 const std::string Routes::METRIC_REPORT_DEFINITIONS_COLLECTION_PATH =
     endpoint::PathBuilder(TELEMETRY_SERVICE_PATH)
         .append(constants::TelemetryService::METRIC_REPORT_DEFINITIONS)
         .build();
 
-// "/redfish/v1/TelemetryService/MetricReportDefinitions/{metricReportDefinitionId}"
+// "/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricReportDefinitions/{metricReportDefinitionId}"
 const std::string Routes::METRIC_REPORT_DEFINITION_PATH =
     endpoint::PathBuilder(METRIC_REPORT_DEFINITIONS_COLLECTION_PATH)
         .append_regex(constants::PathParam::METRIC_REPORT_DEFINITION_ID, constants::PathParam::ID_REGEX)
         .build();
 
-// "/redfish/v1/TelemetryService/Triggers"
+// "/redfish/v1/Oem/Intel_RackScale/TelemetryService/Triggers"
 const std::string Routes::TRIGGERS_COLLECTION_PATH =
     endpoint::PathBuilder(TELEMETRY_SERVICE_PATH)
         .append(constants::TelemetryService::TRIGGERS)
         .build();
 
-// "/redfish/v1/TelemetryService/Triggers/{trigger}"
+// "/redfish/v1/Oem/Intel_RackScale/TelemetryService/Triggers/{trigger}"
 const std::string Routes::TRIGGER_PATH =
     endpoint::PathBuilder(TRIGGERS_COLLECTION_PATH)
         .append_regex(constants::PathParam::TRIGGER_ID, constants::PathParam::ID_REGEX)
+        .build();
+
+// "/redfish/v1/AccountService"
+const std::string Routes::ACCOUNT_SERVICE_PATH =
+    endpoint::PathBuilder(constants::PathParam::BASE_URL)
+        .append(constants::Root::ACCOUNT_SERVICE)
+        .build();
+
+// "/redfish/v1/AccountService/Accounts"
+const std::string Routes::ACCOUNTS_COLLECTION_PATH =
+    endpoint::PathBuilder(ACCOUNT_SERVICE_PATH)
+        .append(constants::AccountService::ACCOUNTS)
+        .build();
+
+// "/redfish/v1/AccountService/Accounts/{accountId}
+const std::string Routes::ACCOUNT_PATH =
+    endpoint::PathBuilder(ACCOUNTS_COLLECTION_PATH)
+        .append_regex(constants::PathParam::ACCOUNT_ID, constants::PathParam::ID_REGEX)
+        .build();
+
+// "/redfish/v1/AccountService/Roles"
+const std::string Routes::ROLES_COLLECTION_PATH =
+    endpoint::PathBuilder(ACCOUNT_SERVICE_PATH)
+        .append(constants::AccountService::ROLES)
+        .build();
+
+// "/redfish/v1/AccountService/Roles/{rolesId}"
+const std::string Routes::ROLE_PATH =
+    endpoint::PathBuilder(ROLES_COLLECTION_PATH)
+        .append_regex(constants::PathParam::ROLE_ID, constants::PathParam::STRING_ID_REGEX)
+        .build();
+
+// "/registries/Intel_RackScale.1.0.0.json"
+const std::string Routes::INTEL_RACKSCALE_REGISTRY_PATH =
+    PathBuilder(constants::PathParam::INTEL_RACKSCALE_REGISTRY_URL)
         .build();

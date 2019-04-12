@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@
 
 #include "psme/rest/server/error/message_object.hpp"
 
-#include <json/json.hpp>
+#include "json-wrapper/json-wrapper.hpp"
 #include <string>
 #include <exception>
 
@@ -89,6 +89,12 @@ public:
     /*! @brief Indicates that a property was given the correct value type but the value of that property was not supported. This includes value size/length exceeded. */
     static const constexpr char PROPERTY_VALUE_FORMAT_ERROR[] = "Base.1.0.PropertyValueFormatError";
 
+    /*! @brief Indicates that a property cannot be modified even though the metadata specifies it as writable. */
+    static const constexpr char PROPERTY_NOT_MODIFIABLE[] = "Intel_RackScale.1.0.0.PropertyNotModifiable";
+
+    /*! @brief Indicates that the value given for a property is not within restrictions imposed by the Service (even though it may be correct according to metadata). */
+    static const constexpr char PROPERTY_VALUE_RESTRICTED[] = "Intel_RackScale.1.0.0.PropertyValueRestricted";
+
 
     /*!
      * @brief Create ServerError object with given HTTP status code.
@@ -142,7 +148,7 @@ public:
      *
      * @return Error code.
      * */
-    const std::string& get_code() const;
+    std::string get_code() const;
 
 
     /*!
@@ -159,7 +165,7 @@ public:
      *
      * @return Error message.
      * */
-    const std::string& get_message() const;
+    std::string get_message() const;
 
 
     /*!
@@ -184,7 +190,7 @@ public:
      *
      * @return Json array containing all error messages.
      * */
-    json::Value get_extended_messages() const;
+    json::Json get_extended_messages() const;
 
 
     /*!
@@ -213,7 +219,7 @@ public:
 
 private:
     std::uint32_t m_http_status_code;
-    json::Value m_error;
+    json::Json m_error;
 };
 
 }

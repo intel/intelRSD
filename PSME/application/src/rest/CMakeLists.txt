@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ set(SOURCES
     server/multiplexer.cpp
     server/methods_handler.cpp
     server/content_types.cpp
+    server/http_headers.cpp
     server/utils.cpp
 
     server/error/error_factory.cpp
@@ -47,6 +48,11 @@ set(SOURCES
     server/connector/microhttpd/mhd_connector_options.cpp
     server/connector/microhttpd/mhd_connector.cpp
     rest_server.cpp
+
+    security/account/account.cpp
+    security/account/account_manager.cpp
+    security/account/role.cpp
+    security/account/role_manager.cpp
 
     constants/constants.cpp
     constants/chassis.cpp
@@ -81,6 +87,9 @@ set(SOURCES
     endpoints/event_service.cpp
     endpoints/event_subscriptions_collection.cpp
     endpoints/event_subscription.cpp
+    endpoints/session_service.cpp
+    endpoints/session_collection.cpp
+    endpoints/session.cpp
     endpoints/task_service/task_service.cpp
     endpoints/task_service/task_collection.cpp
     endpoints/task_service/task.cpp
@@ -89,6 +98,7 @@ set(SOURCES
     endpoints/message_registry.cpp
     endpoints/task_service/monitor.cpp
     endpoints/task_service/monitor_content_builder.cpp
+    endpoints/intel_registry.cpp
 
     endpoints/system/systems_collection.cpp
     endpoints/system/system.cpp
@@ -96,12 +106,14 @@ set(SOURCES
     endpoints/system/system_change_tpm_state.cpp
     endpoints/system/processors_collection.cpp
     endpoints/system/processor.cpp
+    endpoints/system/processor_secure_erase.cpp
     endpoints/system/processor_metrics.cpp
     endpoints/system/storage_subsystems_collection.cpp
     endpoints/system/storage_subsystem.cpp
     endpoints/system/memory_collection.cpp
     endpoints/system/memory.cpp
     endpoints/system/memory_metrics.cpp
+    endpoints/system/system_dcpmem_secure_erase.cpp
     endpoints/system/system_network_interface_collection.cpp
     endpoints/system/system_network_interface.cpp
     endpoints/system/system_metrics.cpp
@@ -110,6 +122,7 @@ set(SOURCES
     endpoints/system/network_interfaces_collection.cpp
     endpoints/system/network_device_functions_collection.cpp
     endpoints/system/network_device_function.cpp
+    endpoints/system/hosted_storage_services.cpp
 
     endpoints/storage/drive_collection.cpp
     endpoints/storage/storage_service.cpp
@@ -122,6 +135,10 @@ set(SOURCES
     endpoints/storage/volume_initialize.cpp
     endpoints/storage/allocated_volumes_collection.cpp
     endpoints/storage/allocated_pools_collection.cpp
+    endpoints/storage/providing_drives_collection.cpp
+    endpoints/storage/providing_pools_collection.cpp
+    endpoints/storage/providing_volumes_collection.cpp
+    endpoints/storage/capacity_source.cpp
 
     endpoints/ethernet/vlan_network_interface_collection.cpp
     endpoints/ethernet/vlan_network_interface.cpp
@@ -176,9 +193,15 @@ set(SOURCES
     endpoints/telemetry/trigger.cpp
     endpoints/telemetry/triggers_collection.cpp
 
+    endpoints/account_service/account_service.cpp
+    endpoints/account_service/account.cpp
+    endpoints/account_service/account_collection.cpp
+    endpoints/account_service/role.cpp
+    endpoints/account_service/role_collection.cpp
 
 
     endpoints/endpoint_builder.cpp
+
 
     eventing/event.cpp
     eventing/event_array.cpp
@@ -209,6 +232,8 @@ set(SOURCES
     validators/schemas/common.cpp
     validators/schemas/acl.cpp
     validators/schemas/subscription_collection.cpp
+    validators/schemas/session_collection.cpp
+    validators/schemas/session_service.cpp
     validators/schemas/endpoint.cpp
     validators/schemas/endpoints_collection.cpp
     validators/schemas/ethernet_switch.cpp
@@ -235,6 +260,9 @@ set(SOURCES
     validators/schemas/network_device_function.cpp
     validators/schemas/static_mac_collection.cpp
     validators/schemas/volume.cpp
+    validators/schemas/storage_pool.cpp
+    validators/schemas/system_dcpmem_secure_erase.cpp
+    validators/schemas/processor.cpp
 )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
@@ -287,7 +315,15 @@ if(ENABLE_HTTPS)
         server/certs/rmm_cert_loader.cpp
         server/certs/cert_manager.cpp
         server/connector/microhttpd/mhd_ssl_connector.cpp
-    )
+        security/authentication/basic_authentication.cpp
+        security/authentication/session_authentication.cpp
+        security/authentication/authentication_factory.cpp
+        security/session/session.cpp
+        security/session/session_manager.cpp
+        security/session/session_service_manager.cpp
+        security/authentication/client_cert_authentication.cpp
+        security/session/session_service.cpp
+        )
 
     add_definitions(-DENABLE_HTTPS)
 

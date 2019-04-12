@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,11 +26,8 @@ add_gtest(chassis_command agent-framework
 )
 
 target_link_libraries(${test_target}
-    ${AGENT_COMMANDS_LIB}
-    ${AGENT_FRAMEWORK_LIB}
     ${UUID_LIBRARIES}
     ${SAFESTRING_LIBRARIES}
-    ${CONFIGURATION_LIBRARIES}
-    ${JSONCXX_LIBRARIES}
+    configuration
     ${PCA95XX_LIBRARIES}
 )

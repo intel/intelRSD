@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,29 +19,32 @@
 cmake_minimum_required(VERSION 3.4)
 project("UTILS" CXX)
 
-set(UTILS_LIBRARIES
-    utils
-    CACHE PATH "Utility libraries"
-    )
-
+# TODO: remove after switching to modern cmake in compute agent
 set(UTILS_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     CACHE PATH "Utils include directory"
     )
 
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
 add_library(utils STATIC
     src/byte_buffer.cpp
+    src/byte_swap.cpp
+    src/conversion.cpp
+    src/crypt_utils.cpp
     src/hex_dump.cpp
+    src/string_utils.cpp
+    src/transaction/default_transaction_handler.cpp
+    src/transaction/transaction_handler_factory.cpp
 )
 
-install(TARGETS utils
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
+target_include_directories(utils
+    PUBLIC include
+    ${GCRYPT_INCLUDE_DIRS}
+)
+
+target_link_libraries(utils
+    PRIVATE
+    logger
+    gcrypt
 )
 
 add_subdirectory(tests)

@@ -2,7 +2,7 @@
  * @brief MessageRegistryFile class implementation
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,12 +19,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file message_registry_file.hpp
+ * @file message_registry_file.cpp
  * */
 
 #include "psme/rest/registries/model/message_registry_file.hpp"
-
-#include <uuid++.hh>
+#include "uuid/uuid.hpp"
 
 
 
@@ -32,13 +31,7 @@ namespace psme {
 namespace rest {
 namespace registries {
 
-MessageRegistryFile::MessageRegistryFile() {
-    uuid temporary_uuid;
-    temporary_uuid.make(UUID_MAKE_V1);
-    char* uuid_char = temporary_uuid.string();
-    m_uuid = std::string{uuid_char};
-    free(uuid_char);
-}
+MessageRegistryFile::MessageRegistryFile() : m_uuid(make_v1_uuid()) { }
 
 
 void MessageRegistryFile::set_id(const uint64_t& id) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2018-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,34 +14,23 @@
  * limitations under the License.
  */
 
-rootProject.name = 'SW'
+rootProject.name = System.getProperty("rootProjectName", "podzik")
 
-include 'pod-manager'
-include 'pod-manager-common'
-include 'pod-manager-networking'
+gradle.ext.libraryNames = [
+        'podm-common',
+        'podm-spring-hazelcast',
+]
 
-include 'pod-manager-common/config'
-include 'pod-manager-common/enterprise-utils'
-include 'pod-manager-common/classindex'
-include 'pod-manager-common/logger'
-include 'pod-manager-common/security'
-include 'pod-manager-common/serialization'
-include 'pod-manager-common/synchronization'
-include 'pod-manager-common/types'
-include 'pod-manager-common/utils'
-include 'pod-manager-common/vault-decrypter'
-include 'pod-manager/podm-business-api'
-include 'pod-manager/podm-business-entities'
-include 'pod-manager/podm-business-services'
-include 'pod-manager/podm-eventing'
-include 'pod-manager/podm-mappers'
-include 'pod-manager/podm-rest'
-include 'pod-manager/podm-external-services'
-include 'pod-manager/podm-discovery'
-include 'pod-manager/podm-services-detection'
-include 'pod-manager/podm-external-service-configurer'
-include 'pod-manager/ipxe-supplier'
+gradle.ext.libraryNames.forEach { includeBuild(it) }
 
-rootProject.children.each {
-    it.name = it.name.tokenize('/')[-1]
-}
+gradle.ext.serviceNames = [
+        'event-service',
+        'node-composer',
+        'podm-gateway',
+        'resource-manager',
+        'service-registry',
+        'service-detector',
+        'aaa-service',
+]
+
+gradle.ext.serviceNames.forEach { includeBuild(it) }

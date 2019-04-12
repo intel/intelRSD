@@ -2,7 +2,7 @@
  * @brief GetTaskResultInfo class implementation
  *
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ GetTaskResultInfo::GetTaskResultInfo(const std::string& task) : m_task{task} { }
 
 
 json::Json GetTaskResultInfo::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Task::TASK] = m_task;
     return value;
 }

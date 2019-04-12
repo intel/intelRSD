@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,13 +16,19 @@
 #
 # </license_header>
 
-set(SOURCES
+add_library(agent-framework-state-machine STATIC
     bmc.cpp
     bmc_state_machine.cpp
 )
 
-include_directories(
-    ${AGENT_FRAMEWORK_DIR}/src/state_machine
+target_link_libraries(agent-framework-state-machine
+    PUBLIC
+    agent-framework-exceptions
+    agent-framework-module
+    common-include
 )
 
-add_library(state_machine OBJECT ${SOURCES})
+target_include_directories(agent-framework-state-machine
+    PUBLIC
+    ${AGENT_FRAMEWORK_DIR}/include
+)

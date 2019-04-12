@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,6 +48,7 @@ public:
 
     using EndpointPortManager = managers::ManyToManyManager;
     using DriveFunctionManager = managers::ManyToManyManager;
+    using ProcessorFunctionManager = managers::ManyToManyManager;
     using SystemPcieDeviceManager = managers::ManyToManyManager;
 
     virtual ~PncComponents();
@@ -86,12 +87,21 @@ public:
         return m_drive_function_manager;
     }
 
+    /*!
+     * @brief Get manager for Processor-Function mappings
+     * @return manager for Processor-Function mappings
+     * */
+    ProcessorFunctionManager& get_processor_function_manager() {
+        return m_processor_function_manager;
+    }
+
 private:
     SwitchManager m_switch_manager{};
     PortManager m_port_manager{};
 
     EndpointPortManager m_endpoint_port_manager{};
     DriveFunctionManager m_drive_function_manager{};
+    ProcessorFunctionManager m_processor_function_manager{};
 };
 
 }

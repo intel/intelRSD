@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,7 @@ public:
      *
      * @param config Configuration JSON object
      */
-    explicit RegistrationServer(const ::json::Value& config);
+    explicit RegistrationServer(const ::json::Json& config);
 
     /*! @brief EventingServer destructor */
     ~RegistrationServer();

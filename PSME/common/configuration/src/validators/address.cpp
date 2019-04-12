@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,18 +27,18 @@
  * */
 
 #include "configuration/validators/address.hpp"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 using namespace configuration;
 
 AddressValidator::AddressValidator(const std::string& address) :
     m_address_regex{make_regex(address)} {}
 
-bool AddressValidator::is_valid(const json::Value& value) const {
+bool AddressValidator::is_valid(const json::Json& value) const {
     if (!value.is_string()) {
         return false;
     }
-    const auto& val = value.as_string();
+    const auto& val = value.get<std::string>();
     if ("localhost" == val) {
         return true;
     }

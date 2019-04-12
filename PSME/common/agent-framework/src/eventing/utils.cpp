@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ void eventing::send_event(const Uuid& uuid,
                           const model::enums::Notification& notification,
                           const Uuid& parent_uuid) {
 
-    eventing::EventData edat{};
+    model::attribute::EventData edat{};
     edat.set_component(uuid);
     edat.set_type(component);
     edat.set_notification(notification);

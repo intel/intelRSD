@@ -3,7 +3,7 @@
  *
  * File contains all implementations of methods for SetComponentAttributes command.
  *
- * @copyright Copyright (c) 2016-2018 Intel Corporation
+ * @copyright Copyright (c) 2016-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file set_component_attributes.cpp
  */
 
@@ -28,7 +27,7 @@
 #include "agent-framework/module/requests/validation/common.hpp"
 #include "hal/switch_port_info_impl.hpp"
 #include "hal/switch_info_impl.hpp"
-#include "hal/switch_vlan.hpp"
+#include "hal/switch_port_vlan.hpp"
 #include "utils/lag.hpp"
 #include "json-rpc/common.hpp"
 #include <tuple>
@@ -144,7 +143,7 @@ using PortAttributeValue = SwitchPortInfo::PortAttributeValue;
 void set_port_attributes(const EthernetSwitchPort& port, const Attributes& attributes,
                          SetComponentAttributes::Response& response) {
     /* Make sure port is not an empty LAG */
-    NetworkValidator::validate_set_port_attributes(attributes);
+    NetworkValidator::validate_set_port_attributes(port, attributes);
 
     auto network_components = NetworkComponents::get_instance();
     auto& port_vlan_manager = network_components->get_port_vlan_manager();
@@ -172,6 +171,14 @@ void set_port_attributes(const EthernetSwitchPort& port, const Attributes& attri
                 << port.get_port_identifier() << " ]");
 
             if (type == PortAttributeType::PFC_ENABLED) {
+                if (!port.get_pfc_enabled().has_value()) {
+                    THROW(NetworkError, "network-agent",
+                          std::string("PFC Enabled attribute can not be configured on ") +
+                          std::string(port.get_port_identifier()) + std::string(" interface through eAPI. ") +
+                          std::string("This interface has been recognized as inactive - ") +
+                          std::string("check if the splitter cable is plugged in."));
+                }
+
                 // Update PFC state on the port
                 port_info.update_switch_port_pfc_enabled(port.get_pfc_enabled(), attribute_value.get<bool>());
 
@@ -192,6 +199,14 @@ void set_port_attributes(const EthernetSwitchPort& port, const Attributes& attri
             }
 
             else if (type == PortAttributeType::LLDP_ENABLED) {
+                if (!port.get_lldp_enabled().has_value()) {
+                    THROW(NetworkError, "network-agent",
+                          std::string("LLDP Enabled attribute can not be configured on ") +
+                          std::string(port.get_port_identifier()) + std::string(" interface through eAPI. ") +
+                          std::string("This interface has been recognized as inactive - ") +
+                          std::string("check if the splitter cable is plugged in."));
+                }
+
                 // Update LLDP state on the port
                 port_info.update_switch_port_lldp_enabled(port.get_lldp_enabled(), attribute_value.get<bool>());
 
@@ -201,6 +216,14 @@ void set_port_attributes(const EthernetSwitchPort& port, const Attributes& attri
             }
 
             else if (type == PortAttributeType::DCBX_STATE) {
+                if (!port.get_dcbx_state().has_value()) {
+                    THROW(NetworkError, "network-agent",
+                          std::string("DCBX State attribute can not be configured on ") +
+                          std::string(port.get_port_identifier()) + std::string(" interface through eAPI. ") +
+                          std::string("This interface has been recognized as inactive - ") +
+                          std::string("check if the splitter cable is plugged in."));
+                }
+
                 const auto& dcbx_state = DcbxState::from_string(attribute_value.get<std::string>());
 
                 // Update DCBX state on the port
@@ -227,10 +250,10 @@ void set_port_vlan_attributes(const EthernetSwitchPortVlan& port_vlan,
                               const attribute::Attributes& attributes,
                               SetComponentAttributes::Response&) {
     NetworkValidator::validate_set_port_vlan_attributes(attributes);
-    SwitchVlan switch_vlan{};
+    SwitchPortVlan switch_port_vlan{};
     for (const auto& attribute_name : attributes.get_names()) {
-        switch_vlan.set_attribute(port_vlan.get_uuid(), attribute_name,
-                                  attributes.get_value(attribute_name));
+        switch_port_vlan.set_attribute(port_vlan.get_uuid(), attribute_name,
+                                       attributes.get_value(attribute_name));
     }
 }
 

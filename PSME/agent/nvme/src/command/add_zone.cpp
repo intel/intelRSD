@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of AddZone command.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file add_zone.cpp
  */
 
@@ -24,7 +22,6 @@
 #include "loader/config.hpp"
 #include "tools/databases.hpp"
 #include "tools/tools.hpp"
-#include "tools/nvme_transport.hpp"
 
 #include <string>
 #include <vector>
@@ -145,22 +142,6 @@ void separate_endpoints_by_role(const attribute::Array<Uuid>& endpoints,
     }
 }
 
-bool connect(const std::vector<Endpoint>& targets) {
-    bool all_connected{true};
-    for (const auto& target : targets) {
-        try {
-            NvmeTransport::connect(target);
-        }
-        catch (const std::exception& e) {
-            all_connected = false;
-            auto endpoint = get_manager<Endpoint>().get_entry_reference(target.get_uuid());
-            endpoint->set_status({enums::State::Enabled, enums::Health::Critical});
-            log_error("nvme-agent", std::string("Unable to connect to target: ") + e.what());
-        }
-    }
-    return all_connected;
-}
-
 void store_to_database(const Uuid& zone, const AddZone::Request& req) {
     FabricDatabase fabric_db{get_manager<Fabric>().get_keys().front()};
     fabric_db.append(NvmeDatabase::ZONES, zone);
@@ -182,24 +163,11 @@ void add_zone(AddZone::ContextPtr ctx, const AddZone::Request& req, AddZone::Res
 
     zone.set_status({enums::State::Enabled, enums::Health::OK});
     separate_endpoints_by_role(req.get_endpoints(), initiators, targets);
-    if (NvmeConfig::get_instance()->get_is_target()) {
-        // on target host
-        // Add Zone to Database
-        store_to_database(zone.get_uuid(), req);
-        // set allowed hosts filtering
-        if (!initiators.empty() && !targets.empty()) {
-            tools::set_initiator_filter(ctx, initiators.front(), targets);
-        }
-    }
-    else {
-        // on initiator host
-        if (!initiators.empty()) {
-            // TODO: Do not connect if there was a previous connection already established
-            if (!connect(targets)) {
-                // some targets were not connected, set Health to Warning
-                zone.set_status({enums::State::Enabled, enums::Health::Warning});
-            }
-        }
+    // Add Zone to Database
+    store_to_database(zone.get_uuid(), req);
+    // set allowed hosts filtering
+    if (!initiators.empty() && !targets.empty()) {
+        tools::set_initiator_filter(ctx, initiators.front(), targets);
     }
 
     zone.add_collection(model::attribute::Collection(
@@ -210,7 +178,7 @@ void add_zone(AddZone::ContextPtr ctx, const AddZone::Request& req, AddZone::Res
     rsp.set_zone(zone.get_uuid());
     get_manager<Zone>().add_entry(zone);
     add_endpoints_to_zone(req, zone.get_uuid());
-    log_debug("nvme-agent", "Added zone with UUID '" + zone.get_uuid() + "'");
+    log_info("nvme-agent", "Added zone with UUID '" + zone.get_uuid() + "'");
 }
 }
 

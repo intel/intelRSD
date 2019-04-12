@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,11 +28,10 @@
 
 
 
-#include "psme/rest/server/connector/connector.hpp"
 #include "psme/rest/server/connector/connector_options.hpp"
 #include "psme/rest/server/request.hpp"
 #include "psme/rest/server/response.hpp"
-
+#include "psme/rest/security/authentication/authentication.hpp"
 #include <functional>
 #include <memory>
 
@@ -66,6 +65,9 @@ public:
 
     /*! @brief Callback handler for processing HTTP requests */
     typedef std::function<void(const Request&, Response&)> Callback;
+
+    /*! @brief Callback handler for handling unauthenticated requests */
+    typedef std::function<bool(const std::string&, const std::string&, bool)> UnauthenticatedAccessCallback;
 
 
     /*!
@@ -106,6 +108,20 @@ public:
 
 
     /*!
+     * @brief Setter for UnauthenticatedAccessCallback permitting access to public resources.
+     * @param[in] callback UnauthenticatedAccessCallback permitting access to public resources.
+     */
+    void set_unauthenticated_access_callback(const UnauthenticatedAccessCallback& callback);
+
+
+    /*!
+     * @brief Setter for Authentication objects in this connector.
+     * @param[in] authentications vector of unique pointers to Authentication objects.
+     */
+    void set_authentication(std::vector<security::authentication::AuthenticationUPtr> authentications);
+
+
+    /*!
      * @brief ConnectorOptions getter.
      * @return ConnectorOptions used for Connector initialization.
      * */
@@ -128,12 +144,57 @@ public:
     bool is_redirect_enabled() const;
 
 
+    /*!
+     * @brief Checks if authentication for this connector is enabled.
+     * @return true if any type of authentication is enabled for this connector.
+     */
+    bool is_authentication_enabled() const;
+
+
+    /*!
+     * @brief Calls m_authentication member to perform authentication.
+     * @param connection MHD_Connection struct type from microhttpd library returned by every connection callbacks for
+     * each connection.
+     * @param url Url of the resource requested by client.
+     * @param response Response object to set and send if session authentication fails.
+     * @return AuthStatus indicating session authentication result - FAIL if authentication failed, SUCCESS if succeeded.
+     */
+    security::authentication::AuthStatus
+    authenticate(MHD_Connection* connection, const std::string& url, Response& response) const;
+
+
+    /*!
+     * @brief Performs client authentication using client certificates.
+     * @param connection MHD_Connection struct type from microhttpd library returned by every connection callbacks for
+     * each connection.
+     * @param url Url of the resource requested by client.
+     * @param response Response object to set and send if session authentication fails.
+     * @return AuthStatus indicating session authentication result - FAIL if authentication failed, SUCCESS if succeeded.
+     */
+    security::authentication::AuthStatus
+    client_cert_authenticate(MHD_Connection* connection, const std::string& url, Response& response) const;
+
+
+    /*!
+     * @brief Calls m_public_access_callback callback to check for unauthenticated access to given resource and method
+     * @param http_method http method from the request
+     * @param url identifier of the requested resource
+     * @param connection_secure connection security flag. True if connection is secure (https), false if not secure (http).
+     * @return true if unauthenticated access is allowed for given resource and method
+     */
+    bool
+    unauthenticated_access_feasible(const std::string& http_method, const std::string& url, bool connection_secure);
+
+
 private:
     void try_handle(const Request& request, Response& response);
+
 
     ConnectorOptions m_options;
     AccessCallback m_access_callback;
     Callback m_callback;
+    UnauthenticatedAccessCallback m_public_access_callback;
+    std::vector<security::authentication::AuthenticationUPtr> m_authentication{};
 };
 
 /*! Connector Unique Pointer */

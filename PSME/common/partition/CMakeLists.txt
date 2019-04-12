@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,29 +19,6 @@
 cmake_minimum_required(VERSION 3.4)
 project("Partition" CXX)
 
-set(PARTITION_LIBRARIES
-    partition
-    ${CRC_LIBRARIES}
-    ${UTILS_LIBRARIES}
-    ${UUID_LIBRARIES}
-    ${SAFESTRING_LIBRARIES}
-    CACHE PATH "Partition libraries"
-    )
-
-set(PARTITION_INCLUDE_DIRS
-    ${UTILS_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    CACHE PATH "Partition include directory"
-    )
-
-include_directories(
-    ${UTILS_INCLUDE_DIRS}
-    ${CRC_INCLUDE_DIRS}
-    ${UUID_INCLUDE_DIRS}
-    ${SAFESTRING_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
-
 add_library(partition STATIC
     src/abstract_drive_interface.cpp
     src/file_drive_interface.cpp
@@ -51,10 +28,14 @@ add_library(partition STATIC
     src/gpt_partition_table.cpp
 )
 
-install(TARGETS partition
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
+target_include_directories(partition
+    SYSTEM PRIVATE ${SAFESTRING_INCLUDE_DIRS}
+    PUBLIC include
+)
+
+target_link_libraries(partition
+    PRIVATE ${SAFESTRING_LIBRARIES} crc uuid
+    PUBLIC utils
 )
 
 add_subdirectory(tests)

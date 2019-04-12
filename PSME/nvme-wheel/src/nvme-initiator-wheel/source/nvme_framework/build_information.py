@@ -24,4 +24,4 @@
 
 
 class BuildInformation:
-    BUILD_INFORMATION = '1.3.14'
+    BUILD_INFORMATION = '1.3.21'

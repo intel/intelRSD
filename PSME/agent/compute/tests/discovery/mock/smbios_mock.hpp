@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -79,9 +79,9 @@ static const uint8_t smbios[] = {
     0x55,                   // uint8_t fpga_pcie_device_identifier;
     0x21,                   // uint8_t fpga_pcie_function_identifier;
     0x02, 0x32, 0x61, 0x12, // uint32_t thermal_design_power;
-    0x02,                   // OnPackageMemoryTechnology memory_technology;
-    0x01, 0x55, 0x47, 0x38, // uint32_t on_package_memory_capacity;
-    0x42, 0x63,             // uint16_t on_package_memory_speed;
+    0x02,                   // IntegratedMemoryTechnology memory_technology;
+    0x01, 0x55, 0x47, 0x38, // uint32_t integrated_memory_capacity;
+    0x42, 0x63,             // uint16_t integrated_memory_speed;
     'A', 'L', 'T', 'E', 'R', 'A', 0x00,
     '0', 'x', 'F', 'F', 0x00,
     'C', 'P', 'U', ' ', 'I', 'n', 't', 'e', 'g', 'r', 'a', 't', 'e', 'd', ' ',

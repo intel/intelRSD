@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,6 @@
 #include "agent-framework/module/requests/network.hpp"
 #include "agent-framework/module/responses/network.hpp"
 #include "agent-framework/module/responses/common.hpp"
-#include "agent-framework/module/utils/json_transformations.hpp"
 
 
 
@@ -49,59 +48,59 @@ using namespace agent_framework::model;
 using PatchMembersRequest = std::tuple<requests::AddEthernetSwitchPortMembers, requests::DeleteEthernetSwitchPortMembers>;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#EthernetSwitchPort.EthernetSwitchPort";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#EthernetSwitchPort.v1_1_0.EthernetSwitchPort";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Ethernet Switch Port";
     r[Common::DESCRIPTION] = "Ethernet Switch Port description";
-    r[constants::EthernetSwitchPort::PORT_ID] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[constants::EthernetSwitchPort::PORT_ID] = json::Json::value_t::null;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    r[constants::EthernetSwitchPort::LINK_TYPE] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::OPERATIONAL_STATE] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::ADMINISTRATIVE_STATE] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::LINK_SPEED] = json::Value::Type::NIL;
+    r[constants::EthernetSwitchPort::LINK_TYPE] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::OPERATIONAL_STATE] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::ADMINISTRATIVE_STATE] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::LINK_SPEED] = json::Json::value_t::null;
 
-    r[constants::EthernetSwitchPort::NEIGHBOR_INFO][constants::EthernetSwitchPort::SWITCH_ID] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::NEIGHBOR_INFO][constants::EthernetSwitchPort::PORT_ID] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::NEIGHBOR_INFO][constants::EthernetSwitchPort::CABLE_ID] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::NEIGHBOR_MAC] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::FRAME_SIZE] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::AUTOSENSE] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::FULL_DUPLEX] = json::Value::Type::NIL;
-    r[constants::Common::MAC_ADDRESS] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::PORT_CLASS] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::PORT_MODE] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::PORT_TYPE] = json::Value::Type::NIL;
-    r[Common::OEM] = json::Value::Type::OBJECT;
+    r[constants::EthernetSwitchPort::NEIGHBOR_INFO][constants::EthernetSwitchPort::SWITCH_ID] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::NEIGHBOR_INFO][constants::EthernetSwitchPort::PORT_ID] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::NEIGHBOR_INFO][constants::EthernetSwitchPort::CABLE_ID] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::NEIGHBOR_MAC] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::FRAME_SIZE] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::AUTOSENSE] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::FULL_DUPLEX] = json::Json::value_t::null;
+    r[constants::Common::MAC_ADDRESS] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::PORT_CLASS] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::PORT_MODE] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::PORT_TYPE] = json::Json::value_t::null;
+    r[Common::OEM] = json::Json::value_t::object;
 
-    r[constants::EthernetSwitchPort::IPv4_ADDRESSES] = json::Value::Type::ARRAY;
-    r[constants::EthernetSwitchPort::IPv6_ADDRESSES] = json::Value::Type::ARRAY;
-    r[constants::EthernetSwitchPort::VLANS] = json::Value::Type::OBJECT;
-    r[constants::EthernetSwitchPort::STATIC_MACS] = json::Value::Type::OBJECT;
-    r[constants::EthernetSwitchPort::NEIGHBOR_INTERFACE] = json::Value::Type::NIL;
+    r[constants::EthernetSwitchPort::IPv4_ADDRESSES] = json::Json::value_t::array;
+    r[constants::EthernetSwitchPort::IPv6_ADDRESSES] = json::Json::value_t::array;
+    r[constants::EthernetSwitchPort::VLANS] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::STATIC_MACS] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::NEIGHBOR_INTERFACE] = json::Json::value_t::null;
 
-    json::Value links;
-    links[constants::EthernetSwitchPort::PRIMARY_VLAN] = json::Value::Type::NIL;
-    links[constants::EthernetSwitchPort::SWITCH] = json::Value::Type::NIL;
-    links[constants::EthernetSwitchPort::MEMBER_OF_PORT] = json::Value::Type::NIL;
-    links[constants::EthernetSwitchPort::PORT_MEMBERS] = json::Value::Type::ARRAY;
-    links[constants::EthernetSwitchPort::ACTIVE_ACLS] = json::Value::Type::ARRAY;
+    json::Json links = json::Json();
+    links[constants::EthernetSwitchPort::PRIMARY_VLAN] = json::Json::value_t::null;
+    links[constants::EthernetSwitchPort::SWITCH] = json::Json::value_t::null;
+    links[constants::EthernetSwitchPort::MEMBER_OF_PORT] = json::Json::value_t::null;
+    links[constants::EthernetSwitchPort::PORT_MEMBERS] = json::Json::value_t::array;
+    links[constants::EthernetSwitchPort::ACTIVE_ACLS] = json::Json::value_t::array;
 
     r[Common::LINKS] = std::move(links);
 
-    r[constants::EthernetSwitchPort::LLDP_ENABLED] = json::Value::Type::NIL;
-    r[constants::EthernetSwitchPort::DCBX_STATE] = json::Value::Type::NIL;
+    r[constants::EthernetSwitchPort::LLDP_ENABLED] = json::Json::value_t::null;
+    r[constants::EthernetSwitchPort::DCBX_STATE] = json::Json::value_t::null;
     r[constants::EthernetSwitchPort::PRIORITY_FLOW_CONTROL][constants::EthernetSwitchPort::ENABLED] =
-        json::Value::Type::NIL;
+        json::Json::value_t::null;
     r[constants::EthernetSwitchPort::PRIORITY_FLOW_CONTROL][constants::EthernetSwitchPort::ENABLED_PRIORITIES] =
-        json::Value::Type::ARRAY;
+        json::Json::value_t::array;
 
     return r;
 }
@@ -115,10 +114,10 @@ std::string get_switch(const server::Request& req) {
 }
 
 
-void add_member_of_port_link(json::Value& json, const std::string& port,
+void add_member_of_port_link(json::Json& json, const std::string& port,
                              const std::string& switchID) {
 
-    json[Common::LINKS][constants::EthernetSwitchPort::MEMBER_OF_PORT] = json::Value::Type::NIL;
+    json[Common::LINKS][constants::EthernetSwitchPort::MEMBER_OF_PORT] = json::Json::value_t::null;
 
     // return if the port is not a member
     const auto& port_members_manager = NetworkComponents::get_instance()->get_port_members_manager();
@@ -154,10 +153,10 @@ void add_member_of_port_link(json::Value& json, const std::string& port,
 }
 
 
-void add_port_members_links(json::Value& json, const std::string& port,
+void add_port_members_links(json::Json& json, const std::string& port,
                             const std::string& switchID) {
 
-    json[Common::LINKS][constants::EthernetSwitchPort::PORT_MEMBERS] = json::Value::Type::ARRAY;
+    json[Common::LINKS][constants::EthernetSwitchPort::PORT_MEMBERS] = json::Json::value_t::array;
 
     // return if the port is not a LAG
     const auto& port_members_manager =
@@ -174,7 +173,7 @@ void add_port_members_links(json::Value& json, const std::string& port,
     for (const auto& child : children) {
         try {
             const auto& child_port = port_manager.get_entry(child);
-            json::Value link;
+            json::Json link = json::Json();
             link[Common::ODATA_ID] = endpoint::PathBuilder(switchID)
                 .append(constants::EthernetSwitch::PORTS)
                 .append(child_port.get_id()).build();
@@ -190,13 +189,13 @@ void add_port_members_links(json::Value& json, const std::string& port,
 }
 
 
-void add_active_acls_links(json::Value& json, const std::string& port) {
+void add_active_acls_links(json::Json& json, const std::string& port) {
     const auto& acls = NetworkComponents::get_instance()->
         get_acl_port_manager().get_parents(port);
 
     for (const auto& acl : acls) {
         try {
-            json::Value link;
+            json::Json link = json::Json();
             link[Common::ODATA_ID] = endpoint::utils::get_component_url(
                 enums::Component::Acl, acl);
             json[Common::LINKS][constants::EthernetSwitchPort::ACTIVE_ACLS].
@@ -211,8 +210,8 @@ void add_active_acls_links(json::Value& json, const std::string& port) {
 }
 
 
-void add_primary_vlan_link(json::Value& json, const OptionalField<std::string>& vlan, const std::string& url) {
-    json[Common::LINKS][constants::EthernetSwitchPort::PRIMARY_VLAN] = json::Value::Type::NIL;
+void add_primary_vlan_link(json::Json& json, const OptionalField<std::string>& vlan, const std::string& url) {
+    json[Common::LINKS][constants::EthernetSwitchPort::PRIMARY_VLAN] = json::Json::value_t::null;
 
     // if empty -> set to empty link and return
     if (!vlan) {
@@ -316,66 +315,66 @@ static const std::map<std::string, std::string> gami_to_rest_attributes = {
 };
 
 
-attribute::Attributes fill_attributes(json::Value& json) {
+attribute::Attributes fill_attributes(json::Json& json) {
     attribute::Attributes attributes{};
 
-    if (json.is_member(constants::EthernetSwitchPort::LINK_SPEED)) {
+    if (json.count(constants::EthernetSwitchPort::LINK_SPEED)) {
         attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::LINK_SPEED_MBPS,
-                             json[constants::EthernetSwitchPort::LINK_SPEED].as_int64());
+                             json[constants::EthernetSwitchPort::LINK_SPEED].get<std::int64_t>());
     }
-    if (json.is_member(constants::EthernetSwitchPort::ADMINISTRATIVE_STATE)) {
+    if (json.count(constants::EthernetSwitchPort::ADMINISTRATIVE_STATE)) {
         attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::ADMINISTRATIVE_STATE,
-                             json[constants::EthernetSwitchPort::ADMINISTRATIVE_STATE].as_string());
+                             json[constants::EthernetSwitchPort::ADMINISTRATIVE_STATE].get<std::string>());
     }
-    if (json.is_member(constants::EthernetSwitchPort::FRAME_SIZE)) {
+    if (json.count(constants::EthernetSwitchPort::FRAME_SIZE)) {
         attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::FRAME_SIZE,
-                             json[constants::EthernetSwitchPort::FRAME_SIZE].as_int64());
+                             json[constants::EthernetSwitchPort::FRAME_SIZE].get<std::int64_t>());
     }
-    if (json.is_member(constants::EthernetSwitchPort::AUTOSENSE)) {
+    if (json.count(constants::EthernetSwitchPort::AUTOSENSE)) {
         attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::AUTO_SENSE,
-                             json[constants::EthernetSwitchPort::AUTOSENSE].as_bool());
+                             json[constants::EthernetSwitchPort::AUTOSENSE].get<bool>());
     }
-    if (json[Common::LINKS].is_member(constants::EthernetSwitchPort::PRIMARY_VLAN)) {
-        try {
-            const auto& primary_vlan_url =
-                json[Common::LINKS][constants::EthernetSwitchPort::PRIMARY_VLAN][Common::ODATA_ID].as_string();
-            auto params = server::Multiplexer::get_instance()->
-                get_params(primary_vlan_url, constants::Routes::VLAN_NETWORK_INTERFACE_PATH);
+    if (json.value(Common::LINKS, json::Json::object()).count(constants::EthernetSwitchPort::PRIMARY_VLAN)) {
 
-            auto pvid =
-                psme::rest::model::Find<agent_framework::model::EthernetSwitchPortVlan>(params[PathParam::VLAN_ID])
-                    .via<agent_framework::model::EthernetSwitch>(params[PathParam::ETHERNET_SWITCH_ID])
-                    .via<agent_framework::model::EthernetSwitchPort>(params[PathParam::SWITCH_PORT_ID])
-                    .get();
+        const auto& primary_vlan_url =
+            json[Common::LINKS].value(constants::EthernetSwitchPort::PRIMARY_VLAN, json::Json::object()).value(
+                Common::ODATA_ID, std::string{});
+        auto params = server::Multiplexer::get_instance()->
+            get_params(primary_vlan_url, constants::Routes::VLAN_NETWORK_INTERFACE_PATH);
 
-            attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::DEFAULT_VLAN, pvid.get_uuid());
+        auto pvid =
+            psme::rest::model::try_find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort, agent_framework::model::EthernetSwitchPortVlan>(
+                params).get();
+
+        if (pvid.has_value()) {
+            attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::DEFAULT_VLAN,
+                                 pvid.value().get_uuid());
         }
-        catch (const agent_framework::exceptions::NotFound& ex) {
-            throw agent_framework::exceptions::InvalidValue("Cannot patch default VLAN: " + ex.get_message());
+        else {
+            throw agent_framework::exceptions::InvalidValue("Cannot patch default VLAN: " + primary_vlan_url);
         }
     }
 
-    if (json.is_member(constants::EthernetSwitchPort::LLDP_ENABLED)) {
+    if (json.count(constants::EthernetSwitchPort::LLDP_ENABLED)) {
         attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::LLDP_ENABLED,
-                             json[constants::EthernetSwitchPort::LLDP_ENABLED].as_bool());
+                             json[constants::EthernetSwitchPort::LLDP_ENABLED].get<bool>());
     }
-    if (json.is_member(constants::EthernetSwitchPort::DCBX_STATE)) {
+    if (json.count(constants::EthernetSwitchPort::DCBX_STATE)) {
         attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::DCBX_STATE,
-                             json[constants::EthernetSwitchPort::DCBX_STATE].as_string());
+                             json[constants::EthernetSwitchPort::DCBX_STATE].get<std::string>());
     }
-    if (json.is_member(constants::EthernetSwitchPort::PRIORITY_FLOW_CONTROL)) {
+    if (json.count(constants::EthernetSwitchPort::PRIORITY_FLOW_CONTROL)) {
         const auto& pfc_property = json[constants::EthernetSwitchPort::PRIORITY_FLOW_CONTROL];
 
-        if (pfc_property.is_member(constants::EthernetSwitchPort::ENABLED)) {
+        if (pfc_property.count(constants::EthernetSwitchPort::ENABLED)) {
             attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::PFC_ENABLED,
-                                 pfc_property[constants::EthernetSwitchPort::ENABLED].as_bool());
+                                 pfc_property[constants::EthernetSwitchPort::ENABLED].get<bool>());
         }
 
-        if (pfc_property.is_member(constants::EthernetSwitchPort::ENABLED_PRIORITIES)) {
+        if (pfc_property.count(constants::EthernetSwitchPort::ENABLED_PRIORITIES)) {
             json::Json pfc_priorities = json::Json::array();
             if (!pfc_property[constants::EthernetSwitchPort::ENABLED_PRIORITIES].is_null()) {
-                pfc_priorities = agent_framework::model::utils::to_json_rpc(
-                    pfc_property[constants::EthernetSwitchPort::ENABLED_PRIORITIES]);
+                pfc_priorities = pfc_property[constants::EthernetSwitchPort::ENABLED_PRIORITIES];
             }
             attributes.set_value(agent_framework::model::literals::EthernetSwitchPort::PFC_ENABLED_PRIORITIES,
                                  pfc_priorities);
@@ -400,10 +399,8 @@ void endpoint::EthernetSwitchPort::get(const server::Request& req, server::Respo
     r[Common::ID] = req.params[PathParam::SWITCH_PORT_ID];
     r[Common::NAME] = constants::EthernetSwitchPort::PORT + req.params[PathParam::SWITCH_PORT_ID];
 
-    auto port =
-        psme::rest::model::Find<agent_framework::model::EthernetSwitchPort>(req.params[PathParam::SWITCH_PORT_ID])
-            .via<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
-            .get();
+    auto port = psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort>(
+        req.params).get();
 
     r[constants::EthernetSwitchPort::PORT_ID] = port.get_port_identifier();
     endpoint::status_to_json(port, r);
@@ -431,7 +428,7 @@ void endpoint::EthernetSwitchPort::get(const server::Request& req, server::Respo
 
     const auto& ipv4 = port.get_ipv4_address();
     if (ipv4.get_address().has_value()) {
-        json::Value ipv4_address{};
+        json::Json ipv4_address = json::Json();
         ipv4_address[IpAddress::ADDRESS] = ipv4.get_address();
         ipv4_address[IpAddress::SUBNET_MASK] = ipv4.get_subnet_mask();
         ipv4_address[IpAddress::ADDRESS_ORIGIN] = ipv4.get_address_origin();
@@ -441,13 +438,13 @@ void endpoint::EthernetSwitchPort::get(const server::Request& req, server::Respo
 
     const auto& ipv6 = port.get_ipv6_address();
     if (ipv6.get_address().has_value()) {
-        json::Value ipv6_address{};
+        json::Json ipv6_address = json::Json();
         ipv6_address[IpAddress::ADDRESS] = ipv6.get_address();
         // in GAMI there is DHCP option which has to be shown as DHCPv6
         auto address_origin = ipv6.get_address_origin();
         ipv6_address[IpAddress::ADDRESS_ORIGIN] =
             address_origin == enums::Ipv6AddressOrigin::DHCP ?
-            json::Value("DHCPv6") : json::Value(address_origin);
+            json::Json("DHCPv6") : json::Json(address_origin);
         ipv6_address[IpAddress::ADDRESS_STATE] = ipv6.get_address_state();
         ipv6_address[IpAddress::PREFIX_LENGTH] = ipv6.get_prefix_length();
         r[constants::EthernetSwitchPort::IPv6_ADDRESSES].push_back(std::move(ipv6_address));
@@ -471,8 +468,7 @@ void endpoint::EthernetSwitchPort::get(const server::Request& req, server::Respo
         port.get_pfc_enabled();
 
     for (const auto& pfc_enabled_priority : port.get_pfc_enabled_priorities()) {
-        json::Value array_elem(json::Value::Type::NUMBER);
-        array_elem = pfc_enabled_priority;
+        json::Json array_elem = pfc_enabled_priority;
         r[constants::EthernetSwitchPort::PRIORITY_FLOW_CONTROL][constants::EthernetSwitchPort::ENABLED_PRIORITIES]
             .push_back(std::move(array_elem));
     }
@@ -483,22 +479,20 @@ void endpoint::EthernetSwitchPort::get(const server::Request& req, server::Respo
 
 void endpoint::EthernetSwitchPort::patch(const server::Request& request, server::Response& response) {
     using HandlerManager = psme::rest::model::handler::HandlerManager;
+    static const constexpr char TRANSACTION_NAME[] = "PatchEthernetSwitchPort";
 
     auto json = JsonValidator::validate_request_body<schema::EthernetSwitchPortPatchSchema>(request);
     auto attributes = fill_attributes(json);
 
     // Holding reference to parent object ensures that locks are acquired in the same order in each thread
-    auto parent_switch = psme::rest::model::Find<agent_framework::model::EthernetSwitch>(
-        request.params[PathParam::ETHERNET_SWITCH_ID]).get();
-    auto port = psme::rest::model::Find<agent_framework::model::EthernetSwitchPort>(
-        request.params[PathParam::SWITCH_PORT_ID])
-        .via<agent_framework::model::EthernetSwitch>(request.params[PathParam::ETHERNET_SWITCH_ID])
-        .get();
+    auto parent_switch = psme::rest::model::find<agent_framework::model::EthernetSwitch>(request.params).get();
+    auto port = psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort>(
+        request.params).get();
 
     auto gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(port.get_agent_id());
     std::vector<Uuid> port_members{};
 
-    if (json[Common::LINKS].is_member(constants::EthernetSwitchPort::PORT_MEMBERS)) {
+    if (json[Common::LINKS].count(constants::EthernetSwitchPort::PORT_MEMBERS)) {
         LagUtils::validate_is_logical(port.get_port_class().value());
         port_members = LagUtils::get_port_members(json);
         LagUtils::validate_port_members(port_members, port.get_uuid());
@@ -537,7 +531,7 @@ void endpoint::EthernetSwitchPort::patch(const server::Request& request, server:
         }
     };
 
-    gami_agent->execute_in_transaction(patch_port);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, patch_port);
 
     get(request, response);
 }
@@ -545,11 +539,10 @@ void endpoint::EthernetSwitchPort::patch(const server::Request& request, server:
 
 void endpoint::EthernetSwitchPort::del(const server::Request& req, server::Response& res) {
     using HandlerManager = psme::rest::model::handler::HandlerManager;
+    static const constexpr char TRANSACTION_NAME[] = "DeleteEthernetSwitchPort";
 
-    auto port =
-        psme::rest::model::Find<agent_framework::model::EthernetSwitchPort>(req.params[PathParam::SWITCH_PORT_ID])
-            .via<agent_framework::model::EthernetSwitch>(req.params[PathParam::ETHERNET_SWITCH_ID])
-            .get();
+    auto port = psme::rest::model::find<agent_framework::model::EthernetSwitch, agent_framework::model::EthernetSwitchPort>(
+        req.params).get();
 
     auto gami_req = requests::DeleteEthernetSwitchPort(port.get_uuid());
 
@@ -583,7 +576,7 @@ void endpoint::EthernetSwitchPort::del(const server::Request& req, server::Respo
         }
     };
 
-    gami_agent->execute_in_transaction(remove_port);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, remove_port);
 
     res.set_status(server::status_2XX::NO_CONTENT);
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -267,6 +267,35 @@ public:
      * */
     static ServerError create_error_from_set_component_attributes_results(
         Array<GamiResultStatus> statuses, const std::map<std::string, std::string>& fields_map);
+
+
+    /*!
+     * @brief Create Intel RackScale-defined error for unmodifiable property.
+     *
+     * @param[in] property Name of unmodifiable property.
+     * @param[in] message Optional extended message.
+     * @param[in] related_properties Optional list of related JSON properties.
+     *
+     * @return Property not modifiable error object.
+     * */
+    static ServerError create_property_not_modifiable_error(const std::string& property,
+                                                     const std::string& message = {},
+                                                     const std::vector<std::string>& related_properties = {});
+
+
+    /*!
+     * @brief Create Intel RackScale-defined error for restricted value of property.
+     *
+     * @param[in] property Name of invalid property.
+     * @param[in] message Optional extended message.
+     * @param[in] related_properties Optional list of related JSON properties.
+     *
+     * @return Property restricted value error object.
+     * */
+    static ServerError create_property_value_restricted_error(const std::string& property,
+                                                     const std::string& property_value,
+                                                     const std::string& message = {},
+                                                     const std::vector<std::string>& related_properties = {});
 
 
     /*!

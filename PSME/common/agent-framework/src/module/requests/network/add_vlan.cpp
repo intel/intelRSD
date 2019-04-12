@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ AddVlan::AddVlan(const std::string& switch_id,
                 m_oem{} {}
 
 json::Json AddVlan::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Vlan::SWITCH] = m_switch;
     value[Vlan::VLAN_NAME] = m_vlan_name;
     value[Vlan::VLAN_ID] = m_vlan_id;

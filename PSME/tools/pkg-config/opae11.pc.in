@@ -1,0 +1,11 @@
+prefix=@CMAKE_BINARY_DIR@/opae11-@OPAE11_VERSION@
+exec_prefix=${prefix}/build
+libdir=${prefix}/build/lib
+includedir=${prefix}/common/include
+
+Name: opae11
+Description: Open Programmable Acceleration Engine library Version 1.1
+Version: @OPAE11_VERSION@
+URL: https://github.com/OPAE/opae-sdk
+Libs: -L${libdir} -lopae11-c -lopae11-cxx-core -lsafestr
+Cflags: -I${includedir}

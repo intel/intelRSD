@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@
  * */
 #include "psme/rest/utils/time_utils.hpp"
 #include "bits/basic_string.h"
-#include "agent-framework/logger_ext.hpp"
+#include "logger/logger.hpp"
 
 #include <stdexcept>
 #include <locale>

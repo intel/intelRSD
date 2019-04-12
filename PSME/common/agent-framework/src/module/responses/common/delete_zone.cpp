@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,11 +36,18 @@ DeleteZone::DeleteZone(const attribute::Oem& oem):
 
 
 json::Json DeleteZone::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Zone::OEM] = m_oem.to_json();
+    if (!m_task.empty()) {
+        value[TaskEntry::TASK] = m_task;
+    }
     return value;
 }
 
 DeleteZone DeleteZone::from_json(const json::Json& json) {
-    return DeleteZone{attribute::Oem::from_json(json[Zone::OEM])};
+    DeleteZone delete_zone{attribute::Oem::from_json(json[Zone::OEM])};
+    if (json.count(TaskEntry::TASK)) {
+        delete_zone.set_task(json[TaskEntry::TASK]);
+    }
+    return delete_zone;
 }

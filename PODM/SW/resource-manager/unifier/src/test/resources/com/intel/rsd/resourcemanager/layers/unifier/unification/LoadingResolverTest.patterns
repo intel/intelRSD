@@ -1,0 +1,8 @@
+/redfish/v1 -> /redfish/v1
+/redfish/v1/Systems -> /redfish/v1/Systems
+/redfish/v1/Systems/{} -> /redfish/v1/Systems/{#/UUID}
+[/redfish/v1/Systems/{}]/Processors -> []/Processors
+[/redfish/v1/Systems/{}/Processors]/{} -> []/{#/Socket}
+/redfish/v1/TaskService/Tasks -> /redfish/v1/TaskService/Tasks
+[/redfish/v1/TaskService/Tasks]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
+[/redfish/v1/TaskService/Tasks/{}]/Monitor -> []/Monitor

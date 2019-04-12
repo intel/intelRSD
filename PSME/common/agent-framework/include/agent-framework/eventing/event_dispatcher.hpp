@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,8 +24,9 @@
  * */
 
 #pragma once
-#include "agent-framework/logger_ext.hpp"
+
 #include "agent-framework/threading/thread.hpp"
+#include "agent-framework/eventing/event_sender.hpp"
 
 #include <memory>
 
@@ -33,8 +34,6 @@
 namespace agent_framework {
 /*! Generic namespace */
 namespace generic {
-
-class EventSender;
 
 /*!
  * @brief Event Dispatcher pops events from EventsQueue
@@ -72,7 +71,7 @@ public:
     void disable_send_notifications();
 
 private:
-    std::unique_ptr<EventSender> m_event_sender;
+    std::unique_ptr<EventSender> m_event_sender{};
 
     void execute();
 };

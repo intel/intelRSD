@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ using namespace agent_framework::model::literals;
 GetMemoryInfo::GetMemoryInfo(const std::string& memory): m_memory{memory} {}
 
 json::Json GetMemoryInfo::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Memory::MEMORY] = m_memory;
     return value;
 }

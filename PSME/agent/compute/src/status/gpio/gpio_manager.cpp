@@ -6,8 +6,7 @@
  * no references are implemented (memory management actually is to be done in
  * the code)
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +18,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file gpio_manager.cpp
  */
 
@@ -42,11 +40,11 @@ namespace status {
 GpioManager::GpioManager() {
     try {
         auto config = configuration::Configuration::get_instance().to_json();
-        std::uint16_t mux_port = static_cast<std::uint16_t>(config["cyMux"]["port"].as_uint());
-        auto mux_ip = net::IpAddress::from_string(config["cyMux"]["ipv4"].as_string());
+        std::uint16_t mux_port = config.at("cyMux").at("port").get<std::uint16_t>();
+        auto mux_ip = net::IpAddress::from_string(config.at("cyMux").at("ipv4").get<std::string>());
         m_mux_socket_address = net::SocketAddress(mux_ip, mux_port);
-        if (config["cyMux"].is_member("gpioMinimalReadIntervalMs")) {
-            m_update_interval = std::chrono::milliseconds(config["cyMux"]["gpioMinimalReadIntervalMs"].as_uint());
+        if (config["cyMux"].count("gpioMinimalReadIntervalMs")) {
+            m_update_interval = std::chrono::milliseconds(config["cyMux"]["gpioMinimalReadIntervalMs"].get<std::uint16_t>());
         }
     }
     catch (const std::exception& e) {

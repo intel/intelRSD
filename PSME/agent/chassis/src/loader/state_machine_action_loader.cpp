@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,14 +28,14 @@
 
 #include "status/state_machine_action.hpp"
 
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 #include <memory>
 #include <stdexcept>
 
 using namespace agent::chassis::loader;
 
-bool StateMachineActionLoader::load(const json::Value&) {
+bool StateMachineActionLoader::load(const json::Json&) {
     m_is_loaded = true;
     return true;
 }

@@ -8,20 +8,30 @@
                 "certs-directory" : "/etc/psme/certs",
                 "port": 8443,
                 "thread-mode" : "select",
-                "client-cert-required" : true
+                "client-cert-required" : true,
+                "authentication-type" : "basic-or-session"
             },
             {
                 "use-ssl" : false,
                 "port": 8888,
                 "redirect-port" : 8443,
                 "thread-mode" : "select",
-                "thread-pool-size" : 1
+                "thread-pool-size" : 1,
+                "authentication-type" : "none"
             }
         ]
     },
     "event-service" : {
         "delivery-retry-attempts" : 3,
         "delivery-retry-interval-seconds" : 60
+    },
+    "authentication" : {
+        "username" : "root",
+        "password" : "put_password_hash_here"
+    },
+    "session-service" : {
+        "service-enabled" : true,
+        "session-timeout" : 30
     },
     "ssdp-service" : {
         "enabled" : true,

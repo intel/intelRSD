@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may obtain
@@ -12,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file connectors/http_server_connector.cpp
  */
 
@@ -39,6 +37,7 @@ using namespace json_rpc;
 namespace {
 
 unsigned get_mhd_flags() {
+#ifdef MHD_FEATURE_EPOLL
     if (MHD_YES == MHD_is_feature_supported(MHD_FEATURE_EPOLL)) {
 #ifdef MHD_USE_EPOLL_INTERNALLY
         return MHD_USE_EPOLL_INTERNALLY;
@@ -46,12 +45,13 @@ unsigned get_mhd_flags() {
         return MHD_USE_EPOLL_INTERNALLY_LINUX_ONLY;
 #endif
     }
-    else if (MHD_YES == MHD_is_feature_supported(MHD_FEATURE_POLL)) {
+#endif
+#ifdef MHD_FEATURE_POLL
+    if (MHD_YES == MHD_is_feature_supported(MHD_FEATURE_POLL)) {
         return MHD_USE_POLL_INTERNALLY;
     }
-    else {
-        return MHD_USE_SELECT_INTERNALLY;
-    }
+#endif
+    return MHD_USE_SELECT_INTERNALLY;
 }
 
 

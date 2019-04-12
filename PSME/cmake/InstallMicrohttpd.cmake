@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 function(install_libmicrohttpd)
     include(ConfigurationPackage OPTIONAL)
-    assure_package(libmicrohttpd 0.9.54 "https://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.54.tar.gz" "9ed8171c7ee8cedce86959635c1db3ae")
+    assure_package(libmicrohttpd 0.9.62 "https://ftp.gnu.org/gnu/libmicrohttpd/libmicrohttpd-0.9.62.tar.gz" "97717a00ad3f883c2755fd409406cf31")
 
     set(CONFIGURE_FLAGS)
 

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@
  *
  * @file identifier.hpp
  * @brief identifier attribute
- * */
+ */
 
 #pragma once
 
@@ -49,7 +49,7 @@ public:
      * @brief Constructor
      * @param[in] durable_name Value of the identifier
      * @param[in] durable_format Format of the identifier
-     * */
+     */
     Identifier(const OptionalField<std::string>& durable_name,
                const OptionalField<enums::IdentifierType>& durable_format);
 
@@ -111,7 +111,7 @@ public:
      * @brief Convert Identifier to JSON object
      *
      * @return JSON representation of Identifier object
-     * */
+     */
     json::Json to_json() const;
 
 
@@ -126,21 +126,6 @@ public:
 
 
     /*!
-     * @brief Helper method for easy access to system path.
-     *
-     * @tparam T Resource type.
-     * @param[in] model Model object with identifiers array property.
-     *
-     * @return System path of the provided model object.
-     * @throw Throws std::logic_error when object has no system path.
-     */
-    template <typename T>
-    static const std::string& get_system_path(const T& model) {
-        return get_identifier_by_type(model, enums::IdentifierType::SystemPath);
-    }
-
-
-    /*!
      * @brief Helper method for easy access to NQN identifier.
      *
      * @tparam T Resource type.
@@ -148,8 +133,8 @@ public:
      *
      * @return NQN of the provided model object.
      * @throw Throws std::logic_error when object has no NQN.
-     * */
-    template <typename T>
+     */
+    template<typename T>
     static const std::string& get_nqn(const T& model) {
         return get_identifier_by_type(model, enums::IdentifierType::NQN);
     }
@@ -164,24 +149,11 @@ public:
      * @return The iQN of the provided model object.
      * @throw Throws std::logic_error when object has no iQN.
      */
-    template <typename T>
+    template<typename T>
     static const std::string& get_iqn(const T& model) {
         return get_identifier_by_type(model, enums::IdentifierType::iQN);
     }
 
-    /*!
-     * @brief Helper method for easy access to LUN identifier.
-     *
-     * @tparam T Resource type.
-     * @param[in] model Model object with identifiers array property.
-     *
-     * @return The LUN of the provided model object.
-     * @throw Throws std::logic_error when object has no LUN.
-     */
-    template <typename T>
-    static const std::string& get_lun(const T& model) {
-        return get_identifier_by_type(model, enums::IdentifierType::LUN);
-    }
 
     /*!
      * @brief Helper method for easy access to UUID identifier.
@@ -192,10 +164,11 @@ public:
      * @return UUID of the provided model object.
      * @throw Throws std::logic_error when object has no UUID identifier.
      */
-    template <typename T>
+    template<typename T>
     static const std::string& get_uuid(const T& model) {
         return get_identifier_by_type(model, enums::IdentifierType::UUID);
     }
+
 
 protected:
 
@@ -209,7 +182,7 @@ protected:
      * @return Durable name of requested identifier type
      * @throw Throws std::logic_error when object has no identifier.
      */
-    template <typename T>
+    template<typename T>
     static const std::string& get_identifier_by_type(const T& model, const enums::IdentifierType& type) {
         for (const auto& identifier : model.get_identifiers()) {
             if (identifier.get_durable_name_format() == type) {
@@ -221,6 +194,7 @@ protected:
         }
         throw std::logic_error("Object has no " + std::string(type.to_string()) + " identifier.");
     }
+
 
 private:
     OptionalField<std::string> m_durable_name{};

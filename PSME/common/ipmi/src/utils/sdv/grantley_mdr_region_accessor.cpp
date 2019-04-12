@@ -1,6 +1,5 @@
 /*!
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  *
  * @brief
  *
- * @header{Filesystem}
  * @file grantley_mdr_region_accessor.cpp
  */
 
@@ -40,6 +38,10 @@ std::uint8_t GrantleyMdrRegionAccessor::get_mdr_region_checksum() {
     auto status = get_mdr_region_status<ipmi::command::sdv::request::GetMdrDataRegionStatus, ipmi::command::sdv::response::GetMdrDataRegionStatus>();
     check_mdr_region_unlocked_and_valid(status);
     return status.get_region_checksum();
+}
+
+std::uint8_t GrantleyMdrRegionAccessor::get_mdr_region_update_count() {
+    throw std::runtime_error("GrantleyMdrRegionAccessor::get_mdr_region_update_count not implemented");
 }
 
 void GrantleyMdrRegionAccessor::write_mdr_region(const IpmiInterface::ByteBuffer&) {

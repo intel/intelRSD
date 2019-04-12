@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -167,22 +167,24 @@ template class Array<double>;
 
 /* Model attributes */
 template class Array<Collection>;
-template class Array<TargetLun>;
 template class Array<NetworkService>;
 template class Array<Ipv4Address>;
 template class Array<Ipv6Address>;
 template class Array<PciDevice>;
 template class Array<UsbDevice>;
+template class Array<PerformanceConfiguration>;
 template class Array<SubcomponentEntry>;
 template class Array<Message>;
 template class Array<ManagerEntry>;
 template class Array<Identifier>;
 template class Array<Location>;
 template class Array<Region>;
+template class Array<MemorySet>;
+template class Array<InterleaveSet>;
 template class Array<ResultStatus>;
 template class Array<TaskEntry>;
 template class Array<ConnectedEntity>;
-template class Array<OnPackageMemory>;
+template class Array<IntegratedMemory>;
 template class Array<Wildcard>;
 template class Array<CalculationParameters>;
 template class Array<MetricDefinitionEntry>;
@@ -193,6 +195,7 @@ template class Array<ReplicaInfo>;
 template class Array<QosApplicationProtocol>;
 template class Array<QosPriorityGroupMapping>;
 template class Array<QosBandwidthAllocation>;
+template class Array<FpgaReconfigurationSlot>;
 
 /* Model classes */
 template class Array<Metric>;
@@ -207,13 +210,13 @@ template class Array<enums::Media>;
 template class Array<enums::MemoryModuleType>;
 template class Array<enums::DeviceType>;
 template class Array<enums::MemoryMode>;
-template class Array<enums::MemoryClass>;
-template class Array<enums::StorageProtocol>;
+template class Array<enums::SecurityStates>;
 template class Array<enums::TransportProtocol>;
 template class Array<enums::ResetType>;
 template class Array<enums::VolumeType>;
 template class Array<enums::EncryptionType>;
 template class Array<enums::AccessCapability>;
+template class Array<enums::FpgaInterface>;
 
 }
 }

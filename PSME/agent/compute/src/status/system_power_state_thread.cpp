@@ -1,8 +1,6 @@
 /*!
- * @section LICENSE
- *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,13 +17,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @section System Power State Thread
-*/
+ * @brief System Power State Thread
+ * */
 
-#include "agent-framework/eventing/event_data.hpp"
 #include "agent-framework/eventing/events_queue.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include "agent-framework/module/enum/compute.hpp"
+#include "agent-framework/module/model/attributes/event_data.hpp"
 #include "ipmi/command/generic/get_chassis_status.hpp"
 #include "status/system_power_state_thread.hpp"
 #include "status/bmc.hpp"
@@ -42,11 +40,11 @@ using agent::compute::Bmc;
 namespace {
 
 void notify(const std::string& parent_uuid, const std::string& system_uuid) {
-    EventData event_data{};
+    attribute::EventData event_data{};
     event_data.set_parent(parent_uuid);
     event_data.set_component(system_uuid);
     event_data.set_type(agent_framework::model::enums::Component::System);
-    event_data.set_notification(Notification::Update);
+    event_data.set_notification(enums::Notification::Update);
     EventsQueue::get_instance()->push_back(event_data);
 }
 

@@ -2,7 +2,7 @@
  * @brief Implementation of TelemetryService class
  *
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +25,6 @@
 #include "telemetry/compute_telemetry_service.hpp"
 #include "ipmi/command/generic/get_device_id.hpp"
 #include "telemetry/metric_definition_builder.hpp"
-#include "telemetry/grantley_cpu_dimm_temperature_telemetry_reader.hpp"
 #include "telemetry/purley_cpu_dimm_temperature_telemetry_reader.hpp"
 #include "telemetry/bandwidth_telemetry_reader.hpp"
 #include "telemetry/health_telemetry_reader.hpp"
@@ -33,6 +32,7 @@
 #include "ipmi/purley_sel_record.hpp"
 #include "telemetry/telemetry_hub_telemetry_reader.hpp"
 #include "telemetry/memory_throttling_telemetry_reader.hpp"
+#include "telemetry/dcpmem_telemetry_reader.hpp"
 #include "logger/logger_factory.hpp"
 
 namespace {
@@ -195,77 +195,135 @@ MetricDefinition SYSTEM_MEMORY_THROTTLING_PERCENT =
             .set_physical_context(enums::PhysicalContext::SystemBoard)
             .build();
 
-constexpr const uint8_t GRANTLEY_INLET_TEMP_SENSOR_NO = 0x07;
-constexpr const uint8_t GRANTLEY_OUTLET_TEMP_SENSOR_NO = 0x01;
-constexpr const uint8_t PURLEY_INLET_TEMP_SENSOR_NO = 0xA0;
-constexpr const uint8_t PURLEY_OUTLET_TEMP_SENSOR_NO = 0xA1;
-constexpr const uint8_t HSC_INPUT_POWER_SENSOR_NO = 0x29;
+// DCPMEM Metrics
+MetricDefinition MEMORY_LAST_SHUTDOWN_SUCCESS =
+    MetricDefinitionBuilder("/HealthData/LastShutdownSuccess")
+        .set_name("memoryLastShutdownSuccess")
+        .set_metric_type(enums::MetricType::Numeric)
+        .set_data_type(enums::MetricDataType::Boolean)
+        .set_sensor_type(enums::SensorType::Memory)
+        .set_physical_context(enums::PhysicalContext::SystemBoard)
+        .set_sensing_interval("PT60S")
+        .build();
 
+MetricDefinition MEMORY_PREDICTED_MEDIA_LIFE_LEFT_PERCENT =
+    MetricDefinitionBuilder("/HealthData/PredictedMediaLifeLeftPercent")
+        .set_name("memoryPredictedMediaLifeLeftPercent")
+        .set_is_linear(true)
+        .set_metric_type(enums::MetricType::Numeric)
+        .set_data_type(enums::MetricDataType::Decimal)
+        .set_units("Percent")
+        .set_sensor_type(enums::SensorType::Memory)
+        .set_physical_context(enums::PhysicalContext::SystemBoard)
+        .set_sensing_interval("PT60S")
+        .build();
 
-TelemetryReader::PtrVector create_grantley_readers() {
-    return
-    {
-        std::make_shared<MemoryBandwidthTelemetryReader>(ResourceInstance{ResourceInstance::Component::System}, MEMORY_BANDWIDTH),
-        std::make_shared<CpuBandwidthTelemetryReader>(ResourceInstance{ResourceInstance::Component::System}, CPU_BANDWIDTH),
-        std::make_shared<IoBandwidthTelemetryReader>(ResourceInstance{ResourceInstance::Component::System}, IO_BANDWIDTH),
-        std::make_shared<GrantleyCpuTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Processor, 0}, CPU_TEMPERATURE),
-        std::make_shared<GrantleyCpuMarginToThrottleTelemetryReader>(ResourceInstance{ResourceInstance::Component::Processor, 0}, CPU_THROTTLING),
-        std::make_shared<GrantleyCpuTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Processor, 1}, CPU_TEMPERATURE),
-        std::make_shared<GrantleyCpuMarginToThrottleTelemetryReader>(ResourceInstance{ResourceInstance::Component::Processor, 1}, CPU_THROTTLING),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 0}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 1}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 2}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 3}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 4}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 5}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 6}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 7}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 8}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 9}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 10}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 11}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 12}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 13}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 14}, DIMM_TEMPERATURE),
-        std::make_shared<GrantleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 15}, DIMM_TEMPERATURE),
-        std::make_shared<SensorTelemetryReader>(ResourceInstance{ResourceInstance::Component::ThermalZone}, INLET_TEMPERATURE, GRANTLEY_INLET_TEMP_SENSOR_NO, 0x40, 0x01),
-        std::make_shared<SensorTelemetryReader>(ResourceInstance{ResourceInstance::Component::ThermalZone}, OUTLET_TEMPERATURE, GRANTLEY_OUTLET_TEMP_SENSOR_NO, 0x07, 0x00),
-        std::make_shared<SensorTelemetryReader>(ResourceInstance{ResourceInstance::Component::PowerZone}, HSC_INPUT_POWER, HSC_INPUT_POWER_SENSOR_NO, 0x14, 0x02),
+MetricDefinition MEMORY_ALARM_TRIPS_TEMPERATURE =
+    MetricDefinitionBuilder("/HealthData/AlarmTrips/Temperature")
+        .set_name("memoryAlarmTripsTemperature")
+        .set_metric_type(enums::MetricType::Numeric)
+        .set_data_type(enums::MetricDataType::Boolean)
+        .set_sensor_type(enums::SensorType::Memory)
+        .set_physical_context(enums::PhysicalContext::SystemBoard)
+        .set_sensing_interval("PT30S")
+        .build();
 
-        std::make_shared<HealthTelemetryReader>(ResourceInstance{ResourceInstance::Component::Processor, 0},
-            HealthTelemetryReader::Warnings{
-                {ipmi::SelRecordSensor::PROCESSOR_AUTOMATIC_THROTTLED, "Throttled"},
-                {ipmi::SelRecordSensor::MACHINE_CHECK_ERROR, "Machine Check Err"},
-                {ipmi::SelRecordSensor::PROCESSOR_DISABLED, "Disabled"}
-            },
-            HealthTelemetryReader::Critical{
-                {ipmi::SelRecordSensor::IERR, "IERR"},
-                {ipmi::SelRecordSensor::THERMAL_TRIP, "Thermal Trip"},
-                {ipmi::SelRecordSensor::FRB1_BIST_FAILURE, "FRB1 BIST Fail"},
-                {ipmi::SelRecordSensor::FRB2_HANG_IN_POST, "FRB2 Hang in post"},
-                {ipmi::SelRecordSensor::FRB3_INITIALIZATION_FAILURE, "FRB3 Init Fail"},
-                {ipmi::SelRecordSensor::CONFIGURATION_ERROR, "Config Err"},
-                {ipmi::SelRecordSensor::SMBIOS_UNCORRECTABLE_ERROR, "SMBIOS Err"},
-                {ipmi::SelRecordSensor::MACHINE_CHECK_EXCEPTION, "Machine Check Except"}
-            }),
-        std::make_shared<HealthTelemetryReader>(ResourceInstance{ResourceInstance::Component::Processor, 1},
-            HealthTelemetryReader::Warnings{
-                {ipmi::SelRecordSensor::PROCESSOR_AUTOMATIC_THROTTLED, "Throttled"},
-                {ipmi::SelRecordSensor::MACHINE_CHECK_ERROR, "Machine Check Err"},
-                {ipmi::SelRecordSensor::PROCESSOR_DISABLED, "Disabled"}
-            },
-            HealthTelemetryReader::Critical{
-                {ipmi::SelRecordSensor::IERR, "IERR"},
-                {ipmi::SelRecordSensor::THERMAL_TRIP, "Thermal Trip"},
-                {ipmi::SelRecordSensor::FRB1_BIST_FAILURE, "FRB1 BIST Fail"},
-                {ipmi::SelRecordSensor::FRB2_HANG_IN_POST, "FRB2 Hang in post"},
-                {ipmi::SelRecordSensor::FRB3_INITIALIZATION_FAILURE, "FRB3 Init Fail"},
-                {ipmi::SelRecordSensor::CONFIGURATION_ERROR, "Config Err"},
-                {ipmi::SelRecordSensor::SMBIOS_UNCORRECTABLE_ERROR, "SMBIOS Err"},
-                {ipmi::SelRecordSensor::MACHINE_CHECK_EXCEPTION, "Machine Check Except"}
-            })
-    };
-}
+MetricDefinition MEMORY_CONTROLLER_TEMPERATURE =
+    MetricDefinitionBuilder("/Oem/Intel_RackScale/ControllerTemperatureCelsius")
+        .set_name("memoryControllerTemperature")
+        .set_is_linear(true)
+        .set_metric_type(enums::MetricType::Numeric)
+        .set_sensor_type(enums::SensorType::Temperature)
+        .set_units("Celsius")
+        .set_physical_context(enums::PhysicalContext::SystemBoard)
+        .set_sensing_interval("PT30S")
+        .build();
+
+MetricDefinition MEMORY_UPTIME_SECONDS =
+    MetricDefinitionBuilder("/Oem/Intel_RackScale/CurrentPeriod/UptimeSeconds")
+        .set_name("memoryUptimeSeconds")
+        .set_is_linear(true)
+        .set_metric_type(enums::MetricType::Numeric)
+        .set_data_type(enums::MetricDataType::Duration)
+        .set_units("Seconds")
+        .set_sensor_type(enums::SensorType::Memory)
+        .set_physical_context(enums::PhysicalContext::SystemBoard)
+        .set_sensing_interval("PT60S")
+        .build();
+
+MetricDefinition MEMORY_UNSAFE_SHUTDOWN_COUNT =
+    MetricDefinitionBuilder("/Oem/Intel_RackScale/LifeTime/UnsafeShutdownCount")
+        .set_name("memoryUnsafeShutdownCount")
+        .set_metric_type(enums::MetricType::Counter)
+        .set_sensor_type(enums::SensorType::Memory)
+        .set_physical_context(enums::PhysicalContext::SystemBoard)
+        .set_sensing_interval("PT60S")
+        .build();
+
+MetricDefinition MEMORY_POWER_CYCLES =
+    MetricDefinitionBuilder("/Oem/Intel_RackScale/LifeTime/PowerCycles")
+        .set_name("memoryPowerCycles")
+        .set_metric_type(enums::MetricType::Counter)
+        .set_sensor_type(enums::SensorType::Memory)
+        .set_physical_context(enums::PhysicalContext::SystemBoard)
+        .set_sensing_interval("PT60S")
+        .build();
+
+MetricDefinition MEMORY_POWER_ON_TIME_SECONDS =
+    MetricDefinitionBuilder("/Oem/Intel_RackScale/LifeTime/PowerOnTimeSeconds")
+        .set_name("memoryPowerOnTimeSeconds")
+        .set_is_linear(true)
+        .set_metric_type(enums::MetricType::Numeric)
+        .set_data_type(enums::MetricDataType::Duration)
+        .set_units("Seconds")
+        .set_sensor_type(enums::SensorType::Memory)
+        .set_physical_context(enums::PhysicalContext::SystemBoard)
+        .set_sensing_interval("PT60S")
+        .build();
+
+MetricDefinition MEMORY_CURRENT_PERIOD_BLOCKS_READ =
+    MetricDefinitionBuilder("/CurrentPeriod/BlocksRead")
+        .set_name("memoryCurrentPeriodBlocksRead")
+        .set_is_linear(true)
+        .set_metric_type(enums::MetricType::Numeric)
+        .set_sensor_type(enums::SensorType::Memory)
+        .set_physical_context(enums::PhysicalContext::SystemBoard)
+        .set_sensing_interval("PT30S")
+        .build();
+
+MetricDefinition MEMORY_CURRENT_PERIOD_BLOCKS_WRITTEN =
+    MetricDefinitionBuilder("/CurrentPeriod/BlocksWritten")
+        .set_name("memoryCurrentPeriodBlocksWritten")
+        .set_is_linear(true)
+        .set_metric_type(enums::MetricType::Numeric)
+        .set_sensor_type(enums::SensorType::Memory)
+        .set_physical_context(enums::PhysicalContext::SystemBoard)
+        .set_sensing_interval("PT30S")
+        .build();
+
+MetricDefinition MEMORY_CURRENT_PERIOD_READ_REQUESTS =
+    MetricDefinitionBuilder("/Oem/Intel_RackScale/CurrentPeriod/HostReadRequests")
+        .set_name("memoryCurrentPeriodHostReadRequests")
+        .set_is_linear(true)
+        .set_metric_type(enums::MetricType::Numeric)
+        .set_sensor_type(enums::SensorType::Memory)
+        .set_physical_context(enums::PhysicalContext::SystemBoard)
+        .set_sensing_interval("PT30S")
+        .build();
+
+MetricDefinition MEMORY_CURRENT_PERIOD_WRITE_REQUESTS =
+    MetricDefinitionBuilder("/Oem/Intel_RackScale/CurrentPeriod/HostWriteRequests")
+        .set_name("memoryCurrentPeriodHostWriteRequests")
+        .set_is_linear(true)
+        .set_metric_type(enums::MetricType::Numeric)
+        .set_sensor_type(enums::SensorType::Memory)
+        .set_physical_context(enums::PhysicalContext::SystemBoard)
+        .set_sensing_interval("PT30S")
+        .build();
+
+constexpr const uint8_t PURLEY_REFRESH_INLET_TEMP_SENSOR_NO = 0x9C;
+constexpr const uint8_t PURLEY_REFRESH_OUTLET_TEMP_SENSOR_NO = 0x9D;
+constexpr const uint8_t PURLEY_REFRESH_HSC_INPUT_POWER_SENSOR_NO = 0x32;
 
 TelemetryReader::Ptr memory_health_reader(unsigned instance, ipmi::SelRecordGeneric::EventSensorType dimm_hot) {
     return std::make_shared<HealthTelemetryReader>(
@@ -281,7 +339,7 @@ TelemetryReader::Ptr memory_health_reader(unsigned instance, ipmi::SelRecordGene
         });
 }
 
-TelemetryReader::PtrVector create_purley_readers() {
+TelemetryReader::PtrVector create_purley_refresh_readers() {
     return
     {
         std::make_shared<MemoryBandwidthTelemetryReader>(ResourceInstance{ResourceInstance::Component::System}, MEMORY_BANDWIDTH),
@@ -303,9 +361,9 @@ TelemetryReader::PtrVector create_purley_readers() {
         std::make_shared<PurleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 9}, DIMM_TEMPERATURE),
         std::make_shared<PurleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 10}, DIMM_TEMPERATURE),
         std::make_shared<PurleyDimmTemperatureTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 11}, DIMM_TEMPERATURE),
-        std::make_shared<SensorTelemetryReader>(ResourceInstance{ResourceInstance::Component::ThermalZone}, INLET_TEMPERATURE, PURLEY_INLET_TEMP_SENSOR_NO, 0x03, 0x00),
-        std::make_shared<SensorTelemetryReader>(ResourceInstance{ResourceInstance::Component::ThermalZone}, OUTLET_TEMPERATURE, PURLEY_OUTLET_TEMP_SENSOR_NO, 0x03, 0x00),
-        std::make_shared<SensorTelemetryReader>(ResourceInstance{ResourceInstance::Component::PowerZone}, HSC_INPUT_POWER, HSC_INPUT_POWER_SENSOR_NO, 0x14, 0x01),
+        std::make_shared<SensorTelemetryReader>(ResourceInstance{ResourceInstance::Component::ThermalZone}, INLET_TEMPERATURE, PURLEY_REFRESH_INLET_TEMP_SENSOR_NO, 0x07, 0x00),
+        std::make_shared<SensorTelemetryReader>(ResourceInstance{ResourceInstance::Component::ThermalZone}, OUTLET_TEMPERATURE, PURLEY_REFRESH_OUTLET_TEMP_SENSOR_NO, 0x07, 0x00),
+        std::make_shared<SensorTelemetryReader>(ResourceInstance{ResourceInstance::Component::PowerZone}, HSC_INPUT_POWER, PURLEY_REFRESH_HSC_INPUT_POWER_SENSOR_NO, 0x14, 0x01),
 
         // system health
         std::make_shared<HealthTelemetryReader>(ResourceInstance{ResourceInstance::Component::System},
@@ -390,18 +448,175 @@ TelemetryReader::PtrVector create_purley_readers() {
         std::make_shared<TelemetryHubAggregatedTelemetryReader>(ResourceInstance{ResourceInstance::Component::System},
                     SYSTEM_DIMMS_CONSUMED_POWER, MetricUidVec{MetricUid::CPU0_DRAM_POWER, MetricUid::CPU1_DRAM_POWER}),
         std::make_shared<MemoryThrottlingTelemetryReader>(ResourceInstance{ResourceInstance::Component::System},
-                                                          SYSTEM_MEMORY_THROTTLING_PERCENT)
+                                                          SYSTEM_MEMORY_THROTTLING_PERCENT),
+
+        // DCPMEM Telemetry Readers
+        // CPU#0 - Memory ResourceInstance [0:5]
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 0}, MEMORY_LAST_SHUTDOWN_SUCCESS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 0}, MEMORY_PREDICTED_MEDIA_LIFE_LEFT_PERCENT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 0}, MEMORY_ALARM_TRIPS_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 0}, MEMORY_CONTROLLER_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 0}, MEMORY_UPTIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 0}, MEMORY_UNSAFE_SHUTDOWN_COUNT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 0}, MEMORY_POWER_CYCLES),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 0}, MEMORY_POWER_ON_TIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 0}, MEMORY_CURRENT_PERIOD_BLOCKS_READ),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 0}, MEMORY_CURRENT_PERIOD_BLOCKS_WRITTEN),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 0}, MEMORY_CURRENT_PERIOD_READ_REQUESTS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 0}, MEMORY_CURRENT_PERIOD_WRITE_REQUESTS),
+
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 1}, MEMORY_LAST_SHUTDOWN_SUCCESS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 1}, MEMORY_PREDICTED_MEDIA_LIFE_LEFT_PERCENT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 1}, MEMORY_ALARM_TRIPS_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 1}, MEMORY_CONTROLLER_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 1}, MEMORY_UPTIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 1}, MEMORY_UNSAFE_SHUTDOWN_COUNT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 1}, MEMORY_POWER_CYCLES),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 1}, MEMORY_POWER_ON_TIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 1}, MEMORY_CURRENT_PERIOD_BLOCKS_READ),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 1}, MEMORY_CURRENT_PERIOD_BLOCKS_WRITTEN),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 1}, MEMORY_CURRENT_PERIOD_READ_REQUESTS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 1}, MEMORY_CURRENT_PERIOD_WRITE_REQUESTS),
+
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 2}, MEMORY_LAST_SHUTDOWN_SUCCESS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 2}, MEMORY_PREDICTED_MEDIA_LIFE_LEFT_PERCENT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 2}, MEMORY_ALARM_TRIPS_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 2}, MEMORY_CONTROLLER_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 2}, MEMORY_UPTIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 2}, MEMORY_UNSAFE_SHUTDOWN_COUNT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 2}, MEMORY_POWER_CYCLES),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 2}, MEMORY_POWER_ON_TIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 2}, MEMORY_CURRENT_PERIOD_BLOCKS_READ),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 2}, MEMORY_CURRENT_PERIOD_BLOCKS_WRITTEN),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 2}, MEMORY_CURRENT_PERIOD_READ_REQUESTS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 2}, MEMORY_CURRENT_PERIOD_WRITE_REQUESTS),
+
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 3}, MEMORY_LAST_SHUTDOWN_SUCCESS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 3}, MEMORY_PREDICTED_MEDIA_LIFE_LEFT_PERCENT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 3}, MEMORY_ALARM_TRIPS_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 3}, MEMORY_CONTROLLER_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 3}, MEMORY_UPTIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 3}, MEMORY_UNSAFE_SHUTDOWN_COUNT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 3}, MEMORY_POWER_CYCLES),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 3}, MEMORY_POWER_ON_TIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 3}, MEMORY_CURRENT_PERIOD_BLOCKS_READ),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 3}, MEMORY_CURRENT_PERIOD_BLOCKS_WRITTEN),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 3}, MEMORY_CURRENT_PERIOD_READ_REQUESTS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 3}, MEMORY_CURRENT_PERIOD_WRITE_REQUESTS),
+
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 4}, MEMORY_LAST_SHUTDOWN_SUCCESS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 4}, MEMORY_PREDICTED_MEDIA_LIFE_LEFT_PERCENT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 4}, MEMORY_ALARM_TRIPS_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 4}, MEMORY_CONTROLLER_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 4}, MEMORY_UPTIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 4}, MEMORY_UNSAFE_SHUTDOWN_COUNT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 4}, MEMORY_POWER_CYCLES),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 4}, MEMORY_POWER_ON_TIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 4}, MEMORY_CURRENT_PERIOD_BLOCKS_READ),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 4}, MEMORY_CURRENT_PERIOD_BLOCKS_WRITTEN),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 4}, MEMORY_CURRENT_PERIOD_READ_REQUESTS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 4}, MEMORY_CURRENT_PERIOD_WRITE_REQUESTS),
+
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 5}, MEMORY_LAST_SHUTDOWN_SUCCESS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 5}, MEMORY_PREDICTED_MEDIA_LIFE_LEFT_PERCENT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 5}, MEMORY_ALARM_TRIPS_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 5}, MEMORY_CONTROLLER_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 5}, MEMORY_UPTIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 5}, MEMORY_UNSAFE_SHUTDOWN_COUNT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 5}, MEMORY_POWER_CYCLES),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 5}, MEMORY_POWER_ON_TIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 5}, MEMORY_CURRENT_PERIOD_BLOCKS_READ),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 5}, MEMORY_CURRENT_PERIOD_BLOCKS_WRITTEN),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 5}, MEMORY_CURRENT_PERIOD_READ_REQUESTS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 5}, MEMORY_CURRENT_PERIOD_WRITE_REQUESTS),
+
+        // CPU#1 - Memory ResourceInstance [6:11]
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 6}, MEMORY_LAST_SHUTDOWN_SUCCESS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 6}, MEMORY_PREDICTED_MEDIA_LIFE_LEFT_PERCENT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 6}, MEMORY_ALARM_TRIPS_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 6}, MEMORY_CONTROLLER_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 6}, MEMORY_UPTIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 6}, MEMORY_UNSAFE_SHUTDOWN_COUNT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 6}, MEMORY_POWER_CYCLES),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 6}, MEMORY_POWER_ON_TIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 6}, MEMORY_CURRENT_PERIOD_BLOCKS_READ),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 6}, MEMORY_CURRENT_PERIOD_BLOCKS_WRITTEN),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 6}, MEMORY_CURRENT_PERIOD_READ_REQUESTS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 6}, MEMORY_CURRENT_PERIOD_WRITE_REQUESTS),
+
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 7}, MEMORY_LAST_SHUTDOWN_SUCCESS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 7}, MEMORY_PREDICTED_MEDIA_LIFE_LEFT_PERCENT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 7}, MEMORY_ALARM_TRIPS_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 7}, MEMORY_CONTROLLER_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 7}, MEMORY_UPTIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 7}, MEMORY_UNSAFE_SHUTDOWN_COUNT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 7}, MEMORY_POWER_CYCLES),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 7}, MEMORY_POWER_ON_TIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 7}, MEMORY_CURRENT_PERIOD_BLOCKS_READ),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 7}, MEMORY_CURRENT_PERIOD_BLOCKS_WRITTEN),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 7}, MEMORY_CURRENT_PERIOD_READ_REQUESTS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 7}, MEMORY_CURRENT_PERIOD_WRITE_REQUESTS),
+
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 8}, MEMORY_LAST_SHUTDOWN_SUCCESS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 8}, MEMORY_PREDICTED_MEDIA_LIFE_LEFT_PERCENT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 8}, MEMORY_ALARM_TRIPS_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 8}, MEMORY_CONTROLLER_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 8}, MEMORY_UPTIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 8}, MEMORY_UNSAFE_SHUTDOWN_COUNT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 8}, MEMORY_POWER_CYCLES),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 8}, MEMORY_POWER_ON_TIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 8}, MEMORY_CURRENT_PERIOD_BLOCKS_READ),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 8}, MEMORY_CURRENT_PERIOD_BLOCKS_WRITTEN),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 8}, MEMORY_CURRENT_PERIOD_READ_REQUESTS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 8}, MEMORY_CURRENT_PERIOD_WRITE_REQUESTS),
+
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 9}, MEMORY_LAST_SHUTDOWN_SUCCESS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 9}, MEMORY_PREDICTED_MEDIA_LIFE_LEFT_PERCENT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 9}, MEMORY_ALARM_TRIPS_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 9}, MEMORY_CONTROLLER_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 9}, MEMORY_UPTIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 9}, MEMORY_UNSAFE_SHUTDOWN_COUNT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 9}, MEMORY_POWER_CYCLES),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 9}, MEMORY_POWER_ON_TIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 9}, MEMORY_CURRENT_PERIOD_BLOCKS_READ),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 9}, MEMORY_CURRENT_PERIOD_BLOCKS_WRITTEN),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 9}, MEMORY_CURRENT_PERIOD_READ_REQUESTS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 9}, MEMORY_CURRENT_PERIOD_WRITE_REQUESTS),
+
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 10}, MEMORY_LAST_SHUTDOWN_SUCCESS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 10}, MEMORY_PREDICTED_MEDIA_LIFE_LEFT_PERCENT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 10}, MEMORY_ALARM_TRIPS_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 10}, MEMORY_CONTROLLER_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 10}, MEMORY_UPTIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 10}, MEMORY_UNSAFE_SHUTDOWN_COUNT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 10}, MEMORY_POWER_CYCLES),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 10}, MEMORY_POWER_ON_TIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 10}, MEMORY_CURRENT_PERIOD_BLOCKS_READ),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 10}, MEMORY_CURRENT_PERIOD_BLOCKS_WRITTEN),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 10}, MEMORY_CURRENT_PERIOD_READ_REQUESTS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 10}, MEMORY_CURRENT_PERIOD_WRITE_REQUESTS),
+
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 11}, MEMORY_LAST_SHUTDOWN_SUCCESS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 11}, MEMORY_PREDICTED_MEDIA_LIFE_LEFT_PERCENT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 11}, MEMORY_ALARM_TRIPS_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 11}, MEMORY_CONTROLLER_TEMPERATURE),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 11}, MEMORY_UPTIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 11}, MEMORY_UNSAFE_SHUTDOWN_COUNT),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 11}, MEMORY_POWER_CYCLES),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 11}, MEMORY_POWER_ON_TIME_SECONDS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 11}, MEMORY_CURRENT_PERIOD_BLOCKS_READ),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 11}, MEMORY_CURRENT_PERIOD_BLOCKS_WRITTEN),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 11}, MEMORY_CURRENT_PERIOD_READ_REQUESTS),
+        std::make_shared<DcpmemTelemetryReader>(ResourceInstance{ResourceInstance::Component::Memory, 11}, MEMORY_CURRENT_PERIOD_WRITE_REQUESTS),
+
     };
 }
 
-TelemetryReader::PtrVector create_readers(OptionalField<std::uint16_t> platform_id) {
-    if (platform_id.has_value()) {
-        using ipmi::command::generic::ProductId;
-        if (ProductId::PRODUCT_ID_INTEL_XEON_BDC_R == platform_id) {
-            return create_grantley_readers();
-        }
-        else if (ProductId::PRODUCT_ID_INTEL_XEON_PURLEY == platform_id) {
-            return create_purley_readers();
+TelemetryReader::PtrVector create_readers(OptionalField<ipmi::command::generic::BmcInterface> bmc_interface) {
+    if (bmc_interface.has_value()) {
+        using ipmi::command::generic::BmcInterface;
+        if (BmcInterface::RSD_2_4 == bmc_interface) {
+            return create_purley_refresh_readers();
         }
     }
     /* platform is not handled */
@@ -417,8 +632,8 @@ namespace compute {
 ComputeTelemetryService::~ComputeTelemetryService() {
 }
 
-ComputeTelemetryService::ComputeTelemetryService(ipmi::IpmiController& ipmi, OptionalField<std::uint16_t> platform_id) :
-    telemetry::TelemetryService(ipmi, create_readers(platform_id)) { }
+ComputeTelemetryService::ComputeTelemetryService(ipmi::IpmiController& ipmi, OptionalField<ipmi::command::generic::BmcInterface> bmc_interface) :
+    telemetry::TelemetryService(ipmi, create_readers(bmc_interface)) { }
 
 }
 }

@@ -1,8 +1,7 @@
 /*!
  * @brief Metric definitions collection endpoint
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file metric_definitions_collection.cpp
  */
 
@@ -26,16 +24,16 @@ using namespace psme::rest::constants;
 using namespace psme::rest::endpoint;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#MetricDefinitionCollection.MetricDefinitionCollection";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
-    r[Common::ODATA_TYPE] = "#MetricDefinitionCollection.MetricDefinitionCollection";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Intel_RackScale.MetricDefinitionCollection.MetricDefinitionCollection";
+    r[Common::ODATA_ID] = json::Json::value_t::null;
+    r[Common::ODATA_TYPE] = "#Intel_RackScale.MetricDefinitionCollection.MetricDefinitionCollection";
     r[Common::NAME] = "Metric Definition Collection";
     r[Common::DESCRIPTION] = "Metric Definition Collection";
     r[Collection::ODATA_COUNT] = 0;
-    r[Collection::MEMBERS] = json::Value::Type::ARRAY;
+    r[Collection::MEMBERS] = json::Json::value_t::array;
 
     return r;
 }
@@ -58,7 +56,7 @@ void MetricDefinitionsCollection::get(const server::Request& request, server::Re
     json[Collection::ODATA_COUNT] = std::uint32_t(definition_ids.size());
 
     for (const auto& id : definition_ids){
-        json::Value link;
+        json::Json link = json::Json();
         link[Common::ODATA_ID] = PathBuilder(request).append(id).build();
         json[Collection::MEMBERS].push_back(std::move(link));
     }

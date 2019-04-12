@@ -146,6 +146,10 @@
             ]
         }
     ],
+    "opae": {
+      "secureEraseGBS" : "/etc/opae/default_afu.gbs"
+    },
+    "fabric-discovery-mode": "DATABASE",
     "database": {
         "location": "/var/opt/psme/pnc"
     },

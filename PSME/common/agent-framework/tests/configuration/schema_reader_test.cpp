@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@
 #include "configuration/validators/validator.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
-#include "json/json.hpp"
+#include "json-wrapper/json-wrapper.hpp"
 
 using ::testing::Return;
 using ::testing::Throw;
@@ -99,7 +99,7 @@ SchemaReaderTest::~SchemaReaderTest() {}
 /* Positive. */
 
 TEST_F(SchemaReaderTest, Positive) {
-    json::Value json_schema;
+    json::Json json_schema = json::Json();
     configuration::SchemaValidator validator;
     configuration::SchemaReader reader;
     configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema);

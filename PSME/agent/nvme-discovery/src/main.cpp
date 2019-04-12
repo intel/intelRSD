@@ -1,8 +1,7 @@
 /*!
  * @brief Implementation of the main function.
  *
- * @header{License}
- * @copyright Copyright (c) 2018 Intel Corporation
+ * @copyright Copyright (c) 2018-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file main.cpp
  */
 
@@ -26,8 +24,9 @@
 #include "agent-framework/signal.hpp"
 #include "agent-framework/version.hpp"
 #include "agent-framework/module/common_components.hpp"
+#include "agent-framework/module/service_uuid.hpp"
 #include "agent-framework/command/context_command_server.hpp"
-#include "agent-framework/service_uuid.hpp"
+
 #include "loader/loader.hpp"
 #include "loader/config.hpp"
 #include "configuration/configuration.hpp"
@@ -69,8 +68,8 @@ static constexpr unsigned int DEFAULT_SERVER_PORT = 7782;
 static constexpr int CONFIGURATION_VALIDATION_ERROR_CODE = -1;
 static constexpr int INVALID_MODULES_CONFIGURATION_ERROR_CODE = -2;
 
-const json::Value& init_configuration(int argc, const char** argv);
-bool check_configuration(const json::Value& json);
+const json::Json& init_configuration(int argc, const char** argv);
+bool check_configuration(const json::Json& json);
 
 /*!
  * @brief PSME NVMe Discovery Agent main method.
@@ -79,7 +78,7 @@ int main(int argc, const char* argv[]) {
     std::uint16_t server_port = DEFAULT_SERVER_PORT;
 
     /* Initialize configuration */
-    const json::Value& configuration = ::init_configuration(argc, argv);
+    const json::Json& configuration = ::init_configuration(argc, argv);
     if (!::check_configuration(configuration)) {
         return CONFIGURATION_VALIDATION_ERROR_CODE;
     }
@@ -97,14 +96,14 @@ int main(int argc, const char* argv[]) {
     }
 
     try {
-        server_port = static_cast<std::uint16_t>(configuration["server"]["port"].as_uint());
+        server_port = configuration.value("server", json::Json::object()).value("port", std::uint16_t{});
     }
-    catch (const json::Value::Exception& e) {
+    catch (const std::exception& e) {
         log_error("nvme-discovery-agent", "Cannot read server port " << e.what());
     }
 
-    if (configuration["database"].is_object() && configuration["database"]["location"].is_string()) {
-        database::Database::set_default_location(configuration["database"]["location"].as_string());
+    if (configuration.value("database", json::Json::object()).value("location", json::Json()).is_string()) {
+        database::Database::set_default_location(configuration["database"]["location"]);
     }
 
     EventDispatcher event_dispatcher;
@@ -123,7 +122,7 @@ int main(int argc, const char* argv[]) {
     context->db_factory = std::make_shared<DefaultDatabaseFactory>();
 
     // initialize key generator
-    NvmeKeyGenerator::set_agent_id(ServiceUuid::get_instance()->get_service_uuid());
+    NvmeKeyGenerator::set_agent_id(agent_framework::module::ServiceUuid::get_instance()->get_service_uuid());
     try {
         /* Start discovery manager */
         DiscoveryManager discovery_manager{};
@@ -176,7 +175,7 @@ int main(int argc, const char* argv[]) {
     return 0;
 }
 
-const json::Value& init_configuration(int argc, const char** argv) {
+const json::Json& init_configuration(int argc, const char** argv) {
     log_info("nvme-discovery-agent", agent_framework::generic::Version::build_info());
     auto& basic_config = Configuration::get_instance();
     basic_config.set_default_configuration(DEFAULT_CONFIGURATION);
@@ -190,8 +189,8 @@ const json::Value& init_configuration(int argc, const char** argv) {
     return basic_config.to_json();
 }
 
-bool check_configuration(const json::Value& json) {
-    json::Value json_schema;
+bool check_configuration(const json::Json& json) {
+    json::Json json_schema = json::Json();
     if (configuration::string_to_json(DEFAULT_VALIDATOR_JSON, json_schema)) {
         log_info("nvme-discovery-agent", "JSON Schema load!");
 

@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@ Chassis::Chassis(const std::string& parent_uuid, enums::Component parent_type) :
 Chassis::~Chassis() {}
 
 json::Json Chassis::to_json() const {
-    json::Json json{};
+    json::Json json = json::Json();
     json[literals::Chassis::STATUS] = get_status().to_json();
     json[literals::Chassis::TYPE] = get_type().to_string();
     json[literals::Chassis::IS_MANAGED] = get_is_managed();

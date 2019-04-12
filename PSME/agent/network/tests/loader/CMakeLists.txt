@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,11 +35,9 @@ if (BUILD_EOS_SDK)
 
     target_link_libraries(${test_target}
         network-utils
-        ${AGENT_FRAMEWORK_LIBRARIES}
         ${UUID_LIBRARIES}
         ${LOGGER_LIBRARIES}
-        ${CONFIGURATION_LIBRARIES}
-        ${JSONCXX_LIBRARIES}
+        configuration
         ${PCA95XX_LIBRARIES}
         ${SAFESTRING_LIBRARIES}
         dl

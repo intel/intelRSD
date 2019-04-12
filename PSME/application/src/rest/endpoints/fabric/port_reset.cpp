@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,14 +50,12 @@ void endpoint::PortReset::post(const server::Request& request, server::Response&
 
     const auto& json = JsonValidator::validate_request_body<schema::ResetPostSchema>(request);
 
-    if (json.is_member(Common::RESET_TYPE)) {
-        const auto port = psme::rest::model::Find<agent_framework::model::Port>(request.params[PathParam::PORT_ID])
-            .via<agent_framework::model::Fabric>(request.params[PathParam::FABRIC_ID])
-            .via<agent_framework::model::Switch>(request.params[PathParam::SWITCH_ID])
-            .get();
+    if (json.count(Common::RESET_TYPE)) {
+        const auto port = psme::rest::model::find<agent_framework::model::Fabric, agent_framework::model::Switch, agent_framework::model::Port>(
+            request.params).get();
 
         const auto& allowable_reset_types = port.get_allowed_actions();
-        const auto reset_type = json[constants::Common::RESET_TYPE].as_string();
+        const auto reset_type = json.value(constants::Common::RESET_TYPE, std::string{});
         const auto reset_type_enum = ResetType::from_string(reset_type);
 
         if (!JsonValidator::validate_allowable_values(allowable_reset_types.get_array(), reset_type_enum)) {

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,131 +33,112 @@ using namespace psme::rest::constants;
 using namespace psme::rest::validators;
 
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Endpoint.Endpoint";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#Endpoint.v1_1_0.Endpoint";
     r[Common::NAME] = "Fabric Endpoint";
 
     r[Common::DESCRIPTION] = "Fabric Endpoint";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
 
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    r[constants::Endpoint::ENDPOINT_PROTOCOL] = json::Value::Type::NIL;
-    r[constants::Endpoint::PCI_ID] = json::Value::Type::NIL;
+    r[constants::Endpoint::ENDPOINT_PROTOCOL] = json::Json::value_t::null;
+    r[constants::Endpoint::PCI_ID] = json::Json::value_t::null;
 
-    r[constants::Endpoint::CONNECTED_ENTITIES] = json::Value::Type::ARRAY;
-    r[constants::Common::REDUNDANCY] = json::Value::Type::ARRAY;
-    r[constants::Endpoint::HOST_RESERVATION_MEMORY_BYTES] = json::Value::Type::NIL;
-    r[constants::Endpoint::IP_TRANSPORT_DETAILS] = json::Value::Type::ARRAY;
-    r[Common::IDENTIFIERS] = json::Value::Type::ARRAY;
-    r[Common::ACTIONS][Common::OEM] = json::Value::Type::OBJECT;
+    r[constants::Endpoint::CONNECTED_ENTITIES] = json::Json::value_t::array;
+    r[constants::Common::REDUNDANCY] = json::Json::value_t::array;
+    r[constants::Endpoint::HOST_RESERVATION_MEMORY_BYTES] = json::Json::value_t::null;
+    r[constants::Endpoint::IP_TRANSPORT_DETAILS] = json::Json::value_t::array;
+    r[Common::IDENTIFIERS] = json::Json::value_t::array;
+    r[Common::ACTIONS][Common::OEM] = json::Json::value_t::object;
 
     r[Common::LINKS][Common::ODATA_TYPE] = "#Endpoint.v1_1_0.Links";
-    r[Common::LINKS][constants::Switch::PORTS] = json::Value::Type::ARRAY;
+    r[Common::LINKS][constants::Switch::PORTS] = json::Json::value_t::array;
     r[Common::LINKS][Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.EndpointLinks";
-    r[Common::LINKS][Common::OEM][Common::RACKSCALE][constants::Fabric::ZONES] = json::Value::Type::ARRAY;
-    r[Common::LINKS][Common::OEM][Common::RACKSCALE][Endpoint::INTERFACES] = json::Value::Type::ARRAY;
+    r[Common::LINKS][Common::OEM][Common::RACKSCALE][constants::Fabric::ZONES] = json::Json::value_t::array;
+    r[Common::LINKS][Common::OEM][Common::RACKSCALE][Endpoint::INTERFACES] = json::Json::value_t::array;
 
-    r[Common::OEM] = json::Value::Type::OBJECT;
+    r[Common::OEM] = json::Json::value_t::object;
     r[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.Endpoint";
     r[Common::OEM][Common::RACKSCALE][constants::Endpoint::AUTHENTICATION][constants::Endpoint::USERNAME] =
-        json::Value::Type::NIL;
+        json::Json::value_t::null;
     r[Common::OEM][Common::RACKSCALE][constants::Endpoint::AUTHENTICATION][constants::Endpoint::PASSWORD] =
-        json::Value::Type::NIL;
+        json::Json::value_t::null;
+    r[Common::OEM][Common::RACKSCALE][constants::Endpoint::ENDPOINT_PROTOCOL] = json::Json::value_t::null;
 
     return r;
 }
 
-json::Value make_transport_detail_prototype() {
-    json::Value json{};
-    json[constants::Endpoint::TRANSPORT_PROTOCOL] = json::Value::Type::NIL;
-    json[constants::Endpoint::IPV4_ADDRESS] = json::Value::Type::NIL;
-    json[constants::Endpoint::IPV6_ADDRESS] = json::Value::Type::NIL;
-    json[constants::Endpoint::PORT] = json::Value::Type::NIL;
+
+json::Json make_transport_detail_prototype() {
+    json::Json json = json::Json();
+    json[constants::Endpoint::TRANSPORT_PROTOCOL] = json::Json::value_t::null;
+    json[constants::Endpoint::IPV4_ADDRESS] = json::Json::value_t::null;
+    json[constants::Endpoint::IPV6_ADDRESS] = json::Json::value_t::null;
+    json[constants::Endpoint::PORT] = json::Json::value_t::null;
     return json;
 }
 
 
-json::Value make_entity_prototype() {
-    json::Value json{};
-    json[constants::Endpoint::ENTITY_ROLE] = json::Value::Type::NIL;
-    json[constants::Endpoint::PCI_FUNCTION_NUMBER] = json::Value::Type::NIL;
-    json[constants::Endpoint::PCI_CLASS_CODE] = json::Value::Type::NIL;
-    json[constants::Endpoint::ENTITY_PCI_ID] = json::Value::Type::NIL;
-    json[constants::Endpoint::ENTITY_LINK] = json::Value::Type::NIL;
-    json[constants::Common::IDENTIFIERS] = json::Value::Type::ARRAY;
-    json[constants::Common::OEM] = json::Value::Type::OBJECT;
+json::Json make_entity_prototype() {
+    json::Json json = json::Json();
+    json[constants::Endpoint::ENTITY_ROLE] = json::Json::value_t::null;
+    json[constants::Endpoint::PCI_FUNCTION_NUMBER] = json::Json::value_t::null;
+    json[constants::Endpoint::PCI_CLASS_CODE] = json::Json::value_t::null;
+    json[constants::Endpoint::ENTITY_PCI_ID] = json::Json::value_t::null;
+    json[constants::Endpoint::ENTITY_LINK] = json::Json::value_t::null;
+    json[constants::Common::IDENTIFIERS] = json::Json::value_t::array;
+    json[constants::Common::OEM] = json::Json::value_t::object;
     return json;
 }
 
 
-json::Value entity_to_json(const agent_framework::model::attribute::ConnectedEntity& entity,
-                           const agent_framework::model::Endpoint& endpoint) {
-    auto json = make_entity_prototype();
-    json[constants::Endpoint::ENTITY_ROLE] = entity.get_entity_role();
+template<typename Device>
+void fill_identifiers(json::Json&, const Device&) {}
 
-    for (const auto& identifier : entity.get_identifiers()) {
-        json::Value id{};
+
+template<>
+void fill_identifiers(json::Json& json, const agent_framework::model::Drive& drive) {
+    for (const auto& identifier : drive.get_identifiers()) {
+        json::Json id = json::Json();
+        id[Common::ODATA_TYPE] = "#Resource.v1_1_0.Identifier";
         id[Common::DURABLE_NAME] = identifier.get_durable_name();
         id[Common::DURABLE_NAME_FORMAT] = identifier.get_durable_name_format();
         json[Common::IDENTIFIERS].push_back(std::move(id));
     }
+}
 
-    if (!entity.get_entity().has_value()) {
-        log_warning("rest",
-                    "No entity link specified for endpoint's entity" + endpoint.get_uuid()
-                    + ". Current endpoint status is " + endpoint.get_status().get_state().to_string() + ".");
-        return json;
-    }
 
-    auto& volume_manager = agent_framework::module::get_manager<agent_framework::model::Volume>();
-    auto& drive_manager = agent_framework::module::get_manager<agent_framework::model::Drive>();
-    auto& system_manager = agent_framework::module::get_manager<agent_framework::model::System>();
-
-    // handle volume targets
+template<typename Device>
+bool handle_pcie_device_target(json::Json& json, const agent_framework::model::attribute::ConnectedEntity& entity) {
+    auto& device_manager = agent_framework::module::get_manager<Device>();
     if (entity.get_entity_role() == agent_framework::model::enums::EntityRole::Target
-        && volume_manager.entry_exists(entity.get_entity())) {
-
-        json[constants::Endpoint::ENTITY_LINK][Common::ODATA_ID] = endpoint::PathBuilder(
-            endpoint::utils::get_component_url(agent_framework::model::enums::Component::Volume,
-                                               entity.get_entity())).build();
-        return json;
-    }
-
-    // handle drive targets
-    if (entity.get_entity_role() == agent_framework::model::enums::EntityRole::Target
-        && drive_manager.entry_exists(entity.get_entity())) {
+        && device_manager.entry_exists(entity.get_entity())) {
 
         // fill link
-        const auto drive = drive_manager.get_entry(entity.get_entity());
+        const auto device = device_manager.get_entry(entity.get_entity());
         json[constants::Endpoint::ENTITY_LINK][Common::ODATA_ID] = endpoint::PathBuilder(
-            endpoint::utils::get_component_url(agent_framework::model::enums::Component::Drive,
-                                               drive.get_uuid())).build();
+            endpoint::utils::get_component_url(Device::get_component(), device.get_uuid())).build();
 
         // fill identifiers
-        for (const auto& identifier : drive.get_identifiers()) {
-            json::Value id{};
-            id[Common::DURABLE_NAME] = identifier.get_durable_name();
-            id[Common::DURABLE_NAME_FORMAT] = identifier.get_durable_name_format();
-            json[Common::IDENTIFIERS].push_back(std::move(id));
-        }
+        fill_identifiers<Device>(json, device);
 
-        const auto drive_function_uuids = agent_framework::module::PncComponents::get_instance()->
-            get_drive_function_manager().get_children(drive.get_uuid());
+        const auto pcie_function_uuids = agent_framework::module::get_m2m_manager<Device, agent_framework::model::PcieFunction>()
+            .get_children(device.get_uuid());
 
-        if (drive_function_uuids.size() == 0) {
-            log_info("rest", "PNC Drive " + drive.get_uuid() + " has no PCIeFunctions!");
-            return json;
+        if (pcie_function_uuids.size() == 0) {
+            log_info("rest", Device::get_component() << " " << device.get_uuid() << " has no PCIeFunctions!");
+            return false;
         }
 
         try {
             const auto function = agent_framework::module::get_manager<agent_framework::model::PcieFunction>()
-                .get_entry(drive_function_uuids.front());
+                .get_entry(pcie_function_uuids.front());
 
             try {
                 if (function.get_function_id().has_value()) {
@@ -174,36 +155,85 @@ json::Value entity_to_json(const agent_framework::model::attribute::ConnectedEnt
             json[constants::Endpoint::ENTITY_PCI_ID][PcieFunction::SUBSYSTEM_VENDOR_ID] = function.get_pci_subsystem_vendor_id();
         }
         catch (agent_framework::exceptions::InvalidUuid&) {
-            log_error("rest", "Drive " + drive.get_uuid() + " has non-existing PCIeFunctions!");
+            log_error("rest",
+                      Device::get_component() << " " << device.get_uuid() << " has non-existing PCIeFunctions!");
+            return false;
         }
+        return true;
+    }
+    return false;
+}
 
+
+json::Json entity_to_json(const agent_framework::model::attribute::ConnectedEntity& entity,
+                          const agent_framework::model::Endpoint& endpoint) {
+    auto json = make_entity_prototype();
+    json[constants::Endpoint::ENTITY_ROLE] = entity.get_entity_role();
+
+    for (const auto& identifier : entity.get_identifiers()) {
+        json::Json id = json::Json();
+        id[Common::ODATA_TYPE] = "#Resource.v1_1_0.Identifier";
+        id[Common::DURABLE_NAME] = identifier.get_durable_name();
+        id[Common::DURABLE_NAME_FORMAT] = identifier.get_durable_name_format();
+        json[Common::IDENTIFIERS].push_back(std::move(id));
+    }
+
+    // handle lun
+    if (entity.get_lun().has_value()) {
+        json[Common::OEM][Common::RACKSCALE][Common::LUN] = entity.get_lun();
+    }
+
+    if (agent_framework::model::Endpoint::is_target(endpoint) && !entity.get_entity().has_value()) {
+        log_warning("rest",
+                    "No entity link specified for Endpoint's entity " + endpoint.get_uuid()
+                    + ". Current Endpoint status is " + endpoint.get_status().get_state().to_string() + ".");
         return json;
     }
 
-    if (entity.get_entity_role() == agent_framework::model::enums::EntityRole::Initiator
-        && system_manager.entry_exists(entity.get_entity())) {
+    auto& volume_manager = agent_framework::module::get_manager<agent_framework::model::Volume>();
+    auto& system_manager = agent_framework::module::get_manager<agent_framework::model::System>();
+
+    // handle volume targets
+    if (entity.get_entity_role() == agent_framework::model::enums::EntityRole::Target
+        && volume_manager.entry_exists(entity.get_entity())) {
 
         json[constants::Endpoint::ENTITY_LINK][Common::ODATA_ID] = endpoint::PathBuilder(
-            endpoint::utils::get_component_url(agent_framework::model::enums::Component::System,
+            endpoint::utils::get_component_url(agent_framework::model::enums::Component::Volume,
                                                entity.get_entity())).build();
         return json;
     }
 
-    // handle links to unknown resources
-    log_error("rest", "Entity on endpoint " << endpoint.get_uuid()
-        << " links to an unknown resource: "
-        << "EntityRole=" << entity.get_entity_role() << ", "
-        << "EntityUuid=" << entity.get_entity());
+    // handle initiators and system targets
+    if (entity.get_entity_role() == agent_framework::model::enums::EntityRole::Initiator) {
+        if (entity.get_entity().has_value() && system_manager.entry_exists(entity.get_entity().value())) {
+            json[constants::Endpoint::ENTITY_LINK][Common::ODATA_ID] = endpoint::PathBuilder(
+                endpoint::utils::get_component_url(agent_framework::model::enums::Component::System,
+                                                   entity.get_entity())).build();
+        }
+        return json;
+    }
 
+    // handle PCIe device targets
+    bool device_handled = handle_pcie_device_target<agent_framework::model::Drive>(json, entity);
+    device_handled = device_handled || handle_pcie_device_target<agent_framework::model::Processor>(json, entity);
+
+
+    // handle links to unknown resources
+    if (!device_handled) {
+        log_error("rest", "Entity on endpoint " << endpoint.get_uuid()
+                                                << " links to an unknown resource: "
+                                                << "EntityRole=" << entity.get_entity_role() << ", "
+                                                << "EntityUuid=" << entity.get_entity());
+    }
     return json;
 }
 
 
-void fill_links(const agent_framework::model::Endpoint& endpoint, json::Value& json) {
+void fill_links(const agent_framework::model::Endpoint& endpoint, json::Json& json) {
     auto& m2m = agent_framework::module::get_m2m_manager<agent_framework::model::Zone, agent_framework::model::Endpoint>();
     // fill Zones links
     for (const auto& zone_uuid : m2m.get_parents(endpoint.get_uuid())) {
-        json::Value zone_link{};
+        json::Json zone_link = json::Json();
         zone_link[Common::ODATA_ID] = endpoint::PathBuilder(
             endpoint::utils::get_component_url(agent_framework::model::enums::Component::Zone,
                                                zone_uuid)).build();
@@ -213,7 +243,7 @@ void fill_links(const agent_framework::model::Endpoint& endpoint, json::Value& j
     for (const auto& transport : endpoint.get_ip_transport_details()) {
         if (transport.get_interface().has_value()) {
             try {
-                auto link = json::Value{};
+                auto link = json::Json{};
                 link[Common::ODATA_ID] = endpoint::PathBuilder(
                     endpoint::utils::get_component_url(agent_framework::model::enums::Component::NetworkInterface,
                                                        transport.get_interface())).build();
@@ -241,8 +271,8 @@ endpoint::Endpoint::~Endpoint() {}
 void endpoint::Endpoint::get(const server::Request& req, server::Response& res) {
     auto json = ::make_prototype();
 
-    const auto endpoint = psme::rest::model::Find<agent_framework::model::Endpoint>(req.params[PathParam::ENDPOINT_ID])
-        .via<agent_framework::model::Fabric>(req.params[PathParam::FABRIC_ID]).get();
+    const auto endpoint = psme::rest::model::find<agent_framework::model::Fabric, agent_framework::model::Endpoint>(
+        req.params).get();
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
     json[Common::ID] = req.params[PathParam::ENDPOINT_ID];
@@ -251,10 +281,11 @@ void endpoint::Endpoint::get(const server::Request& req, server::Response& res) 
     json[constants::Endpoint::ENDPOINT_PROTOCOL] = endpoint.get_protocol();
 
     for (const auto& identifier : endpoint.get_identifiers()) {
-        json::Value id_link{};
-        id_link[Common::DURABLE_NAME] = identifier.get_durable_name();
-        id_link[Common::DURABLE_NAME_FORMAT] = identifier.get_durable_name_format();
-        json[Common::IDENTIFIERS].push_back(std::move(id_link));
+        json::Json id = json::Json();
+        id[Common::ODATA_TYPE] = "#Resource.v1_1_0.Identifier";
+        id[Common::DURABLE_NAME] = identifier.get_durable_name();
+        id[Common::DURABLE_NAME_FORMAT] = identifier.get_durable_name_format();
+        json[Common::IDENTIFIERS].push_back(std::move(id));
     }
 
     for (const auto& entity : endpoint.get_connected_entities()) {
@@ -264,7 +295,7 @@ void endpoint::Endpoint::get(const server::Request& req, server::Response& res) 
     for (const auto& port_uuid : agent_framework::module::PncComponents::get_instance()->get_endpoint_port_manager()
         .get_children(endpoint.get_uuid())) {
 
-        json::Value port_link{};
+        json::Json port_link = json::Json();
         port_link[Common::ODATA_ID] =
             endpoint::utils::get_component_url(agent_framework::model::enums::Component::Port, port_uuid);
         json[Common::LINKS][Switch::PORTS].push_back(std::move(port_link));
@@ -274,14 +305,14 @@ void endpoint::Endpoint::get(const server::Request& req, server::Response& res) 
         auto t = ::make_transport_detail_prototype();
         t[constants::Endpoint::TRANSPORT_PROTOCOL] = transport.get_transport_protocol();
 
-        json::Value ipv4{};
+        json::Json ipv4 = json::Json();
         ipv4[constants::IpAddress::ADDRESS] = transport.get_ipv4_address().get_address();
         ipv4[constants::IpAddress::ADDRESS_ORIGIN] = transport.get_ipv4_address().get_address_origin();
         ipv4[constants::IpAddress::GATEWAY] = transport.get_ipv4_address().get_gateway();
         ipv4[constants::IpAddress::SUBNET_MASK] = transport.get_ipv4_address().get_subnet_mask();
         t[constants::Endpoint::IPV4_ADDRESS] = std::move(ipv4);
 
-        json::Value ipv6{};
+        json::Json ipv6 = json::Json();
         ipv6[constants::IpAddress::ADDRESS] = transport.get_ipv6_address().get_address();
         ipv6[constants::IpAddress::ADDRESS_ORIGIN] = transport.get_ipv6_address().get_address_origin();
         ipv6[constants::IpAddress::ADDRESS_STATE] = transport.get_ipv6_address().get_address_state();
@@ -295,6 +326,7 @@ void endpoint::Endpoint::get(const server::Request& req, server::Response& res) 
 
     json[Common::OEM][Common::RACKSCALE][constants::Endpoint::AUTHENTICATION][constants::Endpoint::USERNAME] =
         endpoint.get_username();
+    json[Common::OEM][Common::RACKSCALE][constants::Endpoint::ENDPOINT_PROTOCOL] = endpoint.get_oem_protocol();
 
     fill_links(endpoint, json);
     set_response(res, json);
@@ -302,11 +334,12 @@ void endpoint::Endpoint::get(const server::Request& req, server::Response& res) 
 
 
 void endpoint::Endpoint::patch(const server::Request& request, server::Response& response) {
+    static const constexpr char TRANSACTION_NAME[] = "PatchEndpoint";
+
     auto json = JsonValidator::validate_request_body<schema::EndpointPatchSchema>(request);
 
-    const auto endpoint = psme::rest::model::Find<agent_framework::model::Endpoint>(
-        request.params[PathParam::ENDPOINT_ID])
-        .via<agent_framework::model::Fabric>(request.params[PathParam::FABRIC_ID]).get();
+    const auto endpoint = psme::rest::model::find<agent_framework::model::Fabric, agent_framework::model::Endpoint>(
+        request.params).get();
 
     const auto& agent_id = endpoint.get_agent_id();
 
@@ -314,20 +347,9 @@ void endpoint::Endpoint::patch(const server::Request& request, server::Response&
 
     const auto& auth = json[Common::OEM][Common::RACKSCALE][constants::Endpoint::AUTHENTICATION];
 
-    if (auth.is_member(constants::Endpoint::USERNAME)) {
-        if (auth[constants::Endpoint::USERNAME].is_null()) {
-            attributes.set_value(agent_framework::model::literals::Endpoint::USERNAME, json::Json{});
-        }
-        else {
-            attributes.set_value(agent_framework::model::literals::Endpoint::USERNAME, auth[constants::Endpoint::USERNAME].as_string());
-        }
-
-        if (auth[constants::Endpoint::PASSWORD].is_null()) {
-            attributes.set_value(agent_framework::model::literals::Endpoint::PASSWORD, json::Json{});
-        }
-        else {
-            attributes.set_value(agent_framework::model::literals::Endpoint::PASSWORD, auth[constants::Endpoint::PASSWORD].as_string());
-        }
+    if (auth.count(constants::Endpoint::USERNAME)) {
+        attributes.set_value(agent_framework::model::literals::Endpoint::USERNAME, auth[constants::Endpoint::USERNAME]);
+        attributes.set_value(agent_framework::model::literals::Endpoint::PASSWORD, auth[constants::Endpoint::PASSWORD]);
     }
 
     if (!attributes.empty()) {
@@ -335,7 +357,7 @@ void endpoint::Endpoint::patch(const server::Request& request, server::Response&
                                                                                                   attributes};
         const auto& gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(agent_id);
 
-        auto set_target_attributes = [&, gami_agent] {
+        auto set_endpoint_attributes = [&, gami_agent] {
             gami_agent->execute<agent_framework::model::responses::SetComponentAttributes>(
                 set_component_attributes_request);
 
@@ -345,7 +367,7 @@ void endpoint::Endpoint::patch(const server::Request& request, server::Response&
                 load(gami_agent, parent_uuid,
                      agent_framework::model::enums::Component::Fabric, endpoint.get_uuid(), false);
         };
-        gami_agent->execute_in_transaction(set_target_attributes);
+        gami_agent->execute_in_transaction(TRANSACTION_NAME, set_endpoint_attributes);
 
     }
     get(request, response);
@@ -353,9 +375,10 @@ void endpoint::Endpoint::patch(const server::Request& request, server::Response&
 
 
 void endpoint::Endpoint::del(const server::Request& req, server::Response& res) {
+    static const constexpr char TRANSACTION_NAME[] = "DeleteEndpoint";
 
-    const auto endpoint = psme::rest::model::Find<agent_framework::model::Endpoint>(req.params[PathParam::ENDPOINT_ID])
-        .via<agent_framework::model::Fabric>(req.params[PathParam::FABRIC_ID]).get();
+    const auto endpoint = psme::rest::model::find<agent_framework::model::Fabric, agent_framework::model::Endpoint>(
+        req.params).get();
 
     auto gami_req = agent_framework::model::requests::DeleteEndpoint(endpoint.get_uuid());
 
@@ -373,5 +396,5 @@ void endpoint::Endpoint::del(const server::Request& req, server::Response& res) 
         res.set_status(server::status_2XX::NO_CONTENT);
     };
 
-    gami_agent->execute_in_transaction(remove_endpoint);
+    gami_agent->execute_in_transaction(TRANSACTION_NAME, remove_endpoint);
 }

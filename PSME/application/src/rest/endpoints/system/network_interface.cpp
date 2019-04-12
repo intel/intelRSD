@@ -1,7 +1,7 @@
 /*!
  * @brief Definition of Network Interfaces endpoint
  *
- * @copyright Copyright (c) 2017-2018 Intel Corporation
+ * @copyright Copyright (c) 2017-2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Files}
  * @file network_interface.cpp
  */
 
@@ -21,47 +20,49 @@
 #include "psme/rest/utils/status_helpers.hpp"
 
 
+
 using namespace psme::rest;
 using namespace psme::rest::constants;
 
-
-
 namespace {
-json::Value make_prototype() {
-    json::Value r(json::Value::Type::OBJECT);
+json::Json make_prototype() {
+    json::Json r(json::Json::value_t::object);
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#NetworkInterface.NetworkInterface";
-    r[Common::ODATA_ID] = json::Value::Type::NIL;
+    r[Common::ODATA_ID] = json::Json::value_t::null;
     r[Common::ODATA_TYPE] = "#NetworkInterface.v1_0_0.NetworkInterface";
-    r[Common::ID] = json::Value::Type::NIL;
+    r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Network Interface";
     r[Common::DESCRIPTION] = "Network Interface";
-    r[Common::STATUS][Common::STATE] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH] = json::Value::Type::NIL;
-    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Value::Type::NIL;
-    r[NetworkInterface::NETWORK_DEVICE_FUNCTIONS] = json::Value::Type::NIL;
-    r[Common::LINKS] = json::Value::Type::OBJECT;
+    r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
+    r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
+    r[NetworkInterface::NETWORK_DEVICE_FUNCTIONS] = json::Json::value_t::null;
+    r[Common::LINKS] = json::Json::value_t::object;
 
     return r;
 }
 
 }
 
+
 endpoint::NetworkInterface::NetworkInterface(const std::string& path) : EndpointBase(path) {}
+
+
 endpoint::NetworkInterface::~NetworkInterface() {}
+
 
 void endpoint::NetworkInterface::get(const server::Request& req, server::Response& res) {
     auto json = make_prototype();
-    auto device = psme::rest::model::Find<agent_framework::model::NetworkDevice>(req.params[PathParam::NETWORK_INTERFACE_ID])
-        .via<agent_framework::model::System>(req.params[PathParam::SYSTEM_ID])
-        .get();
+    auto device = psme::rest::model::find<agent_framework::model::System, agent_framework::model::NetworkDevice>(
+        req.params).get();
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
-    endpoint::status_to_json(device,json);
+    endpoint::status_to_json(device, json);
     json[constants::Common::ID] = req.params[PathParam::NETWORK_INTERFACE_ID];
     json[constants::NetworkInterface::NETWORK_DEVICE_FUNCTIONS][Common::ODATA_ID] = endpoint::PathBuilder(req).append(
-            constants::NetworkInterface::NETWORK_DEVICE_FUNCTIONS).build();
+        constants::NetworkInterface::NETWORK_DEVICE_FUNCTIONS).build();
 
     set_response(res, json);
 }

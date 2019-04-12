@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ set(SOURCES
 
     model/attributes/array.cpp
     model/attributes/attributes.cpp
+    model/attributes/event_data.cpp
     model/attributes/result_status.cpp
     model/attributes/collection.cpp
     model/attributes/cpu_id.cpp
@@ -38,7 +39,6 @@ set(SOURCES
     model/attributes/identifier.cpp
     model/attributes/ipv4_address.cpp
     model/attributes/ipv6_address.cpp
-    model/attributes/memory_location.cpp
     model/attributes/location.cpp
     model/attributes/manager_entry.cpp
     model/attributes/message.cpp
@@ -52,13 +52,14 @@ set(SOURCES
     model/attributes/command_shell.cpp
     model/attributes/status.cpp
     model/attributes/subcomponent_entry.cpp
-    model/attributes/target_lun.cpp
     model/attributes/usb_device.cpp
     model/attributes/connection_data.cpp
     model/attributes/iscsi_boot.cpp
     model/attributes/iscsi_data.cpp
     model/attributes/memory_location.cpp
     model/attributes/region.cpp
+    model/attributes/memory_set.cpp
+    model/attributes/interleave_set.cpp
     model/attributes/acl_vlan_id.cpp
     model/attributes/acl_address.cpp
     model/attributes/acl_port.cpp
@@ -67,8 +68,9 @@ set(SOURCES
     model/attributes/wildcard.cpp
     model/attributes/calculation_parameters.cpp
     model/attributes/metric_definition_entry.cpp
-    model/attributes/on_package_memory.cpp
+    model/attributes/integrated_memory.cpp
     model/attributes/fpga.cpp
+    model/attributes/fpga_reconfiguration_slot.cpp
     model/attributes/ip_transport_detail.cpp
     model/attributes/capacity.cpp
     model/attributes/capacity_source.cpp
@@ -76,6 +78,9 @@ set(SOURCES
     model/attributes/qos_application_protocol.cpp
     model/attributes/qos_bandwidth_allocation.cpp
     model/attributes/qos_priority_group_mapping.cpp
+    model/attributes/security_capabilities.cpp
+    model/attributes/power_management_policy.cpp
+    model/attributes/performance_configuration.cpp
 
     model/acl.cpp
     model/acl_rule.cpp
@@ -90,9 +95,10 @@ set(SOURCES
     model/ethernet_switch.cpp
     model/fabric.cpp
     model/fan.cpp
-    model/iscsi_target.cpp
     model/manager.cpp
     model/memory.cpp
+    model/memory_domain.cpp
+    model/memory_chunks.cpp
     model/metric.cpp
     model/metric_definition.cpp
     model/network_interface.cpp
@@ -123,12 +129,12 @@ set(SOURCES
 
     loader/loader.cpp
 
+    enum/fpga_interface.cpp
     enum/processor_instruction_set.cpp
     enum/sensor_type.cpp
     enum/hssi_configuration.cpp
     enum/hssi_sideband.cpp
-
-    managers/iscsi_target_manager.cpp
+    enum/oem_protocol.cpp
 
     managers/utils/manager_utils.cpp
     managers/many_to_many_manager.cpp
@@ -144,9 +150,6 @@ set(SOURCES
 
     utils/hash.cpp
     utils/json_converter.cpp
-    utils/json_transformations.cpp
-    utils/optional/extensions.cpp
-    utils/optional/optional-lib/optional.cpp
     utils/time.cpp
     utils/is_requested_metric.cpp
     utils/is_ascii_string.cpp
@@ -190,6 +193,8 @@ set(SOURCES
     requests/common/get_network_interface_info.cpp
 
     requests/compute/get_memory_info.cpp
+    requests/compute/get_memory_domain_info.cpp
+    requests/compute/get_memory_chunks_info.cpp
     requests/compute/get_storage_controller_info.cpp
     requests/compute/get_network_device_info.cpp
     requests/compute/get_network_device_function_info.cpp
@@ -232,6 +237,7 @@ set(SOURCES
     requests/storage/delete_volume.cpp
     requests/storage/get_storage_service_info.cpp
     requests/storage/get_storage_pool_info.cpp
+    requests/storage/add_storage_pool.cpp
 
     requests/pnc/get_switch_info.cpp
     requests/pnc/get_port_info.cpp
@@ -269,10 +275,23 @@ set(SOURCES
 
     responses/storage/add_volume.cpp
     responses/storage/delete_volume.cpp
+    responses/storage/add_storage_pool.cpp
 
     responses/psme/attach.cpp
     responses/psme/heart_beat.cpp
-)
+
+    responses/common/delete_drive.cpp
+    requests/common/delete_drive.cpp
+
+    requests/storage/delete_storage_pool.cpp
+    responses/storage/delete_storage_pool.cpp
+
+    # TODO Should be moved somewhere
+    service_uuid.cpp
+    )
+
+
+
 
 set_source_files_properties(
     managers/utils/manager_utils.cpp
@@ -284,4 +303,24 @@ set_source_files_properties(
     model/system.cpp
 )
 
-add_library(module OBJECT ${SOURCES})
+add_library(agent-framework-module STATIC
+    ${SOURCES}
+)
+
+target_link_libraries(agent-framework-module
+    PUBLIC
+    agent-framework-exceptions
+    optional
+    logger
+
+    PRIVATE
+    configuration
+    database
+    uuid
+    md5
+)
+
+target_include_directories(agent-framework-module
+    PUBLIC
+    ${AGENT_FRAMEWORK_DIR}/include
+)

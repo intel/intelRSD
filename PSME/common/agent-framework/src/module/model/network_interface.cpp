@@ -2,7 +2,7 @@
  * @section LICENSE
  *
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +38,7 @@ NetworkInterface::NetworkInterface(const std::string& parent_uuid, enums::Compon
 NetworkInterface::~NetworkInterface() {}
 
 json::Json NetworkInterface::to_json() const {
-    json::Json result{};
+    json::Json result = json::Json();
     result[literals::NetworkInterface::STATUS] = get_status().to_json();
     result[literals::NetworkInterface::FRAME_SIZE] = get_frame_size();
     result[literals::NetworkInterface::SPEED] = get_speed_mbps();

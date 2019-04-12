@@ -51,8 +51,8 @@ class JsonParse:
                         name=response['subnqn']
                     ))
                 cfg.save_available_target(response['traddr'], response['trsvcid'], response['subnqn'], "discovered")
-            except KeyError:
-                Message.error('::Output from nvme discover looks empty.')
+            except:
+                Message.error('Output from nvme discover looks empty.')
                 return []
         return list_of_discovered
 
@@ -67,7 +67,7 @@ class JsonParse:
             dictionary = {}
             for i in self.clean_output(output):
                 dic = i.split(':')
-                dictionary.update({dic[0]: dic[1]})
+                dictionary.update({dic[0]: ':'.join(dic[1:])})
             converted_output.append(dictionary)
         return converted_output
 

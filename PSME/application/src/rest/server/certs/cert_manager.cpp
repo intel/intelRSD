@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,10 +32,10 @@ using namespace psme::rest::server;
 
 namespace {
     std::unique_ptr<CertLoader> select_cert_loader(const std::string& certs_dir) {
-        const json::Value& config =
+        const json::Json& config =
             configuration::Configuration::get_instance().to_json();
         std::unique_ptr<CertLoader> loader{};
-        if (config["rmm-present"].as_bool()) {
+        if (config.value("rmm-present", bool{})) {
             loader.reset(new RMMCertLoader(certs_dir));
         }
         else {

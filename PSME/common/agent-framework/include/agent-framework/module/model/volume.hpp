@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2017-2018 Intel Corporation
+ * Copyright (c) 2017-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -286,42 +286,6 @@ public:
 
 
     /*!
-     * @brief Gets erased state
-     * @return Erased state
-     * */
-    bool is_erased() const {
-        return m_erased;
-    }
-
-
-    /*!
-     * @brief Sets erased state
-     * @param[in] erased Erased state
-     * */
-    void set_erased(bool erased) {
-        m_erased = erased;
-    }
-
-
-    /*!
-     * @brief Gets erase on detach state
-     * @return Erased on detach state
-     * */
-    const OptionalField<bool>& is_erase_on_detach() const {
-        return m_erase_on_detach;
-    }
-
-
-    /*!
-     * @brief Sets erase on detach state
-     * @param[in] erase_on_detach Erased on detach state
-     * */
-    void set_erase_on_detach(const OptionalField<bool>& erase_on_detach) {
-        m_erase_on_detach = erase_on_detach;
-    }
-
-
-    /*!
      * @brief Get volume's array of replica information
      * @return array with volume's replica information
      */
@@ -391,20 +355,50 @@ public:
     }
 
     /*!
-     * @brief Check if volume is in warning state
-     * @return True if volume is in warning state
+     * @brief Checks if volume is connected to any endpoint from all available
+     * @param volume_uuid UUID of the volume
+     * @return Returns true if volume is connected to endpoint, false otherwise
      */
-    bool get_is_in_warning_state() const {
-        return m_is_in_warning_state;
-    }
+    static bool is_volume_connected_to_endpoint(const Uuid& volume_uuid);
 
     /*!
-     * @brief Sets is in warning state override
-     * @param is_in_warning_state New flag value
+     * @brief Checks if volume is connected to endpoint
+     * @param endpoint_uuids Requested collection of endpoints
+     * @param volume_uuid UUID of the volume to check
+     * @return Returns true if volume is connected to endpoint, false otherwise
      */
-    void set_is_in_warning_state(bool is_in_warning_state) {
-        m_is_in_warning_state = is_in_warning_state;
-    }
+    static bool is_volume_connected_to_endpoint(const std::vector<Uuid>& endpoint_uuids, const Uuid& volume_uuid);
+
+    /*!
+     * @brief Check if volume is shared over fabric's zones.
+     * @param volume_uuid UUID of the volume.
+     * @return Returns true if volume is shared, false otherwise.
+     */
+    static bool is_volume_shared_over_fabrics(const Uuid& volume_uuid);
+
+
+    /*!
+     * @brief Check if volume is a snapshot replica for another volume.
+     * @param volume_uuid UUID of the volume.
+     * @return Returns true if volume is snapshot, false otherwise.
+     */
+    static bool is_volume_snapshot(const Uuid& volume_uuid);
+
+
+    /*!
+     * @brief Check if volume is a snapshot replica for another volume.
+     * @param volume Reference to volume.
+     * @return Returns true if volume is snapshot, false otherwise.
+     */
+    static bool is_volume_snapshot(const Volume& volume);
+
+    /*!
+     * @brief Check if volume has replica and it is a source for any of these replicas
+     * @param volume Reference to volume.
+     * @return Returns true if volume is source, false otherwise.
+     */
+    static bool is_source_for_another_volume(const Volume& volume);
+
 
 private:
     attribute::Capacity m_capacity{};
@@ -416,18 +410,14 @@ private:
     EncryptionTypes m_encryption_types{};
     Identifiers m_identifiers{};
     OptionalField<bool> m_bootable{};
-    OptionalField<bool> m_erase_on_detach{};
     ReplicaInfos m_replica_infos{};
     AccessCapabilities m_access_capabilities{};
-    bool m_erased{};
 
     static const enums::CollectionName collection_name;
     static const enums::Component component;
 
-    // NVMe agent fields
-    bool m_is_being_initialized{false}; // flag to block multiple initialization requests in the same type
-    bool m_is_in_warning_state{false}; // state override, volume has to keep this state regardless other factors
-
+    // Agents' specific fields
+    bool m_is_being_initialized{false}; // flag to block multiple initialization requests in the same time
 };
 
 }

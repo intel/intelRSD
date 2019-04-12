@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2017-2018 Intel Corporation
+# Copyright (c) 2017-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 #
 # </license_header>
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.4)
 project("JSON RPC" CXX)
 
 set(JSON_RPC_LIBRARIES
     json-rpc
+    json
     CACHE PATH "JSON RPC libraries"
     )
 
@@ -29,21 +30,13 @@ set(JSON_RPC_INCLUDE_DIRS
     CACHE PATH "JSON RPC include directory"
     )
 
-include_directories(
-    ${JSON_INCLUDE_DIRS}
-    include
-)
-
-include_directories(SYSTEM
-    ${CURL_INCLUDE_DIRS}
-    )
-
 add_library(json-rpc STATIC
     src/common.cpp
     src/connectors/abstract_server_connector.cpp
     src/connectors/abstract_client_connector.cpp
     src/connectors/http_client_connector.cpp
     src/connectors/http_server_connector.cpp
+    src/connectors/unix_domain_socket_client_connector.cpp
     src/handlers/abstract_request_handler.cpp
     src/handlers/abstract_request_invoker.cpp
     src/handlers/json_rpc_request_handler.cpp
@@ -55,10 +48,23 @@ add_library(json-rpc STATIC
     )
 
 target_link_libraries(json-rpc
-    ${JSON_LIBRARIES}
+    PRIVATE
     ${MICROHTTPD_LIBRARIES}
     ${CURL_LIBRARIES}
+    ${SAFESTRING_LIBRARIES}
+
+    PUBLIC
+    json
     )
+
+target_include_directories(json-rpc
+    PRIVATE
+    ${CURL_INCLUDE_DIRS}
+    ${SAFESTRING_INCLUDE_DIRS}
+
+    PUBLIC
+    include
+)
 
 set_source_files_properties(
     src/connectors/http_client_connector.cpp
@@ -69,13 +75,13 @@ set_source_files_properties(
 set_source_files_properties(
     src/connectors/http_server_connector.cpp
     PROPERTIES
-    COMPILE_FLAGS "-Wno-missing-braces -Wno-missing-field-initializers"
+    COMPILE_FLAGS "-Wno-missing-braces -Wno-missing-field-initializers -Wno-undef"
 )
 
-install(TARGETS json-rpc
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    )
+set_source_files_properties(
+    src/connectors/unix_domain_socket_client_connector.cpp
+    PROPERTIES COMPILE_FLAGS "-Wno-strict-aliasing -Wno-missing-field-initializers"
+
+)
 
 add_subdirectory(tests)

@@ -1,8 +1,7 @@
 /*!
  * @brief System builder class interface.
  *
- * @header{License}
- * @copyright Copyright (c) 2017-2018 Intel Corporation.
+ * @copyright Copyright (c) 2017-2019 Intel Corporation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @header{Filesystem}
  * @file system_builder.hpp
  */
 
@@ -96,6 +94,15 @@ public:
      */
     static void update_system_guid(agent_framework::model::System& system,
                                    const ipmi::command::generic::response::GetSystemGuid& get_system_guid_response);
+
+
+    /*!
+     * @brief Update system object with SMBIOS speedselect info data.
+     * @param system System object to be updated with discovered data.
+     * @param smbios_data SMBIOS data.
+     */
+    static void update_smbios_performance_configurations(agent_framework::model::System& system,
+                                                         const smbios::parser::SmbiosParser::StructEnhanced<smbios::parser::SMBIOS_SPEED_SELECT_INFO_DATA>& smbios_data);
 };
 
 }

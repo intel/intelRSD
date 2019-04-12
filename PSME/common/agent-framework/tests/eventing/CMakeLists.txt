@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2015-2018 Intel Corporation
+# Copyright (c) 2015-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,19 +18,16 @@
 
 if (NOT GTEST_FOUND)
     return()
-endif()
+endif ()
 
- add_gtest(eventing_queue agent-framework
-     test_runner.cpp
-     eventing_test_queue.cpp
-     worker_thread_test.cpp
-     delay_queue_test.cpp
- )
+add_gtest(eventing_queue agent-framework
+    test_runner.cpp
+    eventing_test_queue.cpp
+    worker_thread_test.cpp
+    delay_queue_test.cpp
+    )
 
- target_link_libraries(${test_target}
-     ${JSONCXX_LIBRARIES}
-     ${AGENT_FRAMEWORK_LIB}
-     ${LOGGER_LIBRARIES}
-     ${SAFESTRING_LIBRARIES}
- )
+target_link_libraries(${test_target}
+    agent-framework
+    )
 

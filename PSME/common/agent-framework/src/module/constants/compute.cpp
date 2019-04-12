@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,6 +40,7 @@ constexpr const char System::BOOT_OVERRIDE_TARGET[];
 constexpr const char System::BOOT_OVERRIDE_SUPPORTED[];
 constexpr const char System::UEFI_TARGET[];
 constexpr const char System::POWER_STATE[];
+constexpr const char System::RESET[];
 constexpr const char System::USB_DEVICES[];
 constexpr const char System::PCI_DEVICES[];
 constexpr const char System::FRU_INFO[];
@@ -53,12 +54,34 @@ constexpr const char System::GUID[];
 constexpr const char System::CABLE_IDS[];
 constexpr const char System::TXT_ENABLED[];
 constexpr const char System::USER_MODE_ENABLED[];
+constexpr const char System::ERASE_DCPMEM[];
+constexpr const char System::RESET_CONFIGURATION[];
+constexpr const char System::ERASE_CONFIGURATION_KEYS[];
+constexpr const char System::CURRENT_PERFORMANCE_CONFIGURATION[];
+constexpr const char System::PERFORMANCE_CONFIGURATIONS[];
 
 constexpr char Fpga::TYPE[];
+constexpr char Fpga::MODEL[];
+constexpr char Fpga::MANUFACTURER[];
 constexpr char Fpga::BIT_STREAM_VERSION[];
 constexpr char Fpga::HSSI_CONFIGURATION[];
 constexpr char Fpga::HSSI_SIDEBAND[];
+constexpr char Fpga::HOST_INTERFACE[];
+constexpr char Fpga::EXTERNAL_INTERFACES[];
+constexpr char Fpga::SIDEBAND_INTERFACE[];
+constexpr char Fpga::PCIE_VIRTUAL_FUNCTIONS[];
 constexpr char Fpga::RECONFIGURATION_SLOTS[];
+constexpr char Fpga::RECONFIGURATION_SLOTS_DETAILS[];
+constexpr char Fpga::PROGRAMMABLE_FROM_HOST[];
+constexpr char Fpga::FW_ID[];
+constexpr char Fpga::FW_MANUFACTURER[];
+constexpr char Fpga::FW_VERSION[];
+constexpr char Fpga::ERASED[];
+constexpr char Fpga::SECURELY_ERASE[];
+
+constexpr char FpgaReconfigurationSlot::SLOT_ID[];
+constexpr char FpgaReconfigurationSlot::UUID[];
+constexpr char FpgaReconfigurationSlot::PROGRAMMABLE_FROM_HOST[];
 
 constexpr const char CpuId::VENDOR_ID[];
 constexpr const char CpuId::NUMERIC_ID[];
@@ -116,7 +139,6 @@ constexpr const char Processor::ENABLED_THREADS[];
 constexpr const char Processor::CAPABILITIES[];
 constexpr const char Processor::THERMAL_DESIGN_POWER_WATT[];
 constexpr const char Processor::FPGA[];
-constexpr const char Processor::ON_PACKAGE_MEMORY[];
 constexpr const char Processor::OEM[];
 
 constexpr const char StorageController::CONTROLLER[];
@@ -135,6 +157,8 @@ constexpr const char StorageController::IDENTIFIERS[];
 // @TO DO  Local storage: to delete.
 constexpr const char StorageController::INTERFACE[];
 
+constexpr const char Memory::NAME[];
+constexpr const char Memory::DESCRIPTION[];
 constexpr const char Memory::MEMORY[];
 constexpr const char Memory::STATUS[];
 constexpr const char Memory::MEMORY_TYPE[];
@@ -142,15 +166,12 @@ constexpr const char Memory::DEVICE_TYPE[];
 constexpr const char Memory::MODULE_TYPE[];
 constexpr const char Memory::MEDIA[];
 constexpr const char Memory::OPERATING_MEMORY_MODES[];
-constexpr const char Memory::CAPACITY_MB[];
+constexpr const char Memory::CAPACITY_MIB[];
 constexpr const char Memory::DATA_WIDTH_BITS[];
 constexpr const char Memory::BUS_WIDTH_BITS[];
 constexpr const char Memory::FRU_INFO[];
 constexpr const char Memory::FIRMWARE_REVISION[];
 constexpr const char Memory::FIRMWARE_API_VERSION[];
-constexpr const char Memory::MEMORY_CLASSES[];
-constexpr const char Memory::VENDOR_ID[];
-constexpr const char Memory::DEVICE_ID[];
 constexpr const char Memory::OPERATING_SPEED_MHZ[];
 constexpr const char Memory::ALLOWED_SPEEDS_MHZ[];
 constexpr const char Memory::VOLTAGE[];
@@ -162,7 +183,51 @@ constexpr const char Memory::RANK_COUNT[];
 constexpr const char Memory::ERROR_CORRECTION[];
 constexpr const char Memory::REGIONS[];
 constexpr const char Memory::OPERATING_MODES[];
+constexpr const char Memory::MODULE_MANUFACTURER_ID[];
+constexpr const char Memory::MODULE_PRODUCT_ID[];
+constexpr const char Memory::MEMORY_SUBSYSTEM_CONTROLLER_MANUFACTURER_ID[];
+constexpr const char Memory::MEMORY_SUBSYSTEM_CONTROLLER_PRODUCT_ID[];
+constexpr const char Memory::SECURITY_CAPABILITIES[];
+constexpr const char Memory::SPARE_DEVICE_COUNT[];
+constexpr const char Memory::LOGICAL_SIZE_MIB[];
+constexpr const char Memory::VOLATILE_SIZE_MIB[];
+constexpr const char Memory::NON_VOLATILE_SIZE_MIB[];
+constexpr const char Memory::VOLATILE_REGION_SIZE_LIMIT_MIB[];
+constexpr const char Memory::PERSISTENT_REGION_SIZE_LIMIT_MIB[];
+constexpr const char Memory::POWER_MANAGEMENT_POLICY[];
+constexpr const char Memory::MAX_TDP_MILLIWATTS[];
 constexpr const char Memory::OEM[];
+
+constexpr const char MemoryDomain::MEMORY_DOMAIN[];
+constexpr const char MemoryDomain::NAME[];
+constexpr const char MemoryDomain::DESCRIPTION[];
+constexpr const char MemoryDomain::STATUS[];
+constexpr const char MemoryDomain::ALLOWS_MEMORY_CHUNK_CREATION[];
+constexpr const char MemoryDomain::ALLOWS_BLOCK_PROVISIONING[];
+constexpr const char MemoryDomain::ALLOWS_MIRRORING[];
+constexpr const char MemoryDomain::ALLOWS_SPARING[];
+constexpr const char MemoryDomain::INTERLEAVABLE_MEMORY_SETS[];
+constexpr const char MemoryDomain::COLLECTIONS[];
+constexpr const char MemoryDomain::OEM[];
+
+constexpr const char MemorySet::MEMORY_SET[];
+
+constexpr const char MemoryChunks::MEMORY_CHUNKS[];
+constexpr const char MemoryChunks::NAME[];
+constexpr const char MemoryChunks::DESCRIPTION[];
+constexpr const char MemoryChunks::STATUS[];
+constexpr const char MemoryChunks::MEMORY_CHUNK_SIZE_MIB[];
+constexpr const char MemoryChunks::ADDRESS_RANGE_TYPE[];
+constexpr const char MemoryChunks::IS_MIRROR_ENABLED[];
+constexpr const char MemoryChunks::IS_SPARE[];
+constexpr const char MemoryChunks::INTERLEAVE_SETS[];
+constexpr const char MemoryChunks::OEM[];
+
+constexpr const char InterleaveSet::MEMORY[];
+constexpr const char InterleaveSet::REGION_ID[];
+constexpr const char InterleaveSet::OFFSET_MIB[];
+constexpr const char InterleaveSet::SIZE_MIB[];
+constexpr const char InterleaveSet::MEMORY_LEVEL[];
 
 constexpr const char NetworkDevice::DEVICE[];
 constexpr const char NetworkDevice::STATUS[];
@@ -179,13 +244,22 @@ constexpr const char UsbDevice::DEVICE_ID[];
 
 constexpr const char Region::REGION_ID[];
 constexpr const char Region::MEMORY_TYPE[];
-constexpr const char Region::OFFSET_MB[];
-constexpr const char Region::SIZE_MB[];
+constexpr const char Region::OFFSET_MIB[];
+constexpr const char Region::SIZE_MIB[];
 
 constexpr const char MemoryLocation::SOCKET[];
 constexpr const char MemoryLocation::CONTROLLER[];
 constexpr const char MemoryLocation::CHANNEL[];
 constexpr const char MemoryLocation::SLOT[];
+
+constexpr const char SecurityCapabilities::PASSPHRASE_CAPABLE[];
+constexpr const char SecurityCapabilities::MAX_PASSPHRASE_COUNT[];
+constexpr const char SecurityCapabilities::SECURITY_STATES[];
+
+constexpr const char PowerManagementPolicy::POLICY_ENABLED[];
+constexpr const char PowerManagementPolicy::MAX_TDP_MILLIWATTS[];
+constexpr const char PowerManagementPolicy::PEAK_POWER_BUDGET_MILLIWATTS[];
+constexpr const char PowerManagementPolicy::AVERAGE_POWER_BUDGET_MILLIWATTS[];
 
 constexpr const char StorageSubsystem::STORAGE[];
 constexpr const char StorageSubsystem::STATUS[];
@@ -237,6 +311,16 @@ constexpr const char IscsiBoot::CHAP_SECRET[];
 constexpr const char IscsiBoot::MUTUAL_CHAP_USERNAME[];
 constexpr const char IscsiBoot::MUTUAL_CHAP_SECRET[];
 
+constexpr const char PerformanceConfiguration::CONFIGURATION_ID[];
+constexpr const char PerformanceConfiguration::TYPE[];
+constexpr const char PerformanceConfiguration::HIGH_PRIORITY_CORE_COUNT[];
+constexpr const char PerformanceConfiguration::LOW_PRIORITY_CORE_COUNT[];
+constexpr const char PerformanceConfiguration::HIGH_PRIORITY_BASE_FREQUENCY[];
+constexpr const char PerformanceConfiguration::LOW_PRIORITY_BASE_FREQUENCY[];
+constexpr const char PerformanceConfiguration::ACTIVE_CORES[];
+constexpr const char PerformanceConfiguration::BASE_CORE_FREQUENCY[];
+constexpr const char PerformanceConfiguration::TDP[];
+constexpr const char PerformanceConfiguration::MAX_JUNCTION_TEMP_CELSIUS[];
 }
 }
 }

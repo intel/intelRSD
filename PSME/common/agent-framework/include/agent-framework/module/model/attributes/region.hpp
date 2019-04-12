@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,12 +40,12 @@ public:
 
     Region(const std::string& region_id,
             const enums::MemoryClass& memory_type,
-            std::uint32_t offset_mb,
-            std::uint32_t size_mb):
+            std::uint32_t offset_mib,
+            std::uint32_t size_mib):
             m_region_id{region_id},
             m_memory_type{memory_type},
-            m_offset_mb{offset_mb},
-            m_size_mb{size_mb}
+            m_offset_mib{offset_mib},
+            m_size_mib{size_mib}
             {}
 
     ~Region();
@@ -89,35 +89,35 @@ public:
     }
 
     /*!
-     * @brief Sets offset MB
-     * @param[in] offset_mb Offset MB
+     * @brief Sets offset MiB
+     * @param[in] offset_mib Offset MiB
      * */
-    void set_offset_mb(const OptionalField<std::uint32_t>& offset_mb) {
-        m_offset_mb = offset_mb;
+    void set_offset_mib(const OptionalField<std::uint32_t>& offset_mib) {
+        m_offset_mib = offset_mib;
     }
 
     /*!
-     * @brief Gets offset MB
-     * @return offset MB
+     * @brief Gets offset MiB
+     * @return offset MiB
      * */
-    const OptionalField<std::uint32_t>& get_offset_mb() const {
-        return m_offset_mb;
+    const OptionalField<std::uint32_t>& get_offset_mib() const {
+        return m_offset_mib;
     }
 
     /*!
-     * @brief Sets size MB
-     * @param[in] size_mb Size MB
+     * @brief Sets size MiB
+     * @param[in] size_mib Size MiB
      * */
-    void set_size_mb(const OptionalField<std::uint32_t>& size_mb) {
-        m_size_mb = size_mb;
+    void set_size_mib(const OptionalField<std::uint32_t>& size_mib) {
+        m_size_mib = size_mib;
     }
 
     /*!
-     * @brief Gets Size MB
-     * @return size MB
+     * @brief Gets Size MiB
+     * @return size MiB
      * */
-    OptionalField<std::uint32_t> get_size_mb() const {
-        return m_size_mb;
+    OptionalField<std::uint32_t> get_size_mib() const {
+        return m_size_mib;
     }
 
     /*!
@@ -136,8 +136,8 @@ public:
 private:
     OptionalField<std::string> m_region_id{};
     OptionalField<enums::MemoryClass> m_memory_type{};
-    OptionalField<std::uint32_t> m_offset_mb{};
-    OptionalField<std::uint32_t> m_size_mb{};
+    OptionalField<std::uint32_t> m_offset_mib{};
+    OptionalField<std::uint32_t> m_size_mib{};
 };
 
 }

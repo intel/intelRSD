@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2016-2018 Intel Corporation
+ * Copyright (c) 2016-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,26 +22,31 @@
  * @brief AddZone response
  * */
 
-#include "agent-framework/module/responses/common/add_zone.hpp"
 #include "agent-framework/module/constants/pnc.hpp"
 #include "agent-framework/module/constants/common.hpp"
+#include "agent-framework/module/responses/common/add_zone.hpp"
+#include "agent-framework/module/utils/uuid.hpp"
 #include "json-wrapper/json-wrapper.hpp"
 
 using namespace agent_framework::model::responses;
 using namespace agent_framework::model::literals;
 
-AddZone::AddZone(const std::string& zone, const attribute::Oem& oem):
-    m_zone(zone), m_oem{oem} {}
+AddZone::AddZone(const Uuid& zone, const Uuid& task, const attribute::Oem& oem):
+    m_zone(zone), m_task(task), m_oem{oem} {}
 
 
 json::Json AddZone::to_json() const {
-    json::Json value;
+    json::Json value = json::Json();
     value[Zone::ZONE] = m_zone;
+    if (!m_task.empty()) {
+        value[TaskEntry::TASK] = m_task;
+    }
     value[Zone::OEM] = m_oem.to_json();
     return value;
 }
 
 AddZone AddZone::from_json(const json::Json& json) {
     return AddZone{json[Zone::ZONE],
-                       attribute::Oem::from_json(json[Zone::OEM])};
+                   json.value(Zone::TASK, std::string{}),
+                   attribute::Oem::from_json(json[Zone::OEM])};
 }

@@ -1,6 +1,6 @@
 /*!
  * @copyright
- * Copyright (c) 2015-2018 Intel Corporation
+ * Copyright (c) 2015-2019 Intel Corporation
  *
  * @copyright
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,11 +27,6 @@
 
 #include <algorithm>
 
-namespace json {
-/* Forward declaration */
-class Value;
-}
-
 namespace psme {
 namespace rest {
 namespace validators {
@@ -49,7 +44,7 @@ public:
      * @throw ServerException if JSON is not valid.
      * */
     template<typename T>
-    static json::Value validate_request_body(const rest::server::Request& request) {
+    static json::Json validate_request_body(const rest::server::Request& request) {
         return validate_request_body(request, T::get_procedure());
     }
 
@@ -63,7 +58,7 @@ public:
      * @return Valid JSON object.
      * @throw ServerException if JSON is not valid.
      * */
-    static json::Value validate_request_body(const rest::server::Request& request,
+    static json::Json validate_request_body(const rest::server::Request& request,
                                              const jsonrpc::ProcedureValidator& schema);
 
     /*!
@@ -95,7 +90,7 @@ public:
 
 
 private:
-    static json::Value deserialize_json_from_request(const rest::server::Request& request);
+    static json::Json deserialize_json_from_request(const rest::server::Request& request);
 
 };
 

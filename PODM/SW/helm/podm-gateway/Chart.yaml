@@ -1,0 +1,4 @@
+apiVersion: v1
+description: podm-gateway
+name: podm-gateway
+version: 0.1.0

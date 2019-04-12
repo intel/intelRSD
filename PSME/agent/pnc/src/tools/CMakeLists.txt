@@ -1,6 +1,6 @@
 # <license_header>
 #
-# Copyright (c) 2016-2018 Intel Corporation
+# Copyright (c) 2016-2019 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ set(SOURCES
     gas_tool.cpp
     map_tool.cpp
     toolset.cpp
-)
+    fpga_oob/oob_fpga_tool.cpp
+    fpga_oob/oob_fpga_toolset.cpp
+    database_keys.cpp)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
     set_source_files_properties(model_tool.cpp
