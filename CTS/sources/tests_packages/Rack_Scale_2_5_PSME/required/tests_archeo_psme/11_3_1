@@ -1,0 +1,21 @@
+{
+  "name": "11.3.1",
+  "resources": {
+    "systems_metrics_members": ["ComputerSystemMetrics.ComputerSystemMetrics", "Systems Metrics"],
+    "processors_metrics_members": ["ProcessorMetrics.ProcessorMetrics", "Processors Metrics"],
+    "memory_metrics_members": ["MemoryMetrics.MemoryMetrics", "Memory Metrics"],
+    "drives_members": ["Drive.Drive", "Drives"],
+    "endpoints_members": ["Endpoint.Endpoint", "Endpoints"]
+  },
+  "actions": [
+    ["all_not_null_test", ["systems_metrics_members", "Systems Metrics", ["Health", "ProcessorBandwidthPercent",
+      "ProcessorPowerWatt", "MemoryBandwidthPercent", "MemoryThrottledCyclesPercent", "MemoryPowerWatt",
+      "IOBandwidthGBps"]]],
+    ["all_not_null_test", ["processors_metrics_members", "Processors Metrics", ["AverageFrequencyMHz",
+      "TemperatureCelsius", "ThrottlingCelsius"]]],
+    ["all_not_null_test", ["memory_metrics_members", "Memory Metrics", ["Oem/Intel_RackScale/ThrottledCyclesPercent",
+      "Oem/Intel_RackScale/ConsumedPowerWatt", "Oem/Intel_RackScale/TemperatureCelsius"]]],
+    ["all_not_null_test", ["drives_members", "Drives", ["Status/Health"]]],
+    ["all_not_null_test", ["endpoints_members", "Endpoints", ["Status/Health"]]]
+  ]
+}

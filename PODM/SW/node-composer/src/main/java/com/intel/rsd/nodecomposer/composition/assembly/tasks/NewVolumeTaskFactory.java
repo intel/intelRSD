@@ -19,17 +19,11 @@ package com.intel.rsd.nodecomposer.composition.assembly.tasks;
 import com.intel.rsd.nodecomposer.composition.allocation.strategy.RemoteDriveAllocationContextDescriptor;
 import com.intel.rsd.nodecomposer.utils.beans.NodeComposerBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
-
 import static com.intel.rsd.nodecomposer.utils.Contracts.requiresNonNull;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class NewVolumeTaskFactory {
     private final NodeComposerBeanFactory beanFactory;
 
@@ -38,7 +32,6 @@ public class NewVolumeTaskFactory {
         this.beanFactory = beanFactory;
     }
 
-    @Transactional(MANDATORY)
     public NodeTask createTask(RemoteDriveAllocationContextDescriptor resourceDescriptor) {
         requiresNonNull(resourceDescriptor, "resourceDescriptor");
         CreateVolumeAndTargetEndpointTask createVolumeAndTargetEndpointTask = beanFactory.create(CreateVolumeAndTargetEndpointTask.class);

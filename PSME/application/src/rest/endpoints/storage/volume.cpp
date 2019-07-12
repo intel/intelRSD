@@ -61,7 +61,7 @@ json::Json make_prototype() {
     r[Swordfish::REPLICA_INFOS] = json::Json::value_t::array;
     r[Common::IDENTIFIERS] = json::Json::value_t::array;
 
-    r[Swordfish::CAPACITY] = json::Json::value_t::null;
+    r[Swordfish::CAPACITY][Common::ODATA_TYPE] = "#Capacity.v1_0_0.Capacity";
     r[Swordfish::CAPACITY][Data::DATA][Data::ALLOCATED_BYTES] = json::Json::value_t::null;
     r[Swordfish::CAPACITY][Swordfish::IS_THIN_PROVISIONED] = json::Json{};
     r[Swordfish::CAPACITY_SOURCES] = json::Json::value_t::array;
@@ -115,18 +115,15 @@ void endpoint::Volume::get(const server::Request& req, server::Response& res) {
     utils::fill_name_and_description(volume, r);
 
     r[Swordfish::CAPACITY_BYTES] = volume.get_capacity().get_allocated_bytes();
-    r[Swordfish::CAPACITY][Common::ODATA_TYPE] = "#Capacity.v1_0_0.Capacity";
     r[Swordfish::CAPACITY][Data::DATA][Data::ALLOCATED_BYTES] = volume.get_capacity().get_allocated_bytes();
     r[Swordfish::CAPACITY][Swordfish::IS_THIN_PROVISIONED] = volume.get_capacity().is_thin_provisioned();
 
     for (std::size_t i = 0; i < volume.get_capacity_sources().size(); i++) {
         json::Json cs = json::Json();
-
         cs[Common::ODATA_ID] = endpoint::PathBuilder(req)
             .append(constants::Swordfish::CAPACITY_SOURCES)
             .append(i + 1)
             .build();
-
         r[Swordfish::CAPACITY_SOURCES].push_back(std::move(cs));
     }
 

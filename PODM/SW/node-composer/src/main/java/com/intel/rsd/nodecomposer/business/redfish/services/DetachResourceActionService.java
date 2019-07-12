@@ -21,27 +21,17 @@ import com.intel.rsd.nodecomposer.business.RequestValidationException;
 import com.intel.rsd.nodecomposer.business.dto.actions.actioninfo.ActionInfoDto;
 import com.intel.rsd.nodecomposer.business.redfish.EntityTreeTraverser;
 import com.intel.rsd.nodecomposer.business.redfish.services.actions.DetachResourceInfoService;
-import com.intel.rsd.nodecomposer.business.redfish.services.detach.Detacher;
 import com.intel.rsd.nodecomposer.business.redfish.services.detach.ResourceDetacherFactory;
 import com.intel.rsd.nodecomposer.business.redfish.services.helpers.ComposedNodeActionsValidator;
 import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.business.services.redfish.requests.DetachResourceRequest;
-import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
-import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
-
 import static com.intel.rsd.nodecomposer.business.Violations.createWithViolations;
-import static javax.transaction.Transactional.TxType.REQUIRED;
-import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
-@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class DetachResourceActionService {
     private final ResourceDetacherFactory resourceDetacherFactory;
     private final ComposedNodeActionsValidator composedNodeActionsValidator;
@@ -49,29 +39,28 @@ public class DetachResourceActionService {
     private final EntityTreeTraverser traverser;
 
     @Autowired
-    public DetachResourceActionService(ResourceDetacherFactory resourceDetacherFactory, ComposedNodeActionsValidator composedNodeActionsValidator,
-                                       DetachResourceInfoService detachResourceInfoService, EntityTreeTraverser traverser) {
+    public DetachResourceActionService(ResourceDetacherFactory resourceDetacherFactory,
+                                       ComposedNodeActionsValidator composedNodeActionsValidator,
+                                       DetachResourceInfoService detachResourceInfoService,
+                                       EntityTreeTraverser traverser) {
         this.resourceDetacherFactory = resourceDetacherFactory;
         this.composedNodeActionsValidator = composedNodeActionsValidator;
         this.detachResourceInfoService = detachResourceInfoService;
         this.traverser = traverser;
     }
 
-    @Transactional(value = REQUIRED, rollbackOn = BusinessApiException.class)
     public void perform(ODataId composedNodeODataId, DetachResourceRequest request) throws BusinessApiException {
         validateRequest(request);
-        ComposedNode composedNode = traverser.traverseComposedNode(composedNodeODataId);
+        val composedNode = traverser.traverseComposedNode(composedNodeODataId);
         composedNodeActionsValidator.validateIfActionCanBePerformedOnNode(composedNode);
 
-        ODataId resourceToDetach = request.getResourceODataId();
-        Detacher resourceDetacher = resourceDetacherFactory.getDetacherForResource(resourceToDetach);
-        DiscoverableEntity resource = traverser.traverseDiscoverableEntity(resourceToDetach);
-        resourceDetacher.detach(composedNode, resource);
+        val resourceDetacher = resourceDetacherFactory.getDetacherForResource(request.getResourceODataId());
+        val resourceToBeDetached = traverser.traverseDiscoverableEntity(request.getResourceODataId());
+        resourceDetacher.detach(composedNode, resourceToBeDetached);
     }
 
-    @Transactional(REQUIRES_NEW)
     public ActionInfoDto getActionInfo(ODataId target) throws BusinessApiException {
-        ComposedNode composedNode = traverser.traverseComposedNode(target);
+        val composedNode = traverser.traverseComposedNode(target);
         return detachResourceInfoService.getActionInfo(composedNode);
     }
 

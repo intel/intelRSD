@@ -38,6 +38,7 @@ add_library(opaepp STATIC
     src/opae-proxy/opae_proxy_device_reader.cpp
     src/opae-proxy/opae_proxy_host_api.cpp
     src/opae-proxy/opae_proxy_context.cpp
+    src/opae-proxy/utils/opae_proxy_host_api_utils.cpp
     )
 
 set(OPAEPP_INCLUDE_DIRS

@@ -19,10 +19,12 @@
 
 #include "logger/logger.hpp"
 #include "opaepp/opae/opae_cpp_device_updater.hpp"
-
+#include "opaepp/opae/opae_cpp_device_reader.hpp"
+#include "opaepp/device.hpp"
 #include "opae/cxx/core/properties.h"
 #include "opae/cxx/core/token.h"
 #include "opae/cxx/core/handle.h"
+#include "uuid/uuid.hpp"
 
 #include <chrono>
 #include <thread>
@@ -33,8 +35,8 @@ using namespace opae::fpga::types;
 
 namespace opaepp {
 
-void OpaeCppDeviceUpater::update(uint8_t bus, uint8_t device, uint8_t function, const uint8_t* bitstream,
-                                 size_t bitstream_size,
+void OpaeCppDeviceUpater::update(uint8_t bus, uint8_t device, uint8_t function,
+                                 const uint8_t* bitstream, size_t bitstream_size,
                                  uint32_t slot) {
 
     auto property = opae::fpga::types::properties::get();
@@ -77,7 +79,6 @@ void OpaeCppDeviceUpater::update(uint8_t bus, uint8_t device, uint8_t function, 
     }
 
     log_info("agent", "Successfully updated bitstream on the FPGA");
-
 }
 }
 

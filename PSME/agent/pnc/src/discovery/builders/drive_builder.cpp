@@ -144,3 +144,8 @@ DriveBuilder::ReturnType DriveBuilder::add_dsp_port_uuid(const std::string& dsp_
     m_obj.add_dsp_port_uuid(dsp_port_uuid);
     return *this;
 }
+
+DriveBuilder::ReturnType DriveBuilder::update_fru_info(const attribute::FruInfo& fru_info) {
+    m_obj.set_fru_info(fru_info);
+    return *this;
+}

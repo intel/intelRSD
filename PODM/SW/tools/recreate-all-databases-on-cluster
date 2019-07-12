@@ -16,17 +16,12 @@
 # limitations under the License.
 #
 
-PSQL_INSTALLED_AND_READY=$(kubectl get pod podm-db-postgresql-0 -o jsonpath='{.status.containerStatuses[*].ready}')
-
-if [ "$PSQL_INSTALLED_AND_READY" != "true" ]; then
-  echo "podm-db-postgresql-0 pod needs to be installed and ready."
-  exit 1
-fi
-
 set -e
 
 POSTGRES_PASSWORD=$(kubectl get secret --namespace default podm-db-postgresql -o jsonpath="{.data.postgresql-password}" | base64 --decode)
 PODM_POSTGRES_USER_PASSWORD=$(kubectl get secret --namespace default pod-manager-secret -o jsonpath="{.data.database-password}" | base64 --decode)
+
+set -x
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
@@ -34,6 +29,5 @@ kubectl cp ${SCRIPT_DIR}/../helm/pod-manager/scripts/recreate-all-databases-on-c
 kubectl exec -it podm-db-postgresql-0 -- bash -c "export PGPASSWORD=$POSTGRES_PASSWORD; export PODM_POSTGRES_USER_PASSWORD=$PODM_POSTGRES_USER_PASSWORD; /tmp/recreate-all-databases-on-cluster.sh recreate_all_databases_and_user"
 kubectl exec -it podm-db-postgresql-0 -- bash -c "rm /tmp/recreate-all-databases-on-cluster.sh"
 
-echo "All databases recreated on cluster"
-
+set +x
 set +e

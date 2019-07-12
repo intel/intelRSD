@@ -1,0 +1,22 @@
+{
+  "name": "Verify Deep Discovery Action",
+  "type": "usecase",
+  "actions": [
+    {
+      "name": "Try to run Deep Discovery",
+      "type": "usecase",
+      "description": "Try to find and run Intel OEM Deep Discovery process",
+      "action": {
+        "username": "admin",
+        "password": "admin",
+        "request": "{ComputerSystem.v1_0_0.ComputerSystem}/{any}/Actions/Oem/Intel.Oem.StartDeepDiscovery",
+        "request_method": "GET",
+        "payload": null,
+        "response": [
+          200,
+          204
+        ]
+      }
+    }
+  ]
+}

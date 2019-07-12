@@ -40,6 +40,16 @@ namespace fpga {
  * */
 void secure_erase(const std::shared_ptr<agent::fpgaof::AgentContext> agent_context, const std::string& processor_uuid);
 
+
+/*!
+ * @brief Update reconfigured slot details after secure erase of FPGA processor
+ *
+ * @param agent_context pointer to AgentContext object for FPGAoF agent
+ * @param processor_uuid UUID of the FPGA processor to be erased securely
+ * */
+void update_reconfigured_slot_details(const std::shared_ptr<agent::fpgaof::AgentContext> agent_context,
+                                      const Uuid& processor_uuid);
+
 }
 }
 }

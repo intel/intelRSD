@@ -40,17 +40,17 @@ public:
 
 
     /*!
-     * @brief Method for updating the bitstream on particular fpga
-     * @param bus Pcie bus on which the fpga is represented in the OS
-     * @param device Pcie device as which the fpga is represented in the OS
-     * @param function Pcie bus function as which the fpga is represented in the OS
+     * @brief Method for updating the bitstream on particular FPGA
+     * @param bus PCIe bus on which the FPGA is represented in the OS
+     * @param device PCIe device as which the FPGA is represented in the OS
+     * @param function PCIe bus function as which the FPGA is represented in the OS
      * @param bitstream pointer to the bistream data
      * @param bitstream_size size of the bitstream
      * @param slot index of the slot of the FPGA, default 0, since all supported FPGAs have only one slot
      */
-    virtual void update(uint8_t bus, uint8_t device, uint8_t function, const uint8_t* bitstream, size_t bitstream_size,
+    virtual void update(uint8_t bus, uint8_t device, uint8_t function,
+                        const uint8_t* bitstream, size_t bitstream_size,
                         uint32_t slot = 0) = 0;
-
 };
 
 }

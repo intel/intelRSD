@@ -88,9 +88,6 @@
     <edmx:Include Namespace="Processor"/>
     <edmx:Include Namespace="Processor.v1_1_0"/>
   </edmx:Reference>
-  <edmx:Reference Uri="Intel_RackScaleProcessorMetrics_v1.xml">
-    <edmx:Include Namespace="Intel_RackScale.ProcessorMetrics"/>
-  </edmx:Reference>
   <edmx:Reference Uri="Protocol_v1.xml">
     <edmx:Include Namespace="Protocol"/>
   </edmx:Reference>
@@ -108,9 +105,6 @@
   </edmx:Reference>
   <edmx:Reference Uri="Switch_v1.xml">
     <edmx:Include Namespace="Switch"/>
-  </edmx:Reference>
-  <edmx:Reference Uri="Intel_RackScaleTelemetryService_v1.xml">
-    <edmx:Include Namespace="Intel_RackScale.TelemetryService"/>
   </edmx:Reference>
   <edmx:Reference Uri="Thermal_v1.xml">
     <edmx:Include Namespace="Thermal"/>
@@ -216,6 +210,37 @@
         </Property>
       </ComplexType>
 
+      <ComplexType Name="NetworkProtocol" BaseType="Intel.Oem.Resource">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="KVMIP" Type="Intel.Oem.KVMIP">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="Intel RackScale extensions for additional Manger's Network Protocols support."/>
+          <Annotation Term="OData.LongDescription" String="Intel RackScale extensions for NetworkProtocol. Provides HTML5 endpoint information on RFB over WebSocket connection."/>
+        </Property>
+      </ComplexType>
+
+      <ComplexType Name="KVMIP">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="URI" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="URI to access WebSocket Graphical Console."/>
+          <Annotation Term="OData.LongDescription"
+                      String="URI to access WebSocket Graphical Console."/>
+        </Property>
+        <Property Name="Protocol" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Graphical Console protocol name."/>
+          <Annotation Term="OData.LongDescription" String="Graphical Console protocol name."/>
+        </Property>
+        <Property Name="ProtocolEnabled" Type="Edm.Boolean">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Indicates if the protocol is enabled or disabled."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall contain the enabled status of the protocol. The value shall be true if enabled and false if disabled."/>
+        </Property>
+      </ComplexType>
+
       <ComplexType Name="ManagerLinks" BaseType="Resource.OemObject">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <NavigationProperty Name="ManagerForServices" Type="Collection(StorageService.StorageService)">
@@ -288,11 +313,13 @@
           <Annotation Term="OData.Description" String="This indicates number of processor sockets available in system."/>
           <Annotation Term="OData.LongDescription"
                       String="This indicates number of memory sockets available in system"/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been Deprecated in favor of ProcessorCollection/Members@odata.count."/>
         </Property>
         <Property Name="MemorySockets" Type="Edm.Int64">
           <Annotation Term="OData.Description" String="This indicates number of memory sockets available in system."/>
           <Annotation Term="OData.LongDescription"
                       String="This indicates number of memory sockets available in system"/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been Deprecated in favor of MemoryCollection/Members@odata.count."/>
         </Property>
         <Property Name="UserModeEnabled" Type="Edm.Boolean">
           <Annotation Term="OData.Description" String="This indicates if platform user mode is enabled."/>
@@ -329,12 +356,12 @@
 
       <ComplexType Name="SystemPerformanceConfiguration" Abstract="true">
         <Property Name="ConfigurationId" Type="Edm.Int64">
-          <Annotation Term="OData.Permissions" String="OData.Permission/Read"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Id of this configuration."/>
           <Annotation Term="OData.LongDescription" String="Unique Control value that identifies this specific configuration. The BIOS uses this control value during boot to decide which of the performance configurations it must enable in hardware."/>
         </Property>
         <Property Name="Type" Type="Intel.Oem.SystemPerformanceConfigurationType">
-          <Annotation Term="OData.Permissions" String="OData.Permission/Read"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Type of this configuration."/>
           <Annotation Term="OData.LongDescription" String="This property shall specify which processor feature allows for this performace configuration."/>
         </Property>
@@ -356,13 +383,13 @@
 
       <ComplexType Name="SpeedSelectConfiguration" BaseType="Intel.Oem.SystemPerformanceConfiguration">
         <Property Name="ActiveCoresPerCpu" Type="Edm.Int64">
-          <Annotation Term="OData.Permissions" String="OData.Permission/Read"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Number of active cores per CPU."/>
           <Annotation Term="OData.LongDescription" String="Number of active cores per CPU."/>
           <Annotation Term="Validation.Minimum" Int="0"/>
         </Property>
         <Property Name="BaseCoreFrequency" Type="Edm.Int64">
-          <Annotation Term="OData.Permissions" String="OData.Permission/Read"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Base frequency of active cores."/>
           <Annotation Term="OData.LongDescription" String="Base frequency of active cores."/>
           <Annotation Term="Validation.Minimum" Int="0"/>
@@ -401,7 +428,7 @@
 
       <ComplexType Name="SystemCpuPerformanceConfiguration">
         <Property Name="CurrentConfigurationId" Type="Edm.Int64">
-          <Annotation Term="OData.Permissions" String="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
           <Annotation Term="OData.Description" String="The Id of the active configuration."/>
           <Annotation Term="OData.LongDescription" String="This property shall match the ConfigurationId of the configuration which is currently active."/>
         </Property>
@@ -680,7 +707,7 @@
                       String="An array of references to the endpoints that connect to this processor."/>
           <Annotation Term="OData.LongDescription"
                       String="The value of this property shall be a reference to the resources that this processor is associated with and shall reference a resource of type Endpoint."/>
-          <Annotation Term="Redfish.Deprecated" String="This value has been Deprecated in favor of IntegratedMemory."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been Deprecated in favor of ProcessorMemory."/>
         </Property>
         <Property Name="ThermalDesignPowerWatt" Type="Edm.Decimal">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
@@ -693,12 +720,6 @@
           <Annotation Term="OData.LongDescription"
                       String="For FPGA ProcessorType this property will expose FPGA-specific data."/>
         </Property>
-        <NavigationProperty Name="Metrics" Type="Intel_RackScale.ProcessorMetrics.ProcessorMetrics" ContainsTarget="true"
-                            Nullable="false">
-          <Annotation Term="OData.Description" String="A reference to the Metrics associated with this Processor."/>
-          <Annotation Term="OData.LongDescription" String="A reference to the Metrics associated with this Processor."/>
-          <Annotation Term="OData.AutoExpandReferences"/>
-        </NavigationProperty>
         <Property Name="ExtendedIdentificationRegisters" Type="Intel.Oem.ExtendedIdentificationRegister">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read" />
           <Annotation Term="OData.Description" String="Extended contents of the Identification Registers (CPUID) for this processor." />
@@ -778,6 +799,16 @@
         </Member>
       </EnumType>
 
+      <ComplexType Name="ProcessorMetrics">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="Health" Type="Collection(Edm.String)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="CPU Health as a discrete sensor reading."/>
+          <Annotation Term="OData.LongDescription"
+                      String="The value of this property shall be Processor Health as a discrete sensor reading."/>
+        </Property>
+      </ComplexType>
+
       <ComplexType Name="ProcessorMemory">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Property Name="Type" Type="Intel.Oem.ProcessorMemoryType">
@@ -822,86 +853,98 @@
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The FPGA type."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be a type of the FPGA device."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated in favor of Type in Processor/FPGA."/>
         </Property>
         <Property Name="BitStreamVersion" Type="Edm.String">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Version of BitStream loaded on FPGA."/>
           <Annotation Term="OData.LongDescription" String="Version of BitStream loaded on FPGA."/>
-          <Annotation Term="Redfish.Deprecated" String="This value has been Deprecated in favor of FwVersion."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated in favor of FirmwareVersion in Processor/FPGA."/>
         </Property>
         <Property Name="HSSIConfiguration" Type="Intel.Oem.HSSIConfig">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="High Speed Serial Interface configuration."/>
           <Annotation Term="OData.LongDescription" String="High Speed Serial Interface configuration."/>
-          <Annotation Term="Redfish.Deprecated" String="This value has been Deprecated in favor of HostInterface."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated in favor of HostInterface in Processor/FPGA resource."/>
         </Property>
         <Property Name="HSSISideband" Type="Intel.Oem.HSSISideband">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="High Speed Serial Interface sideband interface type."/>
           <Annotation Term="OData.LongDescription"
                       String="High Speed Serial Interface sideband interface type."/>
-          <Annotation Term="Redfish.Deprecated" String="This value has been Deprecated in favor of SidebandInterface."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated."/>
         </Property>
         <Property Name="Model" Type="Intel.Oem.FpgaModel" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The FPGA model."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be a model of the FPGA device."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated in favor of Model in Processor."/>
         </Property>
         <Property Name="FwId" Type="Edm.String" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The FPGA firmware identifier."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall contain a string describing the FPGA firmware identifier. A format of the identifier is vendor specific."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated in favor of FirmwareId in Processor/FPGA."/>
         </Property>
         <Property Name="FwManufacturer" Type="Edm.String" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The FPGA firmware manufacturer."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall contain a string describing the FPGA firmware manufacturer."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated in favor of FirmwareManufacturer in Processor/FPGA."/>
         </Property>
         <Property Name="FwVersion" Type="Edm.String" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The FPGA firmware version."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall contain a string describing the FPGA firmware version."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated in favor of FirmwareVersion in Processor/FPGA."/>
         </Property>
         <Property Name="HostInterface" Type="Intel.Oem.FpgaInterface" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The FPGA interface to the host."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be a type of the FPGA interface to the host."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated in favor of HostInterface in Processor/FPGA."/>
         </Property>
         <Property Name="ExternalInterfaces" Type="Collection(Intel.Oem.FpgaInterface)" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="An array of the FPGA external interfaces."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be an array of the FPGA external interfaces."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated in favor of ExternalInterfaces in Processor/FPGA."/>
         </Property>
         <Property Name="SidebandInterface" Type="Intel.Oem.FpgaInterface" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The FPGA sideband interface."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be a type of the FPGA sideband interface."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated."/>
         </Property>
         <Property Name="PCIeVirtualFunctions" Type="Edm.Int64" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Number of the PCIe Virtual Functions."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be a number of PCIe Virtual Functions configured within the FPGA."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated in favor of PCIeVirtualFunctions in Processor/FPGA."/>
         </Property>
         <Property Name="ProgrammableFromHost" Type="Edm.Boolean">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
           <Annotation Term="OData.Description" String="This flag indicates if the FPGA FW can be reprogrammed from the host."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall indicate whether the FPGA FW can be reprogrammed from the host. If set to false, a FPGA FW can be programmed through the sideband interface only."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated in favor of ProgrammableFromHost in Processor/FPGA."/>
         </Property>
         <Property Name="ReconfigurationSlots" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Number of supported reconfiguration slots."/>
           <Annotation Term="OData.LongDescription" String="Number of supported reconfiguration slots."/>
-          <Annotation Term="Redfish.Deprecated" String="This value has been Deprecated in favor of size of FpgaReconfigurationSlotsDetails."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated in favor of size of FpgaReconfigurationSlots array in Processor/FPGA."/>
         </Property>
         <Property Name="ReconfigurationSlotsDetails" Type="Collection(Intel.Oem.FpgaReconfigurationSlot)" Nullable="false">
           <Annotation Term="OData.Description" String="An array of the FPGA reconfiguration slots."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be an array of the structures describing the FPGA reconfiguration slots that can be programmed with the acceleration function code."/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated in favor of FpgaReconfigurationSlots array in Processor/FPGA."/>
         </Property>
         <NavigationProperty Name="AccelerationFunctions" Type="AccelerationFunctionCollection.AccelerationFunctionCollection" ContainsTarget="true" Nullable="false">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The value of this property shall be a reference to the resources that this processor uses and shall reference a resource of type AccelerationFunction."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be a reference to the resources that this processor uses and shall reference a resource of type AccelerationFunction."/>
           <Annotation Term="OData.AutoExpandReferences"/>
+          <Annotation Term="Redfish.Deprecated" String="This value has been deprecated in favor of Processor/FPGA/AccelerationFunctions."/>
         </NavigationProperty>
         <Property Name="Erased" Type="Edm.Boolean">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read" Qualifier="PODM"/>
@@ -1160,13 +1203,6 @@
           <Annotation Term="OData.Description" String="This is a link to a collection of Nodes."/>
           <Annotation Term="OData.LongDescription"
                       String="This object shall only contain a reference to a collection of resources that comply to the Nodes schema."/>
-          <Annotation Term="OData.AutoExpandReferences"/>
-        </NavigationProperty>
-        <NavigationProperty Name="TelemetryService" Type="Intel_RackScale.TelemetryService.TelemetryService">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="This is a link to the Telemetry Service."/>
-          <Annotation Term="OData.LongDescription"
-                      String="The classes structure shall only contain a reference to a resource that complies to the TelemetryService schema."/>
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
       </ComplexType>
@@ -1497,6 +1533,19 @@
                       String="This property is an array of references to resources representing interface where this endpoint is available."/>
         </NavigationProperty>
       </ComplexType>
+
+      <ComplexType Name="LogEntry" BaseType="Intel.Oem.Resource">
+        <Annotation Term="OData.AdditionalProperties" Bool="false"/>
+        <Property Name="RecordID" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description"
+                      String="If EntryType is SEL, this shall be the ID of the SEL Record."/>
+          <Annotation Term="OData.LongDescription"
+                      String="If EntryType is SEL, this shall be the ID of the SEL Record. Otherwise this property shall be null or not present."/>
+          <Annotation Term="Validation.Minimum" Int="0"/>
+        </Property>
+      </ComplexType>
+
     </Schema>
   </edmx:DataServices>
 </edmx:Edmx>

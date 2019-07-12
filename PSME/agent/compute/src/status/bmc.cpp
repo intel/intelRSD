@@ -36,6 +36,7 @@
 #include "ipmi/command/generic/get_device_id.hpp"
 #include "ipmi/utils/sdv/mdr_region_accessor.hpp"
 #include "ipmi/utils/sdv/platform_discovery.hpp"
+#include "log_service/sel_reader.hpp"
 
 using namespace agent::compute;
 using namespace agent_framework::module;
@@ -456,6 +457,10 @@ void Bmc::reset_tasks() {
         [](Bmc& bmc, std::shared_ptr<telemetry::TelemetryRunner> ptr, Bmc::Duration duration) {
             return ptr->run(bmc, duration);
         }, std::ref(*this), std::make_shared<telemetry::TelemetryRunner>(), get_update_interval());
+    periodic_task("log_service", Duration::zero(), std::chrono::seconds{10},
+        [](Bmc& bmc, std::shared_ptr<SELReader> reader) {
+            reader->read(bmc);
+        }, std::ref(*this), std::make_shared<SELReader>());
 }
 
 }

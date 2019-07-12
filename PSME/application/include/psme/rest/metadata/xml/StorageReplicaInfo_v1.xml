@@ -12,8 +12,9 @@
     <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
   </edmx:Reference>
   <edmx:Reference Uri="Resource_v1.xml">
-    <edmx:Include Namespace="Resource"/>
-  </edmx:Reference>
+		<edmx:Include Namespace="Resource"/>
+		<edmx:Include Namespace="Resource.v1_0_0"/>
+	</edmx:Reference>
   <edmx:Reference Uri="DataProtectionLineOfService_v1.xml">
     <edmx:Include Namespace="DataProtectionLineOfService"/>
   </edmx:Reference>
@@ -21,11 +22,13 @@
   <edmx:DataServices>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="StorageReplicaInfo">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <EntityType Name="StorageReplicaInfo" BaseType="Resource.v1_0_0.Resource" Abstract="true"/>
 
       <ComplexType Name="ReplicaInfo" Abstract="true">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
-        <Annotation Term="OData.Description" String="Defines the characteristics of a replica"/>
-        <Annotation Term="OData.LongDescription" String="The value shall define the characteristics of a replica."/>
+        <Annotation Term="OData.Description" String="Defines the characteristics of a replica of a source."/>
+        <Annotation Term="OData.LongDescription" String="The value shall define the characteristics of a replica of a source."/>
       </ComplexType>
 
       <EnumType Name="ReplicaUpdateMode">
@@ -73,6 +76,8 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="StorageReplicaInfo.v1_0_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <EntityType Name="StorageReplicaInfo" BaseType="StorageReplicaInfo.StorageReplicaInfo"/>
 
       <ComplexType Name="ReplicaInfo" BaseType="StorageReplicaInfo.ReplicaInfo">
         <Annotation Term="OData.Description" String="Defines the characteristics of a replica."/>
@@ -219,6 +224,7 @@
         </Property>
         <Property Name="ReplicaRole" Type="StorageReplicaInfo.v1_0_0.ReplicaRole">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="Redfish.Deprecated" String="ReplicaInfo is only used within a replica target. The Replica property here addresses the source resource.  A TargetReplicas property in each source resource describes the replica targets of a source."/>
           <Annotation Term="OData.Description" String="The source or target role of this replica."/>
           <Annotation Term="OData.LongDescription" String="The ReplicaRole enumeration literal shall represent the source or target role of this replica as known to the containing resource."/>
         </Property>
@@ -271,6 +277,7 @@
       </EnumType>
 
       <EnumType Name="ReplicaRole">
+        <Annotation Term="Redfish.Deprecated" String="ReplicaRole is not used."/>
         <Annotation Term="OData.Description" String="Values of ReplicaRole specify whether the resource is a source of replication or the target of replication."/>
         <Annotation Term="OData.LongDescription" String="The enumeration literals may be used to specify whether the resource is a source of replication or the target of replication."/>
         <Member Name="Source">
@@ -528,8 +535,16 @@
 
     </Schema>
 
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="StorageReplicaInfo.v1_0_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="StorageReplicaInfo" BaseType="StorageReplicaInfo.v1_0_0.StorageReplicaInfo"/>
+    </Schema>
+
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="StorageReplicaInfo.v1_1_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.Description" String="Enhance to track DataProtectionLineOfService LoS for each replicaInfo. Move ComplexType into unversioned namespace.Move enums into unversioned namespace. Change references to unversioned."/>
+      <EntityType Name="StorageReplicaInfo" BaseType="StorageReplicaInfo.v1_0_1.StorageReplicaInfo"/>
 
       <ComplexType Name="ReplicaInfo" BaseType="StorageReplicaInfo.v1_0_0.ReplicaInfo">
         <NavigationProperty Name="DataProtectionLineOfService" Type="DataProtectionLineOfService.DataProtectionLineOfService">
@@ -538,6 +553,12 @@
           <Annotation Term="OData.LongDescription" String="The value shall be a set of data protection service options.  Within a class of service, one data protection service option shall be present for each replication session."/>
         </NavigationProperty>
       </ComplexType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="StorageReplicaInfo.v1_1_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="StorageReplicaInfo" BaseType="StorageReplicaInfo.v1_1_0.StorageReplicaInfo"/>
     </Schema>
 
   </edmx:DataServices>

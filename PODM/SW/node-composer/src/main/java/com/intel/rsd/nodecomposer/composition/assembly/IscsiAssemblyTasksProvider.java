@@ -46,7 +46,7 @@ public class IscsiAssemblyTasksProvider {
         this.chapConfigurator = chapConfigurator;
     }
 
-    public List<NodeTask> createTasks() {
+    public List<NodeTask> createTasks(boolean needToPatchNetworkDeviceFunction) {
         List<NodeTask> tasks = new ArrayList<>();
         Chap chap = chapConfigurator.generateChap();
 
@@ -54,9 +54,11 @@ public class IscsiAssemblyTasksProvider {
         patchEndpointsAssemblyTask.setChap(chap);
         tasks.add(patchEndpointsAssemblyTask);
 
-        PatchNetworkDeviceFunctionAssemblyTask patchNetworkDeviceFunctionAssemblyTask = patchNetworkDeviceFunctionAssemblyTaskFactory.create();
-        patchNetworkDeviceFunctionAssemblyTask.setChap(chap);
-        tasks.add(patchNetworkDeviceFunctionAssemblyTask);
+        if (needToPatchNetworkDeviceFunction) {
+            PatchNetworkDeviceFunctionAssemblyTask patchNetworkDeviceFunctionAssemblyTask = patchNetworkDeviceFunctionAssemblyTaskFactory.create();
+            patchNetworkDeviceFunctionAssemblyTask.setChap(chap);
+            tasks.add(patchNetworkDeviceFunctionAssemblyTask);
+        }
 
         return tasks;
     }

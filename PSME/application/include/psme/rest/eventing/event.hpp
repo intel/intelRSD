@@ -29,6 +29,7 @@
 
 
 #include "agent-framework/module/enum/enum_builder.hpp"
+#include "agent-framework/module/enum/common.hpp"
 #include "json-wrapper/json-wrapper.hpp"
 
 #include <chrono>
@@ -41,16 +42,7 @@ namespace psme {
 namespace rest {
 namespace eventing {
 
-/*!
- * @brief EventType Type of event
- */
-ENUM(EventType, uint32_t,
-     StatusChange,
-     ResourceUpdated,
-     ResourceAdded,
-     ResourceRemoved,
-     Alert
-);
+using agent_framework::model::enums::EventType;
 
 /*!
  * @brief Event class

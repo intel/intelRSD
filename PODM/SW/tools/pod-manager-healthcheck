@@ -60,10 +60,9 @@ for POD_NAME in ${POD_NAMES}; do
     call_kubectl exec ${POD_NAME} -- sh -c 'pkill -3 java || :'
     call_kubectl exec ${POD_NAME} -- top -n 1 -b > ${OUTPUT_DIR}/${POD_NAME}-top.txt
     call_kubectl logs ${POD_NAME} > ${OUTPUT_DIR}/${POD_NAME}.log
-    PREVIOUS_LOG_FILE=${OUTPUT_DIR}/${POD_NAME}_previous.log
-    call_kubectl logs --previous ${POD_NAME} > ${PREVIOUS_LOG_FILE}
-    if ! [ -s ${PREVIOUS_LOG_FILE} ]; then
-        rm -f ${PREVIOUS_LOG_FILE}
+    call_kubectl logs --previous ${POD_NAME} > /dev/null 2>&1
+    if [[ $? == 0 ]]; then
+        call_kubectl logs --previous ${POD_NAME} > ${OUTPUT_DIR}/${POD_NAME}_previous.log
     fi
     call_kubectl describe pod ${POD_NAME} > ${OUTPUT_DIR}/${POD_NAME}_describe.log
 done

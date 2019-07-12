@@ -27,13 +27,16 @@
 #include "discovery/builders/storage_subsystem_builder.hpp"
 #include "discovery/builders/thermal_zone_builder.hpp"
 #include "discovery/builders/power_zone_builder.hpp"
-#include "tree_stability/compute_stabilizer.hpp"
 #include "discovery/builders/pcie_function_builder.hpp"
+#include "discovery/builders/log_service_builder.hpp"
+#include "tree_stability/compute_stabilizer.hpp"
 #include "agent-framework/module/managers/utils/manager_utils.hpp"
 #include "ipmi/command/generic/get_device_id.hpp"
+#include "ipmi/command/generic/sel/get_sel_info.hpp"
 #include "logger/logger_factory.hpp"
 #include "ipmi/utils/sdv/purley_mdr_region_accessor.hpp"
 #include "ipmi/utils/sdv/platform_discovery.hpp"
+#include "ipmi/sel.hpp"
 
 #include "status/bmc.hpp"
 #include <sstream>
@@ -83,6 +86,8 @@ Uuid DiscoveryManager::discover() {
     m_stabilizer.stabilize(network_device_function, system);
     NetworkDeviceBuilder::update_from_function(network_device, network_device_function);
     auto trusted_modules = discover_trusted_modules(system.get_uuid());
+    auto sel_service = discover_sel_service(mgr.get_uuid());
+    m_stabilizer.stabilize(sel_service);
 
     auto devices = discover_pcie_devices(mgr.get_uuid(), chassis.get_uuid());
 
@@ -114,6 +119,7 @@ Uuid DiscoveryManager::discover() {
     add_or_update_with_removal(events, network_device);
     add_or_update_with_removal(events, network_device_function);
     add_or_update_with_removal(events, mgr);
+    add_or_update_with_removal(events, sel_service);
 
     agent_framework::eventing::EventsQueue::get_instance()->push_back(events);
     std::ostringstream msg{};
@@ -143,6 +149,12 @@ agent_framework::model::Manager DiscoveryManager::discover_manager() {
     // todo: this should moved to networkinterface connected with given manger
     manager.set_connection_data(m_bmc.get_connection_data());
     manager.set_ipv4_address(m_bmc.get_connection_data().get_ip_address());
+
+    if (manager.get_manager_type() == enums::ManagerInfoType::ManagementController) {
+                manager.add_collection({enums::CollectionName::LogServices,
+                                        enums::CollectionType::LogServices
+                });
+    }
 
     log_debug("compute-discovery", "Finished discovery of a manager at " << connection_data_to_string());
 
@@ -391,4 +403,19 @@ DiscoveryManager::discover_trusted_modules(const Uuid& parent_uuid) {
               "Finished discovery of trusted modules at " << connection_data_to_string());
 
     return trusted_modules;
+}
+
+
+agent_framework::model::LogService DiscoveryManager::discover_sel_service(const Uuid &parent_uuid) {
+    auto sel_service = LogServiceBuilder::build_sel_log(parent_uuid);
+
+    response::GetSelInfo sel_info_rsp{};
+    m_bmc.ipmi().send(request::GetSelInfo{}, sel_info_rsp);
+
+    /* maximum number of records estimation */
+    auto entries_count = sel_info_rsp.get_entries_count();
+    auto n_entries_can_be_added = sel_info_rsp.get_free_space() / ipmi::Sel::MAX_RECORD_SIZE;
+    sel_service.set_max_number_of_records(entries_count + n_entries_can_be_added);
+
+    return sel_service;
 }

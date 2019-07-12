@@ -53,6 +53,7 @@ json::Json make_prototype() {
     r[Common::ASSET_TAG] = json::Json::value_t::null;
     r[Chassis::INDICATOR_LED] = json::Json::value_t::null;
     r[Chassis::POWER_STATE] = json::Json::value_t::null;
+    r[Chassis::NETWORK_ADAPTERS] = json::Json::value_t::null;
 
     // Power and Thermal links are created only for Zone and Sled Chassis
 
@@ -67,10 +68,9 @@ json::Json make_prototype() {
     r[Common::OEM][Common::RACKSCALE] = std::move(rs);
 
     r[Common::LINKS][Common::ODATA_TYPE] = "#Chassis.v1_7_0.Links";
-    r[Common::LINKS][Chassis::CONTAINS] = json::Json::value_t::array;
-    r[Common::LINKS][Common::CONTAINED_BY] = json::Json::value_t::null;
-    r[Common::LINKS][Chassis::COMPUTER_SYSTEMS] = json::Json::value_t::array;
     r[Common::LINKS][Common::MANAGED_BY] = json::Json::value_t::array;
+    r[Common::LINKS][Chassis::CONTAINS] = json::Json::value_t::array;
+    r[Common::LINKS][Chassis::COMPUTER_SYSTEMS] = json::Json::value_t::array;
     r[Common::LINKS][Chassis::MANAGERS_IN_CHASSIS] = json::Json::value_t::array;
     r[Common::LINKS][Chassis::POWERED_BY] = json::Json::value_t::array;
     r[Common::LINKS][Chassis::COOLED_BY] = json::Json::value_t::array;
@@ -384,6 +384,8 @@ void endpoint::Chassis::get(const server::Request& request, server::Response& re
         r[Common::ACTIONS][constants::Chassis::HASH_CHASSIS_RESET] = std::move(reset);
     }
 
+    r[constants::Chassis::NETWORK_ADAPTERS][Common::ODATA_ID] =
+                PathBuilder(request).append(constants::Chassis::NETWORK_ADAPTERS).build();
     r[constants::Chassis::CHASSIS_TYPE] = chassis.get_type().to_string();
     r[Common::MANUFACTURER] = chassis.get_fru_info().get_manufacturer();
     r[Common::MODEL] = chassis.get_fru_info().get_model_number();

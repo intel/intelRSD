@@ -316,8 +316,8 @@ const Uuid PncTreeStabilizer::stabilize_pcie_zone(const Uuid& in_zone_uuid) cons
 
         helpers::update_pcie_zone_in_relations(in_zone_uuid, zone_uuid);
     }
-    catch (const KeyValueMissingError&) {
-        log_key_value_missing(zone.get_component().to_string(), in_zone_uuid);
+    catch (const KeyValueMissingError& e) {
+        log_key_value_missing(zone.get_component().to_string(), in_zone_uuid, e);
     }
 
     return zone_uuid;
@@ -356,6 +356,15 @@ const Uuid PncTreeStabilizer::try_stabilize_pcie_device_using_oob_model(const Uu
 
     std::vector<std::string> functional_device_uuids;
     for (const auto& function : pcie_functions) {
+
+        if (!function.get_functional_device().has_value()) {
+
+            log_warning("pnc-agent",
+                        "No functional device associated with given PCIe function: " << function.get_uuid());
+
+            return in_device_uuid;
+        }
+
         functional_device_uuids.push_back(function.get_functional_device().value());
     }
     // functional_device_uuids cannot contain 2 different uuids

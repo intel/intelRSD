@@ -17,7 +17,6 @@
 package com.intel.rsd.resourcemanager.layers.merger.request.creators;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.merger.request.ExecutableRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -25,5 +24,5 @@ import org.springframework.http.HttpMethod;
 import java.util.Map;
 
 public interface RequestCreator {
-    ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<QueryParameterType, String> requestParams);
+    ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<String, String> requestParams);
 }

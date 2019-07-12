@@ -15,10 +15,11 @@
   <edmx:Reference Uri="DataSecurityLoSCapabilities_v1.xml">
     <edmx:Include Namespace="DataSecurityLoSCapabilities"/>
   </edmx:Reference>
-  
+
   <edmx:DataServices>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="DataSecurityLineOfService">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="DataSecurityLineOfService" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="Describe data protection capabilities"/>
         <Annotation
@@ -28,6 +29,7 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="DataSecurityLineOfService.v1_0_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
 
       <EntityType Name="DataSecurityLineOfService" BaseType="DataSecurityLineOfService.DataSecurityLineOfService">
         <Annotation Term="OData.Description" String="Describe data security service level requirements."/>
@@ -74,6 +76,12 @@
         </Property>
       </EntityType>
 
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="DataSecurityLineOfService.v1_0_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="DataSecurityLineOfService" BaseType="DataSecurityLineOfService.v1_0_0.DataSecurityLineOfService"/>
     </Schema>
 
   </edmx:DataServices>

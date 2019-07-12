@@ -17,9 +17,9 @@
 package com.intel.rsd.nodecomposer;
 
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -40,8 +40,14 @@ public class DirtyingAspect implements Serializable {
         this.modelState = modelState;
     }
 
-    @Before("execution(* *(..)) && @annotation(dirty)")
-    public void invoke(JoinPoint joinPoint, Dirtying dirty) {
-        modelState.dirty(joinPoint.toShortString());
+    @Around("execution(* *(..)) && @annotation(dirty)")
+    @SuppressWarnings({"checkstyle:IllegalThrows"})
+    public Object invoke(ProceedingJoinPoint joinPoint, Dirtying dirty) throws Throwable {
+        modelState.register();
+        try {
+            return joinPoint.proceed();
+        } finally {
+            modelState.arrived();
+        }
     }
 }

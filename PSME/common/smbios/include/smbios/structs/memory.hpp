@@ -153,7 +153,8 @@ enum class MemoryTypeEnum : uint8_t {
     LPDDR = 0x1b,
     LPDDR2 = 0x1c,
     LPDDR3 = 0x1d,
-    LPDDR4 = 0x1e
+    LPDDR4 = 0x1e,
+    LOGICAL_NON_VOLATILE_DEVICE = 0x1f
 };
 
 /*!
@@ -219,7 +220,8 @@ enum class MemoryDeviceExtendedType : uint8_t {
     DIMM = 0x00,
     NVDIMM_N = 0x01,
     NVDIMM_F = 0x02,
-    NVDIMM_P = 0x03
+    NVDIMM_P = 0x03,
+    INTEL_PERSISTENT_MEMORY = 0x07
 };
 
 /*!
@@ -228,7 +230,8 @@ enum class MemoryDeviceExtendedType : uint8_t {
 enum class MemoryDeviceExtendedMedia : uint8_t {
     DRAM = 0x00,
     NAND = 0x01,
-    PROPRIETARY = 0x03
+    PROPRIETARY = 0x03,
+    INTEL3DXPOINT = 0x04
 };
 
 /*!

@@ -59,8 +59,8 @@ public final class UpdateZoneTask extends DiscoveryServiceTask {
 
         expectedEndpoints.addAll(createEndpoints());
 
-        restActionInvoker.patch(discoveryServiceUri, zoneResourceUri, new ZoneActionJson(expectedEndpoints));
-        endpointsToRemove.forEach(endpointUri -> restActionInvoker.delete(discoveryServiceUri, endpointUri));
+        discoveryServiceWebClient.patch(discoveryServiceUri, zoneResourceUri, new ZoneActionJson(expectedEndpoints));
+        endpointsToRemove.forEach(endpointUri -> discoveryServiceWebClient.delete(discoveryServiceUri, endpointUri));
     }
 
     private Set<URI> createEndpoints() {
@@ -68,7 +68,7 @@ public final class UpdateZoneTask extends DiscoveryServiceTask {
 
         return endpointsToCreate.stream()
             .map(endpoint -> {
-                URI createdEndpointUri = restActionInvoker.post(discoveryServiceUri, endpointCollectionUri, toEndpointCreationRequest(endpoint));
+                URI createdEndpointUri = discoveryServiceWebClient.post(discoveryServiceUri, endpointCollectionUri, toEndpointCreationRequest(endpoint));
                 return create(createdEndpointUri.getPath());
             }).collect(toSet());
     }

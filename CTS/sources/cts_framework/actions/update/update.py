@@ -65,12 +65,12 @@ class Update:
                   '\nUpdate server is not responding or login details are incorrect.')
             exit(1)
 
-        if BuildInformation.BUILD_VERSION >= response['latest']:
-            print('CTS Version: %s\nNewest version is installed' % BuildInformation.BUILD_VERSION)
+        if BuildInformation.get_version() >= response['latest']:
+            print('CTS Version: %s\nNewest version is installed' % BuildInformation.get_version())
             return None
 
         print('Installed version of CTS: %s\nA new version is available: %s' %
-              (BuildInformation.BUILD_VERSION, response['latest']))
+              (BuildInformation.get_version(), response['latest']))
         return response['latest_link']
 
     def download_latest_package(self, download_link):

@@ -23,7 +23,6 @@ buildscript {
         podmServiceDockerPluginVersion = '1.0-SNAPSHOT'
         gradleVersionsPluginVersion = '0.17.0'
 
-        springPlatformBomVersion = 'Cairo-RC1'
         springCloudVersion = 'Finchley.M8'
     }
     repositories {
@@ -55,7 +54,6 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom("io.spring.platform:platform-bom:${springPlatformBomVersion}")
         mavenBom("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
     }
 }

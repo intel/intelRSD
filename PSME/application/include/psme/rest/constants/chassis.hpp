@@ -48,6 +48,7 @@ extern const char RACK_SUPPORTS_DISAGGREGATED_POWER_COOLING[];
 extern const char HASH_CHASSIS_RESET[];
 extern const char CHASSIS_RESET[];
 extern const char POWER_STATE[];
+extern const char NETWORK_ADAPTERS[];
 }
 
 /*!
@@ -173,6 +174,7 @@ extern const char DEVICE_TYPE[];
 namespace PcieFunction {
 extern const char FUNCTION_ID[];
 extern const char FUNCTION_TYPE[];
+extern const char FUNCTION_NUMBER[];
 extern const char DEVICE_CLASS[];
 extern const char DEVICE_ID[];
 extern const char VENDOR_ID[];

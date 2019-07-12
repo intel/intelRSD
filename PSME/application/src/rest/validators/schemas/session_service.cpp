@@ -33,7 +33,7 @@ using namespace psme::rest::validators::schema;
 const jsonrpc::ProcedureValidator& SessionServicePatchSchema::get_procedure() {
     static jsonrpc::ProcedureValidator procedure{
         jsonrpc::PARAMS_BY_NAME,
-        constants::SessionService::SERVICE_ENABLED, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
+        constants::Common::SERVICE_ENABLED, VALID_OPTIONAL(VALID_JSON_BOOLEAN),
         constants::SessionService::SESSION_TIMEOUT, VALID_OPTIONAL(VALID_NUMERIC_RANGE(INT64, 30, 86400)),
         nullptr
     };

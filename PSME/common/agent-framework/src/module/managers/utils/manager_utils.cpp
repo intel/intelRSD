@@ -121,9 +121,11 @@ template<>
 GenericManager<model::MemoryDomain>&
 get_manager<model::MemoryDomain>() { return ComputeComponents::get_instance()->get_memory_domain_manager(); }
 
+
 template<>
 GenericManager<model::MemoryChunks>&
 get_manager<model::MemoryChunks>() { return ComputeComponents::get_instance()->get_memory_chunks_manager(); }
+
 
 template<>
 GenericManager<model::StorageController>&
@@ -252,6 +254,7 @@ template<>
 managers::ManyToManyManager&
 get_m2m_manager<model::Drive, model::PcieFunction>() { return PncComponents::get_instance()->get_drive_function_manager(); }
 
+
 template<>
 managers::ManyToManyManager&
 get_m2m_manager<model::Processor, model::PcieFunction>() { return PncComponents::get_instance()->get_processor_function_manager(); }
@@ -275,6 +278,21 @@ get_m2m_manager<model::StorageService, model::Drive>() { return CommonComponents
 template<>
 managers::ManyToManyManager&
 get_m2m_manager<model::System, model::StorageService>() { return StorageComponents::get_instance()->get_system_storage_services_manager(); }
+
+
+template<>
+managers::ManyToManyManager&
+get_m2m_manager<model::Processor, model::Processor>() { return CommonComponents::get_instance()->get_processor_processor_manager(); }
+
+
+template<>
+GenericManager<model::LogService>&
+get_manager<model::LogService>() { return CommonComponents::get_instance()->get_log_service_manager(); }
+
+
+template<>
+GenericManager<model::LogEntry>&
+get_manager<model::LogEntry>() { return CommonComponents::get_instance()->get_log_entry_manager(); }
 
 }
 }

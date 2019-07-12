@@ -126,8 +126,49 @@ def cts_message(fmt, **kwargs):
     msg = fmt.format(**kwargs)
     print "MESSAGE::{msg}".format(msg=msg)
 
+
+def cts_color_message(fmt, font_color="DEFAULT", **kwargs):
+    font_effect = {
+        "DEFAULT": '\033[0m',
+        "HEADER": '\033[95m',
+        "BLUE": '\033[94m',
+        "WARNING": '\033[93m',
+        "GREEN": '\033[92m',
+        "FAIL": '\033[91m',
+        "YELLOW": '\033[33m',
+        "LIGHT_BLUE": '\033[34m',
+        "BOLD": '\033[1m',
+    }
+
+    if ErrorMute.mute:
+        return
+    msg = fmt.format(**kwargs)
+    print "MESSAGE::{color}{msg}{end_of_color}".format(
+        color=font_effect[font_color],
+        msg=msg,
+        end_of_color=font_effect["DEFAULT"]
+    )
+
+
+def get_ok():
+    return "\033[92m[ OK ]\033[0m"
+
+
+def get_fail():
+    return "\033[91m[FAIL]\033[0m"
+
+
+def get_warning():
+    return "\033[93m[WARN]\033[0m"
+
+
+def get_info():
+    return "\033[94m[INFO]\033[0m"
+
+
 class ErrorMute:
     mute = False
+
     def __enter__(self):
         ErrorMute.mute = True
 

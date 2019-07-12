@@ -1,0 +1,12 @@
+{
+  "name": "6.3.1",
+  "resources": {
+    "ports_pnc_members": ["Port.Port", "PNC Ports"]
+  },
+  "actions": [
+    ["reduceby_string", ["ports_pnc_selected_members", "ports_pnc_members", ["PortType", "PortProtocol"],
+            ["DownstreamPort", "PCIe"]]],
+    ["string_logical_test", ["ports_pnc_selected_members", "Ports PNC (selected)", ["Status/State"], "Enabled"]],
+    ["all_lists_not_empty_test", ["ports_pnc_selected_members", "Ports PNC (selected)", ["Links/AssociatedEndpoints"]]]
+  ]
+}

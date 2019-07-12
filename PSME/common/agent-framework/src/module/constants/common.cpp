@@ -112,6 +112,8 @@ constexpr const char Manager::PACKAGE_URL[];
 constexpr const char Manager::ALLOWED_ACTIONS[];
 
 constexpr const char NetworkInterface::INTERFACE[];
+constexpr const char NetworkInterface::NAME[];
+constexpr const char NetworkInterface::DESCRIPTION[];
 constexpr const char NetworkInterface::STATUS[];
 constexpr const char NetworkInterface::FRAME_SIZE[];
 constexpr const char NetworkInterface::SPEED[];
@@ -302,6 +304,27 @@ constexpr const char Capacity::IS_THIN_PROVISIONED[];
 constexpr const char CapacitySource::PROVIDING_DRIVES[];
 constexpr const char CapacitySource::PROVIDING_VOLUMES[];
 constexpr const char CapacitySource::PROVIDING_POOLS[];
+
+constexpr const char LogService::SERVICE[];
+constexpr const char LogService::DATETIME[];
+constexpr const char LogService::ENTRY_TYPE[];
+constexpr const char LogService::OVERWRITE_POLICY[];
+constexpr const char LogService::SERVICE_ENABLED[] ;
+constexpr const char LogService::STATUS[];
+constexpr const char LogService::MAX_NUMBER_OF_RECORDS[];
+
+constexpr const char LogEntry::LOG_ENTRY[];
+constexpr const char LogEntry::CREATED[];
+constexpr const char LogEntry::ENTRY_CODE[];
+constexpr const char LogEntry::ENTRY_TYPE[];
+constexpr const char LogEntry::EVENT_ID[];
+constexpr const char LogEntry::EVENT_TIMESTAMP[];
+constexpr const char LogEntry::EVENT_TYPE[];
+constexpr const char LogEntry::SEVERITY[];
+constexpr const char LogEntry::SENSOR_TYPE[];
+constexpr const char LogEntry::SENSOR_NUMBER[];
+constexpr const char LogEntry::STATUS[];
+constexpr const char LogEntry::RECORD_ID[];
 }
 }
 }

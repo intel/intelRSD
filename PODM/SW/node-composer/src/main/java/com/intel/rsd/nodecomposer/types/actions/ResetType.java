@@ -28,7 +28,8 @@ public enum ResetType implements EnumeratedType {
     FORCE_RESTART("ForceRestart"),
     NMI("Nmi"),
     FORCE_ON("ForceOn"),
-    PUSH_POWER_BUTTON("PushPowerButton");
+    PUSH_POWER_BUTTON("PushPowerButton"),
+    POWER_CYCLE("PowerCycle");
 
     private final String value;
 

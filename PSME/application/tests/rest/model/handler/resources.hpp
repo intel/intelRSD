@@ -272,8 +272,7 @@ static std::string Processor1 =
                 "type": "Integrated",
                 "bitStreamVersion": "1.0",
                 "hssiConfiguration": "PCIe",
-                "hssiSideband": "I2C",
-                "reconfigurationSlots": 2,
+                "reconfigurationSlots": [],
                 "erased" : true
             },
             "maxSpeedMHz": 2400,
@@ -283,6 +282,7 @@ static std::string Processor1 =
             "enabledThreads": 32,
             "thermalDesignPowerWatt": 1.0,
             "onPackageMemory": [],
+            "collections": [],
             "oem": {}
         })";
 
@@ -343,8 +343,7 @@ static std::string Processor2 =
                 "type": "Integrated",
                 "bitStreamVersion": "1.0",
                 "hssiConfiguration": "PCIe",
-                "hssiSideband": "I2C",
-                "reconfigurationSlots": 2,
+                "reconfigurationSlots": [],
                 "erased" : false
             },
             "maxSpeedMHz": 1200,
@@ -354,6 +353,7 @@ static std::string Processor2 =
             "enabledThreads": 2,
             "thermalDesignPowerWatt": 2,
             "onPackageMemory": [],
+            "collections": [],
             "oem": {}
         })";
 
@@ -414,8 +414,7 @@ static std::string Processor2Modified =
                 "type": "Integrated",
                 "bitStreamVersion": "1.0",
                 "hssiConfiguration": "PCIe",
-                "hssiSideband": "I2C",
-                "reconfigurationSlots": 2,
+                "reconfigurationSlots": [],
                 "erased" : true
             },
             "maxSpeedMHz": 1200,
@@ -425,6 +424,7 @@ static std::string Processor2Modified =
             "enabledThreads": 2,
             "thermalDesignPowerWatt": 2,
             "onPackageMemory": [],
+            "collections": [],
             "oem": {}
         })";
 
@@ -587,8 +587,7 @@ static std::string Processor1OnSystem3 =
                 "type": "Integrated",
                 "bitStreamVersion": "1.0",
                 "hssiConfiguration": "PCIe",
-                "hssiSideband": "I2C",
-                "reconfigurationSlots": 2,
+                "reconfigurationSlots": [],
                 "erased" : true
             },
             "maxSpeedMHz": 1200,
@@ -598,6 +597,7 @@ static std::string Processor1OnSystem3 =
             "enabledThreads": 2,
             "thermalDesignPowerWatt": 5.5,
             "onPackageMemory": [],
+            "collections": [],
             "oem": {}
         })";
 
@@ -658,8 +658,7 @@ static std::string Processor1OnSystem3Modified =
                 "type": "Integrated",
                 "bitStreamVersion": "1.0",
                 "hssiConfiguration": "PCIe",
-                "hssiSideband": "I2C",
-                "reconfigurationSlots": 2,
+                "reconfigurationSlots": [],
                 "erased" : true
             },
             "maxSpeedMHz": 1200,
@@ -669,6 +668,7 @@ static std::string Processor1OnSystem3Modified =
             "enabledThreads": 2,
             "thermalDesignPowerWatt": 5.5,
             "onPackageMemory": [],
+            "collections": [],
             "oem": {}
         })";
 
@@ -776,8 +776,7 @@ static std::string Processor1OnSystem4 =
                 "type": "Integrated",
                 "bitStreamVersion": "1.0",
                 "hssiConfiguration": "PCIe",
-                "hssiSideband": "I2C",
-                "reconfigurationSlots": 2,
+                "reconfigurationSlots": [],
                 "erased" : false
             },
             "maxSpeedMHz": 1200,
@@ -787,6 +786,7 @@ static std::string Processor1OnSystem4 =
             "enabledThreads": 2,
             "thermalDesignPowerWatt": 1,
             "onPackageMemory": [],
+            "collections": [],
             "oem": {}
         })";
 
@@ -955,7 +955,7 @@ static std::string System6 =
         })";
 
 static std::string Task1 =
-    R"({
+        R"({
         "status": {
            "health": "OK",
            "state": "Enabled"

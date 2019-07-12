@@ -64,11 +64,11 @@ class JsonLoader:
 
     def print_available_actions(self):
         if len(self._available_uses_cases):
-            print('Available use cases:')
+            print('INFO:: Available use cases:')
             for case_number, case in enumerate(self._available_uses_cases, 1):
-                print('\t{0}: {1} ({2})'.format(case_number, case['filename'], case['name']))
+                print('INFO:: \t{0}: {1} ({2})'.format(case_number, case['filename'], case['name']))
         else:
-            print('No use cases found\n')
+            print('INFO:: No use cases found\n')
 
     @staticmethod
     def create_config_file():
@@ -81,6 +81,7 @@ class JsonLoader:
         with open(Constants.USE_CASE_CONFIG, 'r+') as f:
             use_cases = json.load(f)
             return [x for x in use_cases['available_cases'] if x['filename'] == name][0]
+
 
     @staticmethod
     def get_use_case_action(filepath):

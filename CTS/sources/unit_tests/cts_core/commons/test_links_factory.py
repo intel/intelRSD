@@ -37,9 +37,9 @@ class LinksFactoryUnitTest(unittest.TestCase):
     def test_absolute(self):
         self.assertEqual(ABSOLUTE_ODATA_ID, self.links_factory.get_resource_link(
             ABSOLUTE_ODATA_ID).link)
-        self.assertEqual(ABSOLUTE_ODATA_ID_WITH_TRAILING_SLASH[:-1],
-                         self.links_factory.get_resource_link(
-                             ABSOLUTE_ODATA_ID_WITH_TRAILING_SLASH).link)
+        self.assertNotEqual(ABSOLUTE_ODATA_ID_WITH_TRAILING_SLASH[:-1],
+                            self.links_factory.get_resource_link(
+                                ABSOLUTE_ODATA_ID_WITH_TRAILING_SLASH).link)
 
     def test_with_override(self):
         self.assertEqual("https://{enpoint}{odata_id}".format(enpoint=OVERRIDE,
@@ -60,7 +60,7 @@ class LinksFactoryUnitTest(unittest.TestCase):
         self.assertEqual(ABSOLUTE_ODATA_ID, self.links_factory.get_resource_link(
             ABSOLUTE_ODATA_ID,
             api_endpoint_override=OVERRIDE).link)
-        self.assertEqual(ABSOLUTE_ODATA_ID_WITH_TRAILING_SLASH[:-1],
-                         self.links_factory.get_resource_link(
-                             ABSOLUTE_ODATA_ID_WITH_TRAILING_SLASH,
-                             api_endpoint_override=OVERRIDE).link)
+        self.assertNotEqual(ABSOLUTE_ODATA_ID_WITH_TRAILING_SLASH[:-1],
+                            self.links_factory.get_resource_link(
+                                ABSOLUTE_ODATA_ID_WITH_TRAILING_SLASH,
+                                api_endpoint_override=OVERRIDE).link)

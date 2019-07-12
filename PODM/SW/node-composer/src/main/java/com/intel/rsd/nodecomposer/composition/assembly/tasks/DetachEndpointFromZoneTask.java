@@ -24,7 +24,6 @@ import com.intel.rsd.nodecomposer.externalservices.WebClient;
 import com.intel.rsd.nodecomposer.externalservices.WebClientBuilder;
 import com.intel.rsd.nodecomposer.externalservices.WebClientRequestException;
 import com.intel.rsd.nodecomposer.externalservices.actions.ZoneActionJson;
-import com.intel.rsd.nodecomposer.mappers.redfish.DriveMapper;
 import com.intel.rsd.nodecomposer.persistence.dao.GenericDao;
 import com.intel.rsd.nodecomposer.persistence.redfish.Drive;
 import com.intel.rsd.nodecomposer.persistence.redfish.Endpoint;
@@ -59,8 +58,6 @@ public class DetachEndpointFromZoneTask extends NodeTask implements Serializable
     private transient WebClientBuilder webClientBuilder;
     @Autowired
     private transient SecureEraseInvoker secureEraseInvoker;
-    @Autowired
-    private transient DriveMapper driveMapper;
 
     @Setter
     private ODataId zoneODataId;
@@ -87,7 +84,7 @@ public class DetachEndpointFromZoneTask extends NodeTask implements Serializable
         for (ConnectedEntity connectedEntity : endpoint.getConnectedEntities()) {
             DiscoverableEntity entity = connectedEntity.getEntityLink();
             if (entity instanceof Drive) {
-                secureEraseInvoker.updateErased(entity, false, driveMapper);
+                secureEraseInvoker.updateErased(entity, false);
             }
         }
     }

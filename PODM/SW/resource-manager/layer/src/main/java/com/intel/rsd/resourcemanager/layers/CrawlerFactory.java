@@ -41,12 +41,6 @@ public class CrawlerFactory {
         this.threadPool = Executors.newFixedThreadPool(threadPoolSize);
     }
 
-    private HttpHeaders getHttpHeadersWithNotStaleCache() {
-        val headers = new HttpHeaders();
-        headers.setCacheControl("max-stale=0");
-        return headers;
-    }
-
     public AccessLayerBuilder builder() {
         return new Builder();
     }
@@ -126,6 +120,12 @@ public class CrawlerFactory {
                 }
                 return new SerializableResource(response.getBody());
             };
+        }
+
+        private HttpHeaders getHttpHeadersWithNotStaleCache() {
+            val headers = new HttpHeaders();
+            headers.setCacheControl("max-stale=0");
+            return headers;
         }
     }
 }

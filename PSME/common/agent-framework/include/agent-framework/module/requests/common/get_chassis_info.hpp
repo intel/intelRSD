@@ -39,7 +39,7 @@ public:
     explicit GetChassisInfo(const std::string& chassis);
 
     static std::string get_command() {
-        return literals::Command::GET_CHASSIS_INFO;;
+        return literals::Command::GET_CHASSIS_INFO;
     }
 
     /*!

@@ -207,8 +207,10 @@ ipmi::SelRecordGeneric::SelRecordGeneric(const ipmi::SelRecord::RecordData& reco
     asserted(!ByteBuffer::is_bit_set(record, EVENT_DIR_POS, ASSERTION_EVENT_BIT)),
     event_type(get_event_type(record)),
     event_offset(static_cast<EventOffset>(ByteBuffer::get_uint8(record, EVENT_DATA_OFFSET_POS) & EVENT_DATA_OFFSET_MASK)),
+    event_data1(ByteBuffer::get_uint8(record, EVENT_DATA_OFFSET_POS)),
     event_data2(get_event_data(record, 2)),
-    event_data3(get_event_data(record, 3))
+    event_data3(get_event_data(record, 3)),
+    evm_revision(ByteBuffer::get_uint8(record, EVENT_MESSAGE_REVISION_POS))
 { }
 
 
@@ -304,6 +306,10 @@ bool ipmi::SelRecordGeneric::is_of_type(ipmi::SelRecordSensor::EventSensorType s
     return true;
 }
 
+
+bool ipmi::SelRecordGeneric::is_evm_1_5() const {
+    return evm_revision & EVENT_MESSAGE_REVISION_1_5;
+}
 
 
 std::string ipmi::SelRecordDiscrete::get_info() const {

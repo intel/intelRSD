@@ -35,9 +35,12 @@
 #include "agent-framework/module/pnc_components.hpp"
 #include "opaepp/opae/opae_cpp_device_updater.hpp"
 #include "opaepp/opae/opae_cpp_device_reader.hpp"
+#include "opaepp/device_reader.hpp"
 #include "loader/pnc_configuration.hpp"
 #include "agent-framework/database/database_entities.hpp"
 #include "agent-framework/database/database_keys.hpp"
+#include "agent-framework/eventing/utils.hpp"
+#include "uuid/uuid.hpp"
 
 #include <string>
 #include <fstream>
@@ -46,6 +49,8 @@
 
 using namespace agent_framework::model;
 using namespace agent_framework::module;
+using namespace agent_framework::model::attribute;
+
 using namespace agent::pnc::sysfs;
 using namespace agent::pnc::tools;
 using namespace agent::pnc::gas::mrpc;
@@ -100,6 +105,44 @@ PcieAddress get_pcie_address_for_fpga_device_uuid(const Toolset& tools, const Gl
                                                                              sw.get_sec_bus_num(),
                                                                              uint8_t(logical_bridge_id - 1));
     return sysfs_pcie_address;
+}
+
+
+/*!
+ * @brief Method for updating slot details after successful reconfiguration on particular FPGA
+ * @param pcie_device_address PCIe address on which the FPGA is represented in the OS
+ * @param processor_uuid which slot details will be updated
+ */
+void update_reconfigured_slot_details(uint8_t bus,
+                                      uint8_t device,
+                                      uint8_t function,
+                                      const Uuid& processor_uuid) {
+
+    opaepp::PcieDeviceAddress pcie_device_address(bus, device, function);
+
+    auto devices = opaepp::OpaeCppDeviceReader().get_devices(pcie_device_address, FPGA_ACCELERATOR);
+
+    if (devices.empty()) {
+        return;
+    }
+
+    auto accelerator = devices.front();
+    auto fpga = get_manager<Processor>().get_entry(processor_uuid).get_fpga();
+    auto uuid_str = unparse_uuid((const void*) accelerator.get_guid());
+
+    FpgaReconfigurationSlot slot;
+    slot.set_uuid(uuid_str);
+
+    Array<FpgaReconfigurationSlot> array{slot};
+
+    fpga.set_reconfiguration_slots(array);
+
+    agent_framework::module::get_manager<Processor>().get_entry_reference(processor_uuid)->set_fpga(fpga);
+
+    agent_framework::eventing::send_event(processor_uuid,
+                                          enums::Component::Processor,
+                                          agent_framework::model::enums::Notification::Update,
+                                          get_manager<Processor>().get_entry(processor_uuid).get_parent_uuid());
 }
 
 }
@@ -196,6 +239,9 @@ public:
             /* Calls opae and performs the actual update */
             try {
                 updater.update(pcie_address.bus, pcie_address.device, pcie_address.function, gbs.data(), gbs.size());
+
+                update_reconfigured_slot_details(pcie_address.bus, pcie_address.device, pcie_address.function,
+                                                 device_uuid);
             }
             catch (std::exception& e) {
                 std::string message = e.what();

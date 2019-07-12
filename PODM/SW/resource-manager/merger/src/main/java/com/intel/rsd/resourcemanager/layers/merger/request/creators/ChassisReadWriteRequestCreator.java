@@ -17,7 +17,6 @@
 package com.intel.rsd.resourcemanager.layers.merger.request.creators;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.Layer;
 import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.layers.ServiceId;
@@ -35,7 +34,7 @@ import static com.intel.rsd.ResourcePatterns.CHASSIS_PATTERN;
 class ChassisReadWriteRequestCreator implements SelectableRequestCreator {
 
     @Override
-    public ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<QueryParameterType, String> requestParams) {
+    public ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<String, String> requestParams) {
         return layer -> execute(path, method, headers, body, requestParams, layer);
     }
 
@@ -44,7 +43,7 @@ class ChassisReadWriteRequestCreator implements SelectableRequestCreator {
         return RW_METHODS.contains(httpMethod) && CHASSIS_PATTERN.matcher(path).matches();
     }
 
-    private Response[] execute(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<QueryParameterType, String> requestParams,
+    private Response[] execute(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<String, String> requestParams,
                                Layer layer) {
         Collection<ServiceId> servicesExposingPath = layer.getServicesExposingPath(path);
 

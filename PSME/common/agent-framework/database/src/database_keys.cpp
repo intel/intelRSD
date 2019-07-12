@@ -30,7 +30,7 @@ const char ENDPOINT_NQN_PROPERTY[] = "nqn";
 const char ENDPOINT_ROLE_PROPERTY[] = "role";
 const char ZONE_ENDPOINTS_PROPERTY[] = "endpoints";
 
-const char RDMA_PORT_PROPERTY[] = "rdmaPort";
+const char PORT_PROPERTY[] = "port";
 const char UUID_PROPERTY[] = "uuid";
 const char IPV4_PROPERTY[] = "ipv4";
 const char FPGA_DEVICE_UUID_PROPERTY[] = "fpgaDeviceUuid";

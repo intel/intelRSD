@@ -33,7 +33,7 @@ json::Json make_prototype() {
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Memory.Memory";
     r[Common::ODATA_ID] = json::Json::value_t::null;
-    r[Common::ODATA_TYPE] = "#Memory.v1_6_0.Memory";
+    r[Common::ODATA_TYPE] = "#Memory.v1_7_0.Memory";
     r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Memory";
     r[Common::DESCRIPTION] = "Memory description";
@@ -201,11 +201,6 @@ void endpoint::Memory::get(const server::Request& req, server::Response& res) {
     json::Json security_capabilities_json(json::Json::value_t::object);
     security_capabilities_json[constants::Memory::PASSPHRASE_CAPABLE] = security_capabilities.get_passphrase_capable();
     security_capabilities_json[constants::Memory::MAX_PASSPHRASE_COUNT] = security_capabilities.get_max_passphrase_count();
-    for (const auto& security_state : security_capabilities.get_security_states()) {
-        json::Json link_elem(json::Json::value_t::string);
-        link_elem = security_state.to_string();
-        security_capabilities_json[constants::Memory::SECURITY_STATES].push_back(std::move(link_elem));
-    }
     r[constants::Memory::SECURITY_CAPABILITIES] = std::move(security_capabilities_json);
 
     const auto& power_management_policy = memory.get_power_management_policy();

@@ -315,8 +315,8 @@ class ResourceMergerTest {
                 "Nmi"
             ]},
             "Oem": {
-                "#ComputerSystem.StartDeepDiscovery": {
-                  "target": "/redfish/v1/Systems/1/Actions/ComputerSystem.StartDeepDiscovery"
+                "#Intel.Oem.EraseOptaneDCPersistentMemory": {
+                  "target": "/redfish/v1/Systems/1/Actions/Oem/Intel.Oem.EraseOptaneDCPersistentMemory"
               }
             }
           }
@@ -335,8 +335,8 @@ class ResourceMergerTest {
             },
             "Oem": {
               "Intel_RackScale": {
-                "#ComputerSystem.StartDeepDiscovery": {
-                  "target": "/redfish/v1/Systems/1/Actions/ComputerSystem.StartDeepDiscovery"
+                "#Intel.Oem.EraseOptaneDCPersistentMemory": {
+                  "target": "/redfish/v1/Systems/1/Actions/Oem/Intel.Oem.EraseOptaneDCPersistentMemory"
                 }
               }
             }
@@ -361,12 +361,12 @@ class ResourceMergerTest {
             },
             "Oem": {
               "Intel_RackScale": {
-                "#ComputerSystem.StartDeepDiscovery": {
-                  "target": "/redfish/v1/Systems/1/Actions/ComputerSystem.StartDeepDiscovery"
+                "#Intel.Oem.EraseOptaneDCPersistentMemory": {
+                  "target": "/redfish/v1/Systems/1/Actions/Oem/Intel.Oem.EraseOptaneDCPersistentMemory"
                 }
               },
-              "#ComputerSystem.StartDeepDiscovery": {
-                  "target": "/redfish/v1/Systems/1/Actions/ComputerSystem.StartDeepDiscovery"
+              "#Intel.Oem.EraseOptaneDCPersistentMemory": {
+                  "target": "/redfish/v1/Systems/1/Actions/Oem/Intel.Oem.EraseOptaneDCPersistentMemory"
               }
             }
           }

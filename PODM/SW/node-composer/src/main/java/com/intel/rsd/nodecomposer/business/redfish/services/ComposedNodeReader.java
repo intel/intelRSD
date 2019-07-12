@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -54,7 +53,6 @@ import static com.intel.rsd.nodecomposer.types.actions.ComposedNodeActionNames.C
 import static com.intel.rsd.nodecomposer.types.actions.ComposedNodeActionNames.COMPOSED_NODE_RESET;
 import static com.intel.rsd.nodecomposer.types.actions.ComposedNodeActionNames.DETACH_RESOURCE_ACTION_INFO;
 import static java.lang.String.format;
-import static javax.transaction.Transactional.TxType.REQUIRED;
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Slf4j
@@ -73,12 +71,10 @@ public class ComposedNodeReader {
         this.webClientBuilder = webClientBuilder;
     }
 
-    @Transactional(REQUIRED)
     public ComposedNodeCollectionDto getCollection() {
         return new ComposedNodeCollectionDto(composedNodeDao.getAllComposedNodeUris());
     }
 
-    @Transactional(REQUIRED)
     public ComposedNodeDto getResource(ODataId composedNodeODataId) throws ODataIdResolvingException {
         ComposedNode composedNode = traverser.traverseComposedNode(composedNodeODataId);
 

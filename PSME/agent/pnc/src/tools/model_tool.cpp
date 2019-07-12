@@ -136,6 +136,11 @@ std::string ModelTool::get_storage_uuid() const {
 }
 
 
+std::string ModelTool::get_switch_uuid() const {
+    return generic_get_uuid<Switch>("switch");
+}
+
+
 void ModelTool::update_drive_status(const std::string& drive_uuid, const attribute::Status& status,
                                     const int media_life_left) const {
 

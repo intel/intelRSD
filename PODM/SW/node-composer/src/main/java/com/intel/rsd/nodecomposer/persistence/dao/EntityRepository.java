@@ -68,7 +68,6 @@ class EntityRepository {
     }
 
     //TODO: pzak - Entity does not have uri - maybe it should be moved from DiscoverableEntity?
-    @Transactional(MANDATORY)
     public <T extends Entity> Optional<T> tryFind(Class<T> entityClass, ODataId uri) {
         TypedQuery<T> query = entityManager.createQuery("SELECT e FROM " + entityClass.getSimpleName() + " e WHERE e.uri = :uri", entityClass);
         query.setParameter("uri", uri);
@@ -76,14 +75,12 @@ class EntityRepository {
     }
 
     //TODO: pzak - Entity does not have uri - maybe it should be moved from DiscoverableEntity?
-    @Transactional(MANDATORY)
     public <T extends Entity> T find(Class<T> entityClass, ODataId uri) {
         return tryFind(entityClass, uri).orElseThrow(
             () -> new EntityNotFoundException(entityClass, uri)
         );
     }
 
-    @Transactional(MANDATORY)
     public <T extends Entity> List<T> findAll(Class<T> entityClass) {
         TypedQuery<T> query =
             entityManager.createQuery("SELECT e FROM " + entityClass.getSimpleName() + " e ORDER BY e.id", entityClass);

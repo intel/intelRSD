@@ -26,16 +26,6 @@
 using namespace agent::fpgaof::loader;
 
 
-void FpgaofConfiguration::set_nic_drivers(const std::vector<std::string>& drivers) {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_nic_drivers = drivers;
-}
-
-
-const std::vector<std::string>& FpgaofConfiguration::get_nic_drivers() {
-    std::lock_guard<std::mutex> lock{m_mutex};
-    return m_nic_drivers;
-}
 
 
 void FpgaofConfiguration::set_ipv4_address(const std::string& ip) {
@@ -74,18 +64,6 @@ std::string FpgaofConfiguration::get_parent_id() {
 }
 
 
-void FpgaofConfiguration::set_rdma_port(uint32_t rdma_port) {
-    std::lock_guard<std::mutex> lock{m_mutex};
-    m_rdma_port = rdma_port;
-}
-
-
-uint32_t FpgaofConfiguration::get_rdma_port() {
-    std::lock_guard<std::mutex> lock{m_mutex};
-    return m_rdma_port;
-}
-
-
 void FpgaofConfiguration::set_secure_erase_gbs_file_path(const std::string& secure_erase_gbs_file_path) {
 	std::lock_guard<std::mutex> lock{m_mutex};
 	m_secure_erase_gbs_file_path = secure_erase_gbs_file_path;
@@ -96,8 +74,6 @@ std::string FpgaofConfiguration::get_secure_erase_gbs_file_path() {
 	std::lock_guard<std::mutex> lock{m_mutex};
 	return m_secure_erase_gbs_file_path;
 }
-
-FpgaofConfiguration::~FpgaofConfiguration() { }
 
 
 void FpgaofConfiguration::set_endpoint_fpgaof_port(const Uuid& endpoint, uint16_t fpgaof_port) {

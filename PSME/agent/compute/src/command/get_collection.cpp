@@ -111,6 +111,9 @@ void process_manager(const Collection& collection, const std::string& uuid,
     else if (enums::CollectionType::PCIeDevices == collection.get_type()) {
         response_add_subcomponents(get_manager<PcieDevice>().get_keys(uuid), response);
     }
+    else if (enums::CollectionType::LogServices == collection.get_type()) {
+        response_add_subcomponents(get_manager<LogService>().get_keys(uuid), response);
+    }
     else {
         THROW(agent_framework::exceptions::InvalidCollection, "compute-agent",
               "Collection not found: \'" + name + "\'.");
@@ -242,6 +245,19 @@ void process_processor(const Collection& collection, const std::string& uuid,
 }
 
 
+void process_log_service(const Collection& collection, const std::string& uuid,
+                         GetCollection::Response& response, const std::string& name) {
+    // Only one possible collection
+    if (enums::CollectionType::LogEntries == collection.get_type()) {
+        response_add_subcomponents(get_manager<LogEntry>().get_keys(uuid), response);
+    }
+    else {
+        THROW(::agent_framework::exceptions::InvalidCollection,
+              "compute-agent", "Collection not found: \'" + name + "\'.");
+    }
+}
+
+
 void do_get_collection(const GetCollection::Request& request, GetCollection::Response& response) {
 
     auto uuid = request.get_uuid();
@@ -327,6 +343,13 @@ void do_get_collection(const GetCollection::Request& request, GetCollection::Res
         const Collection& collection = find_collection(processor.get_collections(), name);
 
         process_processor(collection, uuid, response, name);
+    }
+    else if (get_manager<LogService>().entry_exists(uuid)) {
+
+        const LogService log_service = get_manager<LogService>().get_entry(uuid);
+        const Collection& collection = find_collection(log_service.get_collections(), name);
+
+        process_log_service(collection, uuid, response, name);
     }
     else if (get_manager<Memory>().entry_exists(uuid)
              || get_manager<NetworkDeviceFunction>().entry_exists(uuid)

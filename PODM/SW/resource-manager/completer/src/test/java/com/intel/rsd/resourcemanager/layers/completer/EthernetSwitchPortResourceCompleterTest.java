@@ -25,7 +25,7 @@ import java.util.HashMap;
 
 import static com.intel.rsd.json.JsonUtils.createArrayNodeWith;
 import static com.intel.rsd.json.JsonUtils.readJsonFromFile;
-import static com.intel.rsd.resourcemanager.common.ExtendedInfo.ExtendedInfoBuilder.newExtendedInfoBuilder;
+import static com.intel.rsd.redfish.ExtendedInfo.ExtendedInfoBuilder.newExtendedInfoBuilder;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.testng.Assert.assertFalse;

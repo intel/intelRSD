@@ -16,6 +16,7 @@
 
 package com.intel.rsd.nodecomposer.composition.assembly.tasks;
 
+import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.utils.beans.NodeComposerBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -33,7 +34,9 @@ public class ZoneTaskFactory {
         this.beanFactory = beanFactory;
     }
 
-    public ZoneAssemblyTask create() {
-        return beanFactory.create(ZoneAssemblyTask.class);
+    public ZoneAssemblyTask create(ODataId fabricOdataId) {
+        ZoneAssemblyTask zoneAssemblyTask = beanFactory.create(ZoneAssemblyTask.class);
+        zoneAssemblyTask.setFabricOdataId(fabricOdataId);
+        return zoneAssemblyTask;
     }
 }

@@ -57,8 +57,8 @@ class ExecuteExternalScript:
         """
         try:
             self.__achieved_result = self.script_path.Verify().run(raw_response=self.__raw_response,
-                                                                   expected_result=self.__expected_result,
-                                                                   *args, **kwargs)
+                                                                                       expected_result=self.__expected_result,
+                                                                                       *args, **kwargs)
         except AttributeError:
             print(Constants.EXTERNAL_SCRIPT_WAS_NOT_FOUND)
         return self.verify()

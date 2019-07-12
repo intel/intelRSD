@@ -17,7 +17,7 @@
 package com.intel.rsd.nodecomposer.services.configuration;
 
 import com.intel.rsd.nodecomposer.externalservices.WebClient;
-import com.intel.rsd.nodecomposer.services.configuration.client.RestActionInvoker;
+import com.intel.rsd.nodecomposer.services.configuration.client.DiscoveryServiceWebClient;
 import com.intel.rsd.nodecomposer.types.discovery.DiscoveryServiceEndpoint;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,14 +32,14 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 @Scope(SCOPE_SINGLETON)
 public class DiscoveryServiceConfigurationTask implements Runnable {
     private final DiscoveryServiceConfigurer configurer;
-    private final RestActionInvoker restActionInvoker;
+    private final DiscoveryServiceWebClient discoveryServiceWebClient;
 
     private DiscoveryServiceEndpoint discoveryServiceEndpoint;
 
     @Autowired
-    public DiscoveryServiceConfigurationTask(DiscoveryServiceConfigurer configurer, RestActionInvoker restActionInvoker) {
+    public DiscoveryServiceConfigurationTask(DiscoveryServiceConfigurer configurer, DiscoveryServiceWebClient discoveryServiceWebClient) {
         this.configurer = configurer;
-        this.restActionInvoker = restActionInvoker;
+        this.discoveryServiceWebClient = discoveryServiceWebClient;
     }
 
     @Override
@@ -47,8 +47,8 @@ public class DiscoveryServiceConfigurationTask implements Runnable {
     public void run() {
         requiresNonNull(discoveryServiceEndpoint, "DiscoveryServiceEndpoint");
 
-        try (WebClient webClient = restActionInvoker.createDiscoveryServiceWebClient(discoveryServiceEndpoint.getEndpointUri())) {
-            configurer.execute(webClient);
+        try (WebClient webClient = discoveryServiceWebClient.createWebClient(discoveryServiceEndpoint.getEndpointUri())) {
+            configurer.configureUsingWebClient(webClient);
         } catch (Exception e) {
             log.error("Execution of DiscoveryService configuration task failed.", e);
         }

@@ -1,0 +1,13 @@
+{
+  "name": "10.1.2",
+  "resources": {
+    "staticmacs_members": ["EthernetSwitchStaticMACCollection.EthernetSwitchStaticMACCollection", "Static MACs"],
+    "aclrules_members": ["EthernetSwitchACLRule.EthernetSwitchACLRule", "ACL Rules"],
+    "ports_members": ["EthernetSwitchPort.EthernetSwitchPort", "Ports"]
+  },
+  "actions": [
+    ["numeric_logical_test", ["staticmacs_members", "Static MACs", ["Members@odata.count"]]],
+    ["collection_is_not_empty", ["aclrules_members", "ACL Rules"]],
+    ["string_logical_test_special", ["ports_members", "Ports", "PortMode", ["LinkAggregationStatic", "LinkAggregationDynamic"]]]
+  ]
+}

@@ -22,6 +22,7 @@
 #include "discovery/discoverers/fpgaof_endpoint_discoverer.hpp"
 #include "discovery/builders/fpgaof_endpoint_builder.hpp"
 #include "opaepp/opae-proxy/opae_proxy_host_api.hpp"
+#include "utils.hpp"
 
 
 
@@ -47,8 +48,10 @@ void add_target_attributes(Endpoint& endpoint, const Uuid& endpoint_uuid) {
     try {
         agent_framework::database::EndpointEntity db{endpoint_uuid};
         ip_transport_detail.set_ipv4_address({db.get(agent_framework::database::IPV4_PROPERTY)});
-        ip_transport_detail.set_port(std::stoi(db.get(agent_framework::database::RDMA_PORT_PROPERTY)));
+        ip_transport_detail.set_port(std::stoi(db.get(agent_framework::database::PORT_PROPERTY)));
         ip_transport_detail.set_transport_protocol(TransportProtocol::OEM);
+        ip_transport_detail.set_interface(
+            agent::fpgaof::utils::get_ethernet_interface_uuid_from_ip_address(ip_transport_detail.get_ipv4_address()));
         endpoint.add_ip_transport_detail(ip_transport_detail);
         attribute::ConnectedEntity ce{};
         ce.set_entity_role(EntityRole::Target);
@@ -91,7 +94,7 @@ std::vector<agent_framework::model::Endpoint> discovery::FpgaofEndpointDiscovere
 
     for (const auto& endpoint_uuid : endpoint_uuids) {
         Endpoint endpoint{fabric_uuid};
-        log_debug("fpgaof-discovery", "Discovering endpoint " + endpoint_uuid + " from database");
+        log_info("fpgaof-discovery", "Discovering endpoint " + endpoint_uuid + " from database");
         try {
             set_common_attributes(endpoint, endpoint_uuid);
 
@@ -105,8 +108,8 @@ std::vector<agent_framework::model::Endpoint> discovery::FpgaofEndpointDiscovere
                 add_initiator_attributes(endpoint);
                 OpaeProxyHostApi::add_initiator_host(*m_context->opae_proxy_context,
                                                      attribute::Identifier::get_uuid(endpoint));
-                log_debug("fpgaof-discovery",
-                          "opaepp : added host " + attribute::Identifier::get_uuid(endpoint) + " to opae proxy.");
+                log_info("fpgaof-discovery",
+                         "opaepp : added host " + attribute::Identifier::get_uuid(endpoint) + " to opae proxy.");
             }
             else {
                 log_error("fpgaof-discovery", "Unrecognized endpoint role read from database " << role);

@@ -115,6 +115,13 @@ public:
      * */
     virtual ReturnType add_dsp_port_uuid(const std::string& dsp_port_uuid);
 
+    /*!
+     * @brief Updates processor FRU info
+     * @param fru_info FRU info
+     * @return Pointer to the builder
+     */
+    ReturnType update_fru_info(const agent_framework::model::attribute::FruInfo& fru_info);
+
 protected:
     /*!
      * @brief Performs construction of the default object

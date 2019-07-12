@@ -24,24 +24,20 @@ import com.intel.rsd.nodecomposer.externalservices.WebClientRequestException;
 import com.intel.rsd.nodecomposer.externalservices.actions.PcieDriveErasedUpdateRequest;
 import com.intel.rsd.nodecomposer.externalservices.actions.ProcessorErasedUpdateRequest;
 import com.intel.rsd.nodecomposer.externalservices.resources.ExternalServiceResource;
-import com.intel.rsd.nodecomposer.mappers.EntityMapper;
 import com.intel.rsd.nodecomposer.persistence.redfish.Processor;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.net.URI;
 
 import static java.net.URI.create;
-import static javax.transaction.Transactional.TxType.MANDATORY;
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 
 @Slf4j
 @Component
 @Scope(SCOPE_PROTOTYPE)
-@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class SecureEraseInvoker<T extends DiscoverableEntity, Y extends ExternalServiceResource> {
     private static final String PCIE_DRIVE_SECURE_ERASE_PATH_PART = "/Actions/Drive.SecureErase";
     private static final String PROCESSOR_SECURE_ERASE_PATH_PART = "/Actions/Oem/Intel.Oem.SecureErase";
@@ -52,7 +48,6 @@ public class SecureEraseInvoker<T extends DiscoverableEntity, Y extends External
         this.webClientBuilder = webClientBuilder;
     }
 
-    @Transactional(MANDATORY)
     public void secureErase(T entity) throws EntityOperationException {
         try (WebClient webClient = webClientBuilder.createResourceManagerInstance().retryable().build()) {
             webClient.post(getSecureEraseUri(entity), null);
@@ -66,10 +61,8 @@ public class SecureEraseInvoker<T extends DiscoverableEntity, Y extends External
         }
     }
 
-    @Transactional(MANDATORY)
-    public void updateErased(T entity, boolean erased, EntityMapper<Y, T> entityMapper) throws EntityOperationException {
-        Y entityResource = performUpdateErasedAction(entity, erased);
-        entityMapper.map(entityResource, entity);
+    public void updateErased(T entity, boolean erased) throws EntityOperationException {
+        performUpdateErasedAction(entity, erased);
     }
 
     private Y performUpdateErasedAction(T entity, boolean erased) throws EntityOperationException {

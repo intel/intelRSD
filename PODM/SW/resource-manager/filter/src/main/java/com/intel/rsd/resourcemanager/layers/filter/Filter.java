@@ -17,7 +17,6 @@
 package com.intel.rsd.resourcemanager.layers.filter;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.Layer;
 import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.layers.ServiceId;
@@ -32,7 +31,7 @@ import java.util.Set;
 
 /**
  * Filter provides functionality that allows to remove specified attributes from responses.
- * It case when some information exposed by Resource Services should not be available from Resource Manager, Filter may help to hide them.
+ * In case when some information exposed by Resource Services should not be available from Resource Manager, Filter may help to hide them.
  * All currently filtered out attributes are configured in resource-manager/filter/src/main/resources/filters file.
  * @
  * example: /redfish/v1/#/AccountService means that "AccountService" attribute should be removed from /redfish/v1 resource.
@@ -49,7 +48,7 @@ public final class Filter extends Layer {
 
     @Override
     protected Response invokeImpl(ServiceId serviceId, String path, HttpMethod method, HttpHeaders headers, JsonNode body,
-                                  Map<QueryParameterType, String> requestParams) {
+                                  Map<String, String> requestParams) {
         Response response = passToNextLayer(serviceId, path, method, headers, body, requestParams);
         return filter(path, response);
     }

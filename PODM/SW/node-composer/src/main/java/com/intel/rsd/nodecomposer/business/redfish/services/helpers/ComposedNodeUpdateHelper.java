@@ -28,7 +28,6 @@ import com.intel.rsd.nodecomposer.persistence.redfish.embeddables.Boot;
 import com.intel.rsd.nodecomposer.rest.redfish.json.actions.ComposedNodePartialRepresentation;
 import com.intel.rsd.nodecomposer.types.actions.ComputerSystemUpdateDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
@@ -39,10 +38,8 @@ import static com.intel.rsd.nodecomposer.persistence.redfish.base.StatusControl.
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class ComposedNodeUpdateHelper {
     private final EntityTreeTraverser traverser;
@@ -54,7 +51,7 @@ public class ComposedNodeUpdateHelper {
         this.computerSystemUpdateInvoker = computerSystemUpdateInvoker;
     }
 
-    @Transactional(REQUIRES_NEW)
+    @Transactional(value = REQUIRES_NEW, rollbackOn = BusinessApiException.class)
     public void updateComposedNode(ODataId composedNodeODataId, ComposedNodePartialRepresentation representation) throws BusinessApiException {
         ComposedNode composedNode = traverser.traverseComposedNode(composedNodeODataId);
         ComputerSystem computerSystem = composedNode.getComputerSystem();
@@ -111,8 +108,8 @@ public class ComposedNodeUpdateHelper {
         validateBootSupport(type, computerSystem);
     }
 
-    private void validateBootSupport(String type, ComputerSystem computerSystem) throws BusinessApiException {
-        if (type == null) {
+    private void validateBootSupport(String target, ComputerSystem computerSystem) throws BusinessApiException {
+        if (target == null) {
             return;
         }
 
@@ -121,9 +118,9 @@ public class ComposedNodeUpdateHelper {
             throw new ResourceStateMismatchException("Provided Computer System does not have Boot property.");
         }
 
-        Collection<String> allowableBootSourceTypes = boot.getBootSourceOverrideTargetAllowableValues();
-        if (!allowableBootSourceTypes.contains(type)) {
-            String violation = format("Provided BootSourceType is invalid. Allowable values: %s", allowableBootSourceTypes);
+        Collection<String> allowableBootOverrideTargets = boot.getBootSourceOverrideTargetAllowableValues();
+        if (!allowableBootOverrideTargets.contains(target)) {
+            String violation = format("Provided BootSourceOverrideTarget is invalid. Allowable values: %s", allowableBootOverrideTargets);
             throw new RequestValidationException(createWithViolations(violation));
         }
     }

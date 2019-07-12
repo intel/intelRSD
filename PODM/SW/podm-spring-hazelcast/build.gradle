@@ -22,7 +22,6 @@ buildscript {
         dependencyManagementPluginVersion = '1.0.4.RELEASE'
         gradleVersionsPluginVersion = '0.17.0'
 
-        springPlatformBomVersion = 'Cairo-RC1'
         springCloudVersion = 'Finchley.M8'
 
         guavaVersion = '24.1-jre'
@@ -70,7 +69,7 @@ test {
 
 dependencyManagement {
     imports {
-        mavenBom("io.spring.platform:platform-bom:${springPlatformBomVersion}")
+        mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
         mavenBom("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
     }
 }

@@ -17,27 +17,27 @@
 apply plugin: 'antlr'
 
 dependencies {
-    compileOnly project(":layer")
-    compileOnly project(":common")
+    implementation project(":layer")
+    implementation project(":common")
 
-    compile("org.apache.commons:commons-lang3")
-    compileOnly("com.intel.rsd:podm-common:${podmCommonVersion}")
-    compileOnly("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
-    compileOnly("com.google.guava:guava:${guavaVersion}")
+    implementation("org.apache.commons:commons-lang3")
+    implementation("com.intel.rsd:podm-common:${podmCommonVersion}")
+    implementation("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
+    implementation("com.google.guava:guava:${guavaVersion}")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
-    compileOnly("org.antlr:antlr4-runtime:${antlrVersion}")
+    implementation("org.antlr:antlr4-runtime:${antlrVersion}")
     antlr("org.antlr:antlr4:${antlrVersion}")
 
-    testCompile("org.slf4j:slf4j-api")
-    testCompile project(":layer")
-    testCompile project(":common")
+    testImplementation("org.slf4j:slf4j-api")
+    testImplementation project(":layer")
+    testImplementation project(":common")
 
-    testCompile("org.testng:testng")
-    testCompile("org.mockito:mockito-all:${mockitoVersion}")
-    testCompile("org.assertj:assertj-core:${assertjVersion}")
-    testCompile("com.intel.rsd:podm-common:${podmCommonVersion}")
+    testImplementation("org.testng:testng:${testNGVersion}")
+    testImplementation("org.mockito:mockito-all:${mockitoVersion}")
+    testImplementation("org.assertj:assertj-core:${assertjVersion}")
+    testImplementation("com.intel.rsd:podm-common:${podmCommonVersion}")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
 }

@@ -30,7 +30,6 @@ import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.client.Client;
@@ -42,10 +41,8 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKN
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.UPPER_CAMEL_CASE;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder.HostnameVerificationPolicy.ANY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class WebClientBuilder {
     private final long serviceConnectionTimeoutInSeconds;
     private final long serviceSocketTimeoutInSeconds;

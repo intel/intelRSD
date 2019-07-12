@@ -31,7 +31,7 @@
 
   <edmx:DataServices>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ClassOfService">
-
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="ClassOfService" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="A service option composed of one or more other service options."/>
         <Annotation Term="OData.LongDescription" String="A service option composed of one or more other service options.  ITIL defines a service option as a choice of utility or warranty for a service."/>
@@ -40,7 +40,7 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ClassOfService.v1_0_0">
-
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="ClassOfService" BaseType="ClassOfService.ClassOfService">
         <Annotation Term="OData.Description" String="A service option composed of one or more service options."/>
         <Annotation Term="OData.LongDescription" String="This resource shall define a service option composed of one or more line of service entities.  ITIL defines a service option as a choice of utility or warranty for a service."/>
@@ -60,7 +60,14 @@
 
     </Schema>
 
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ClassOfService.v1_0_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="ClassOfService" BaseType="ClassOfService.v1_0_0.ClassOfService"/>
+    </Schema>
+
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ClassOfService.v1_1_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="ClassOfService" BaseType="ClassOfService.v1_0_0.ClassOfService">
         <Property Name="Actions" Type="ClassOfService.v1_1_0.Actions" Nullable="false">
           <Annotation Term="OData.Description" String="The available actions for this resource."/>
@@ -83,6 +90,7 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ClassOfService.v1_1_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.Description" String="Converting Line of Service collection reference types from complex types to entity types. Change references to unversioned."/>
 
       <EntityType Name="ClassOfService" BaseType="ClassOfService.v1_0_0.ClassOfService">
@@ -116,6 +124,12 @@
         </NavigationProperty>
       </EntityType>
 
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="ClassOfService.v1_0_2">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="ClassOfService" BaseType="ClassOfService.v1_0_1.ClassOfService"/>
     </Schema>
 
   </edmx:DataServices>

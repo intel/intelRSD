@@ -22,10 +22,9 @@ import com.intel.rsd.nodecomposer.mappers.subresources.SubresourceMapper;
 import com.intel.rsd.nodecomposer.mappers.subresources.strategies.EmbeddableCleanAndCreateStrategy;
 import com.intel.rsd.nodecomposer.persistence.redfish.embeddables.Capacity;
 import com.intel.rsd.nodecomposer.persistence.redfish.embeddables.CapacityInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
 
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 
@@ -34,7 +33,7 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 public class CapacityMapper extends SubresourceMapper<CapacityResource, Capacity> {
     private CapacityInfoMapper capacityInfoMapper;
 
-    @Inject
+    @Autowired
     public CapacityMapper(CapacityInfoMapper capacityInfoMapper,
                           EmbeddableCleanAndCreateStrategy<Capacity> embeddableCleanAndCreateStrategy) {
         super(Capacity.class, embeddableCleanAndCreateStrategy);

@@ -47,6 +47,7 @@ const char RACK_SUPPORTS_DISAGGREGATED_POWER_COOLING[] = "RackSupportsDisaggrega
 const char POWER_STATE[] = "PowerState";
 const char HASH_CHASSIS_RESET[] = "#Chassis.Reset";
 const char CHASSIS_RESET[] = "Chassis.Reset";
+const char NETWORK_ADAPTERS[] = "NetworkAdapters";
 }
 
 namespace PowerZone {
@@ -155,6 +156,7 @@ const char DEVICE_TYPE[] = "DeviceType";
 namespace PcieFunction {
 const char FUNCTION_ID[] = "FunctionId";
 const char FUNCTION_TYPE[] = "FunctionType";
+const char FUNCTION_NUMBER[] = "FunctionNumber";
 const char DEVICE_CLASS[] = "DeviceClass";
 const char DEVICE_ID[] = "DeviceId";
 const char VENDOR_ID[] = "VendorId";

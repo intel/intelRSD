@@ -17,7 +17,6 @@
 package com.intel.rsd.resourcemanager.layers.unifier;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.Layer;
 import com.intel.rsd.resourcemanager.layers.CrawlerFactory;
 import com.intel.rsd.resourcemanager.layers.Response;
@@ -37,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
+import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.ResponseEntity.notFound;
 
 @Component
@@ -75,17 +75,26 @@ public class UnificationLayer extends Layer {
 
     @Override
     protected Response invokeImpl(ServiceId serviceId, String path, HttpMethod method, HttpHeaders headers, JsonNode body,
-                                  Map<QueryParameterType, String> requestParams) {
+                                  Map<String, String> requestParams) {
         val resolver = createLoadingResolver(serviceId);
         val serviceSpecificUri = resolver.toServiceSpecific(path);
 
         if (serviceSpecificUri.isPresent()) {
             val deunifiedBody = unifier.deunify(body, resolver);
             val nextLayerResponse = passToNextLayer(serviceId, serviceSpecificUri.get(), method, headers, deunifiedBody, requestParams);
+            if (DELETE.equals(method) && nextLayerResponse.getHttpStatus().is2xxSuccessful()) {
+                removeMappings(serviceSpecificUri.get(), path, resolver);
+            }
             return unifier.unify(nextLayerResponse, resolver);
         } else {
             return new Response(notFound().build());
         }
+    }
+
+    private void removeMappings(String serviceSpecificUri, String unifiedUri, UnifiedOdataIdResolver resolver) {
+        log.debug("Removing mapping for {}, unified {}", serviceSpecificUri, unifiedUri);
+        resolver.getUnificationMappings().getMapping().remove(serviceSpecificUri);
+        resolver.getUnificationMappings().getReverseMapping().remove(unifiedUri);
     }
 
     UnifiedOdataIdResolver createLoadingResolver(ServiceId serviceId) {

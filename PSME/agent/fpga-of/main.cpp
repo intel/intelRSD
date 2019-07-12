@@ -97,8 +97,6 @@ int main(int argc, const char* argv[]) {
     auto context = std::make_shared<AgentContext>();
     context->configuration = module_loader.get();
     context->sysfs_interface = std::make_shared<sysfs::SysfsInterface>();
-    context->interface_reader =
-        std::make_shared<interface_reader::UdevInterfaceReader>(context->configuration->get_nic_drivers());
     context->opae_proxy_context = std::make_shared<opaepp::OpaeProxyContext>(
         context->configuration->get_opae_proxy_transports());
     context->opae_proxy_device_reader = std::make_shared<opaepp::OpaeProxyDeviceReader>(context->opae_proxy_context);

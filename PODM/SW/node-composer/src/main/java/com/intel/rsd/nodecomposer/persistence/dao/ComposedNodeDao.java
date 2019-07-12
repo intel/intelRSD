@@ -18,11 +18,9 @@ package com.intel.rsd.nodecomposer.persistence.dao;
 
 import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.TypedQuery;
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,32 +29,22 @@ import static com.intel.rsd.collections.IterableHelper.optionalSingle;
 import static com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode.GET_ALL_NODES_URIS;
 import static com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode.GET_NODES_ELIGIBLE_FOR_RECOVERY;
 import static com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode.GET_NODE_MATCHING_RELATED_SYSTEM_UUID;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static javax.transaction.Transactional.TxType.REQUIRED;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class ComposedNodeDao extends Dao<ComposedNode> {
-    @Transactional(MANDATORY)
+
     public List<ComposedNode> getComposedNodesEligibleForRecovery() {
         return entityManager.createNamedQuery(GET_NODES_ELIGIBLE_FOR_RECOVERY, ComposedNode.class).getResultList();
     }
 
-    @Transactional(MANDATORY)
     public Optional<ComposedNode> tryFindComposedNodeByComputerSystemUuid(UUID uuid) {
         TypedQuery<ComposedNode> query = entityManager.createNamedQuery(GET_NODE_MATCHING_RELATED_SYSTEM_UUID, ComposedNode.class);
         query.setParameter("uuid", uuid);
         return optionalSingle(query.getResultList());
     }
 
-    @Transactional(MANDATORY)
     public List<ODataId> getAllComposedNodeUris() {
         return entityManager.createNamedQuery(GET_ALL_NODES_URIS, ODataId.class).getResultList();
     }
 
-    @Transactional(REQUIRED)
-    public void delete(ODataId oDataId) {
-        tryFind(oDataId).ifPresent(this::remove);
-    }
 }

@@ -25,7 +25,6 @@ import com.intel.rsd.nodecomposer.persistence.redfish.Fabric;
 import com.intel.rsd.nodecomposer.persistence.redfish.Zone;
 import com.intel.rsd.nodecomposer.types.Protocol;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
@@ -47,10 +46,8 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.toSet;
 import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 @SuppressWarnings("checkstyle:MethodCount")
 public class UuidEndpointsMapProvider {
     private final InitiatorEndpointUuidExtractor uuidExtractor;
@@ -67,7 +64,7 @@ public class UuidEndpointsMapProvider {
     @Transactional(MANDATORY)
     public Map<UUID, Collection<Endpoint>> createInitiatorUuidToZoneEndpointsMap(Protocol protocol) {
         Set<Fabric> fabrics = genericDao.findAll(Fabric.class).stream()
-            .filter(fabric -> fabric.getFabricType().equals(protocol))
+            .filter(fabric -> protocol.equals(fabric.getFabricType()))
             .collect(toSet());
 
         Map<UUID, Collection<Endpoint>> zoneInitiatorEndpointMapping = new HashMap<>();

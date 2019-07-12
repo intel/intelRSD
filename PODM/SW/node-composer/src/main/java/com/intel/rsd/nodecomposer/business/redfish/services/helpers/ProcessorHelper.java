@@ -20,25 +20,19 @@ import com.intel.rsd.nodecomposer.persistence.redfish.Fabric;
 import com.intel.rsd.nodecomposer.persistence.redfish.Manager;
 import com.intel.rsd.nodecomposer.persistence.redfish.Processor;
 import com.intel.rsd.nodecomposer.types.Protocol;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.List;
 
 import static com.intel.rsd.nodecomposer.types.ProcessorType.FPGA;
 import static com.intel.rsd.nodecomposer.types.Protocol.FPGA_OVER_FABRICS;
 import static com.intel.rsd.nodecomposer.types.Protocol.PCIE;
-import static com.intel.rsd.nodecomposer.types.SystemType.PHYSICAL;
 import static com.intel.rsd.nodecomposer.types.SystemType.VIRTUAL;
 import static com.intel.rsd.nodecomposer.utils.Collector.toSingle;
 import static java.util.Arrays.asList;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class ProcessorHelper {
     public static final List<Protocol> FPGA_PROCESSOR_PROTOCOLS = asList(PCIE, FPGA_OVER_FABRICS);
 
@@ -46,21 +40,14 @@ public class ProcessorHelper {
         return FPGA.equals(processor.getProcessorType()) && VIRTUAL.equals(processor.getComputerSystem().getSystemType());
     }
 
-    public static boolean isLocalFpga(Processor processor) {
-        return FPGA.equals(processor.getProcessorType()) && PHYSICAL.equals(processor.getComputerSystem().getSystemType());
-    }
-
-    @Transactional(MANDATORY)
     public boolean processorProtocolEquals(Protocol expectedProtocol, Processor processor) {
         return expectedProtocol.equals(retrieveProtocolFromProcessor(processor));
     }
 
-    @Transactional(MANDATORY)
     public Protocol retrieveProtocolFromProcessor(Processor processor) {
         return retrieveFabricFromProcessor(processor).getFabricType();
     }
 
-    @Transactional(MANDATORY)
     public Fabric retrieveFabricFromProcessor(Processor processor) {
         return getFabricFromProcessor(processor);
     }

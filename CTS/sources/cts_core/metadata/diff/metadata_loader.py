@@ -72,10 +72,11 @@ class OfficialReleaseLoader(Loader):
     @staticmethod
     def _autocomplete_name(metadata_ref):
         return {
-            '2_4': ServiceTypes.RACKSCALE_2_4,
+            '2_5': ServiceTypes.RACKSCALE_2_5,
             '2018_1': ServiceTypes.REDFISH_2018_1,
             '2018_2': ServiceTypes.REDFISH_2018_2,
-            '2018_3': ServiceTypes.REDFISH_2018_3
+            '2018_3': ServiceTypes.REDFISH_2018_3,
+            '2019_1': ServiceTypes.REDFISH_2019_1
         }[metadata_ref]
 
 

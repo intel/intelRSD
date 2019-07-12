@@ -59,6 +59,9 @@ public:
     static constexpr const char DELETE_ENDPOINT[] = "deleteEndpoint";
     static constexpr const char DELETE_DRIVE[] = "deleteDrive";
 
+    static constexpr const char GET_LOG_SERVICE_INFO[] = "getLogServiceInfo";
+    static constexpr const char GET_LOG_ENTRY_INFO[] = "getLogEntryInfo";
+
     // compute commands
     static constexpr const char GET_MEMORY_INFO[] = "getMemoryInfo";
     static constexpr const char GET_MEMORY_DOMAIN_INFO[] = "getMemoryDomainInfo";

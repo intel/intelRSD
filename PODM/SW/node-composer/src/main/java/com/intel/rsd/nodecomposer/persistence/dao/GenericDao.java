@@ -19,11 +19,8 @@ package com.intel.rsd.nodecomposer.persistence.dao;
 import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.Entity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.List;
@@ -31,13 +28,9 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class GenericDao {
-    @PersistenceContext
-    protected EntityManager entityManager;
 
     @Autowired
     private EntityRepository repository;
@@ -47,17 +40,14 @@ public class GenericDao {
         return repository.create(entityClass);
     }
 
-    @Transactional(MANDATORY)
     public <T extends Entity> Optional<T> tryFind(Class<T> entityClass, ODataId uri) {
         return repository.tryFind(entityClass, uri);
     }
 
-    @Transactional(MANDATORY)
     public <T extends Entity> T find(Class<T> entityClass, ODataId uri) {
         return repository.find(entityClass, uri);
     }
 
-    @Transactional(MANDATORY)
     public <T extends Entity> List<T> findAll(Class<T> entityClass) {
         return repository.findAll(entityClass);
     }

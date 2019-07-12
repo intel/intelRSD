@@ -73,6 +73,8 @@ using GetTrustedModuleInfo = Command<model::requests::GetTrustedModuleInfo, mode
 using GetPowerZoneInfo = Command<model::requests::GetPowerZoneInfo, model::PowerZone>;
 using GetThermalZoneInfo = Command<model::requests::GetThermalZoneInfo, model::ThermalZone>;
 using GetFanInfo = Command<model::requests::GetFanInfo, model::Fan>;
+using GetLogServiceInfo = Command<model::requests::GetLogServiceInfo, model::LogService>;
+using GetLogEntryInfo = Command<model::requests::GetLogEntryInfo, model::LogEntry>;
 
 
 // declarations of all set methods

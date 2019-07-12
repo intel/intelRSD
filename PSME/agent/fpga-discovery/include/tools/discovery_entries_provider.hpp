@@ -19,7 +19,7 @@
 
 
 #include <memory>
-#include <vector>
+#include <set>
 #include "agent-framework/module/utils/uuid.hpp"
 #include "json-wrapper/json-wrapper.hpp"
 
@@ -47,7 +47,7 @@ public:
             return value;
         }
     };
-    using DiscoveryEntries = std::vector<DiscoveryEntry>;
+    using DiscoveryEntries = std::set<DiscoveryEntry>;
 
 
     DiscoveryEntriesProvider() = default;
@@ -61,7 +61,7 @@ public:
      * @param host_uuid Host identifier
      * @return Discovery entries for given host_uuid
      */
-    DiscoveryEntries get_discovery_entries(const Uuid& initiator_uuid);
+    DiscoveryEntries get_discovery_entries(const Uuid& host_system_uuid);
 
 
     /*!
@@ -72,6 +72,17 @@ public:
     uint64_t get_discovery_entries_count(const std::string& host_uuid);
 
 };
+
+
+/*!
+ * @brief Compares two objects of type DiscoveryEntriesProvider::DiscoveryEntry
+ * @param l_entry left operand of '<' operator
+ * @param r_entry right operand of '<' operator
+ * @return true if l_entry is in '<' relation with r_entry, false otherwise
+ */
+bool operator<(const DiscoveryEntriesProvider::DiscoveryEntry& l_entry,
+               const DiscoveryEntriesProvider::DiscoveryEntry& r_entry);
+
 }
 }
 

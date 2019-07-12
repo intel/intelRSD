@@ -1,0 +1,22 @@
+{
+  "name": "6.3.2",
+  "resources": {
+    "ports_pnc_members": ["Port.Port", "PNC Ports"],
+    "endpoints_members": ["Endpoint.Endpoint", "Endpoints"],
+    "drives_members": ["Drive.Drive", "Drives"]
+  },
+  "actions": [
+    ["reduceby_string", ["ports_pnc_selected_members", "ports_pnc_members", ["PortType", "PortProtocol"],
+            ["DownstreamPort", "PCIe"]]],
+    ["all_not_null_test", ["ports_pnc_selected_members", "Ports PNC (selected)", ["Width", "CurrentSpeedGbps",
+            "MaxSpeedGbps"]]],
+    ["reduceby_match_collection", ["endpoint_selected_members", "ports_pnc_selected_members", "endpoints_members",
+            ["Links/AssociatedEndpoints[*]/@odata.id"], false]],
+    ["reduceby_string", ["endpoint_selected_members2", "endpoint_selected_members", ["ConnectedEntities[*]/EntityRole"], ["Target"]]],
+    ["reduceby_not_null", ["endpoint_selected_members3", "endpoint_selected_members2", ["ConnectedEntities[*]/EntityType"]]],
+    ["reduceby_string_or", ["endpoint_selected_members4", "endpoint_selected_members3", ["ConnectedEntities[*]/EntityType", "ConnectedEntities[*]/EntityType"], ["Drive", "Volume"]]],
+    ["reduceby_match_collection", ["drives_selected_members", "endpoint_selected_members4", "drives_members",
+            ["ConnectedEntities[*]/EntityLink/@odata.id"], false]],
+    ["all_not_null_test", ["drives_selected_members", "Drives (selected)", ["Model", "Manufacturer", "SerialNumber"]]]
+  ]
+}

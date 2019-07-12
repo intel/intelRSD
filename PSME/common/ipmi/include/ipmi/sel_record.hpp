@@ -114,6 +114,7 @@ public:
     using EventType = std::uint8_t;
     using EventOffset = std::uint8_t;
     using EventData = std::uint16_t;
+    using EvMRevision = std::uint8_t;
 
     /*!
      * @brief Event type identifier containing event "definition"
@@ -172,6 +173,10 @@ public:
     /*! Get sensor specific offset */
     EventOffset get_event_offset() const {
         return event_offset;
+    }
+    /*! Get event data byte #1 */
+    EventData get_event_data1() const {
+        return event_data1;
     }
     /*! Get event additional data #2 */
     EventData get_event_data2() const {
@@ -364,6 +369,10 @@ public:
      */
     bool is_of_type(EventSensorType se_type) const;
 
+
+    /*! Check if event message revision is 1.5 */
+    bool is_evm_1_5() const;
+
     /*!
      * @return String representation of the event
      */
@@ -403,8 +412,10 @@ private:
     const bool asserted;
     const EventType event_type;
     const EventOffset event_offset;
+    const EvMRevision evm_revision;
 
     static EventData get_event_data(const RecordData& record, unsigned pos);
+    const EventData event_data1;
     const EventData event_data2;
     const EventData event_data3;
 };

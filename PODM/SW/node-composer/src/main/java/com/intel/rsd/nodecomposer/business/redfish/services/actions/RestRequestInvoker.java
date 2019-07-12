@@ -59,14 +59,8 @@ public class RestRequestInvoker {
         }
     }
 
-    public void delete(URI requestUri) throws EntityOperationException {
-        try (WebClient webClient = webClientBuilder.createResourceManagerInstance().retryable().build()) {
-            webClient.delete(requestUri);
-        } catch (WebClientRequestException e) {
-            String errorMessage = format("Operation DELETE failed on selected uri [path: %s]", requestUri);
-            log.warn(errorMessage);
-            throw new EntityOperationException(errorMessage, e);
-        }
+    public void delete(URI requestUri) throws WebClientRequestException {
+        webClientBuilder.createResourceManagerInstance().retryable().build().delete(requestUri);
     }
 
     private URI post(URI requestUri, Object request, WebClient wc) throws EntityOperationException {

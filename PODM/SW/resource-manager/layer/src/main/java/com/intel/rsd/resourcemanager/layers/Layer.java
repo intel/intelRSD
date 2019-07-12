@@ -17,7 +17,6 @@
 package com.intel.rsd.resourcemanager.layers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import lombok.NonNull;
 import lombok.val;
 import org.springframework.http.HttpHeaders;
@@ -47,7 +46,7 @@ public abstract class Layer implements Chainable<Layer> {
     }
 
     public Response invoke(@NonNull ServiceId serviceId, @NonNull String path, @NonNull HttpMethod method, @NonNull HttpHeaders headers, JsonNode body,
-                           Map<QueryParameterType, String> requestParams) {
+                           Map<String, String> requestParams) {
         return invokeImpl(serviceId, path, method, headers, body, requestParams);
     }
 
@@ -64,7 +63,7 @@ public abstract class Layer implements Chainable<Layer> {
     }
 
     protected abstract Response invokeImpl(ServiceId serviceId, String path, HttpMethod method, HttpHeaders headers, JsonNode body,
-                                           Map<QueryParameterType, String> requestParams);
+                                           Map<String, String> requestParams);
 
     public Response passToNextLayer(
         @NonNull ServiceId serviceId,
@@ -72,7 +71,7 @@ public abstract class Layer implements Chainable<Layer> {
         @NonNull HttpMethod method,
         @NonNull HttpHeaders headers,
         JsonNode body,
-        Map<QueryParameterType, String> requestParams) {
+        Map<String, String> requestParams) {
 
         val httpHeadersCopy = new HttpHeaders();
         httpHeadersCopy.putAll(headers);

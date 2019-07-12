@@ -19,6 +19,7 @@ package com.intel.rsd.nodecomposer.composition.assembly.tasks;
 import com.intel.rsd.nodecomposer.externalservices.WebClient;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
 import com.intel.rsd.nodecomposer.persistence.redfish.Endpoint;
+import com.intel.rsd.nodecomposer.persistence.redfish.Processor;
 import com.intel.rsd.nodecomposer.persistence.redfish.Volume;
 import com.intel.rsd.nodecomposer.persistence.redfish.Zone;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
@@ -54,6 +55,7 @@ public class EntityDisassemblerFactory {
         knownCreators.put(Endpoint.class, () -> beanFactory.create(EndpointDisassembler.class));
         knownCreators.put(Volume.class, () -> beanFactory.create(VolumeDisassembler.class));
         knownCreators.put(Zone.class, () -> beanFactory.create(ZoneDisassembler.class));
+        knownCreators.put(Processor.class, () -> beanFactory.create(FpgaDisassembler.class));
     }
 
     Builder createDisassemblerFor(DiscoverableEntity entity, ComposedNode node) {
@@ -84,8 +86,13 @@ public class EntityDisassemblerFactory {
             return this;
         }
 
+        @SuppressWarnings("checkstyle:IllegalCatch")
         void decompose() {
-            disassembler.decompose();
+            try {
+                disassembler.decompose();
+            } catch (RuntimeException e) {
+                disassembler.unlink();
+            }
         }
     }
 }

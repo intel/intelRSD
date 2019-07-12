@@ -29,6 +29,8 @@
 
 #include <net/if.h>
 
+
+
 using namespace agent::fpga_discovery::discovery;
 using namespace agent::fpga_discovery::loader;
 using namespace agent::fpga_discovery::tools;
@@ -40,13 +42,15 @@ using namespace agent_framework::model::enums;
 
 Discovery::~Discovery() {}
 
+
 namespace {
 
 void update_manager(const Uuid& manager_uuid) {
     auto manager = get_manager<Manager>().get_entry_reference(manager_uuid);
     manager->add_collection({CollectionName::StorageServices,
-                            CollectionType::StorageServices});
+                             CollectionType::StorageServices});
 }
+
 
 void add_endpoint_to_zone(const Uuid& zone, const Uuid& endpoint) {
     if (!get_manager<Endpoint>().entry_exists(endpoint)) {
@@ -56,11 +60,14 @@ void add_endpoint_to_zone(const Uuid& zone, const Uuid& endpoint) {
     get_m2m_manager<Zone, Endpoint>().add_entry(zone, endpoint);
 }
 
+
 void load_endpoints_from_zone_database(const Uuid& zone) {
     ZoneDatabase zone_db(zone);
     auto endpoints{zone_db.get_multiple_values(FpgaDiscoveryDatabase::ENDPOINTS)};
-    std::for_each(endpoints.begin(), endpoints.end(), [&zone](const std::string& endpoint) {add_endpoint_to_zone(zone, endpoint);});
+    std::for_each(endpoints.begin(), endpoints.end(),
+                  [&zone](const std::string& endpoint) { add_endpoint_to_zone(zone, endpoint); });
 }
+
 
 void add_zone(const Uuid& fabric_uuid, const Uuid& zone_uuid) {
     Zone zone{fabric_uuid};
@@ -73,11 +80,13 @@ void add_zone(const Uuid& fabric_uuid, const Uuid& zone_uuid) {
     load_endpoints_from_zone_database(zone_uuid);
 }
 
+
 void discover_zones(const Uuid& fabric) {
     FabricDatabase fabric_db(fabric);
     auto zones{fabric_db.get_multiple_values(FpgaDiscoveryDatabase::ZONES)};
-    std::for_each(zones.begin(), zones.end(), [&fabric](const std::string& zone) {::add_zone(fabric, zone);});
+    std::for_each(zones.begin(), zones.end(), [&fabric](const std::string& zone) { ::add_zone(fabric, zone); });
 }
+
 
 void add_initiator(const Uuid& fabric, const Uuid& uuid) {
     Endpoint endpoint{fabric};
@@ -89,8 +98,10 @@ void add_initiator(const Uuid& fabric, const Uuid& uuid) {
         log_error("fpga-discovery-agent", "Unable to read initiator endpoint UUID from database");
         return;
     }
-    endpoint.add_identifier({uuid, enums::IdentifierType::UUID});
-    endpoint.set_uuid(uuid);
+
+    FpgaStabilizer stabilizer;
+    stabilizer.stabilize(endpoint);
+
     endpoint.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     attribute::ConnectedEntity ce{};
     ce.set_entity_role(enums::EntityRole::Initiator);
@@ -99,6 +110,7 @@ void add_initiator(const Uuid& fabric, const Uuid& uuid) {
     endpoint.set_oem_protocol(enums::OemProtocol::FPGAoF);
     get_manager<Endpoint>().add_entry(endpoint);
 }
+
 
 void add_target(const Uuid& fabric, const Uuid& endpoint_uuid) {
     Endpoint endpoint{fabric};
@@ -109,8 +121,9 @@ void add_target(const Uuid& fabric, const Uuid& endpoint_uuid) {
         EndpointDatabase db{endpoint_uuid};
         endpoint.add_identifier({db.get(FpgaDiscoveryDatabase::UUID), enums::IdentifierType::UUID});
         ip_transport_detail.set_ipv4_address({db.get(FpgaDiscoveryDatabase::IPV4)});
-        ip_transport_detail.set_port(std::stoi(db.get(FpgaDiscoveryDatabase::RDMA_PORT)));
-        ip_transport_detail.set_transport_protocol(enums::TransportProtocol::RoCEv2);
+        ip_transport_detail.set_port(std::stoi(db.get(FpgaDiscoveryDatabase::PORT)));
+        ip_transport_detail.set_transport_protocol(
+            enums::TransportProtocol::from_string(db.get(FpgaDiscoveryDatabase::TRANSPORT_PROTOCOL)));
         endpoint.add_ip_transport_detail(ip_transport_detail);
     }
     catch (const std::exception&) {
@@ -118,9 +131,9 @@ void add_target(const Uuid& fabric, const Uuid& endpoint_uuid) {
         return;
     }
 
+    FpgaStabilizer stabilizer;
+    stabilizer.stabilize(endpoint);
 
-    endpoint.add_identifier({endpoint_uuid, enums::IdentifierType::UUID});
-    endpoint.set_uuid(endpoint_uuid);
     attribute::ConnectedEntity ce{};
     ce.set_entity_role(enums::EntityRole::Target);
     endpoint.add_connected_entity(ce);
@@ -129,6 +142,7 @@ void add_target(const Uuid& fabric, const Uuid& endpoint_uuid) {
     endpoint.set_status(attribute::Status(enums::State::Enabled, enums::Health::OK));
     get_manager<Endpoint>().add_entry(endpoint);
 }
+
 
 void discover_endpoints(const Uuid& fabric) {
     FabricDatabase fabric_db{fabric};
@@ -150,6 +164,7 @@ void discover_endpoints(const Uuid& fabric) {
 }
 
 }
+
 
 void Discovery::discover(const Uuid& manager_uuid, const Uuid& fabric_uuid) {
     ::update_manager(manager_uuid);

@@ -27,9 +27,9 @@ namespace {
 json::Json make_prototype() {
     json::Json r(json::Json::value_t::object);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Intel_RackScale.MetricDefinitionCollection.MetricDefinitionCollection";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#MetricDefinitionCollection.MetricDefinitionCollection";
     r[Common::ODATA_ID] = json::Json::value_t::null;
-    r[Common::ODATA_TYPE] = "#Intel_RackScale.MetricDefinitionCollection.MetricDefinitionCollection";
+    r[Common::ODATA_TYPE] = "#MetricDefinitionCollection.MetricDefinitionCollection";
     r[Common::NAME] = "Metric Definition Collection";
     r[Common::DESCRIPTION] = "Metric Definition Collection";
     r[Collection::ODATA_COUNT] = 0;

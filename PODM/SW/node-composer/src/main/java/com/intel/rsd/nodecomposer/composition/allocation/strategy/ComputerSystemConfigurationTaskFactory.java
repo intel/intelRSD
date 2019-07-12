@@ -58,7 +58,9 @@ public class ComputerSystemConfigurationTaskFactory {
             nodeTasks.add(createComputerSystemConfigurationTask(computerSystem, getComputerSystemUpdateDefinition()));
         }
         if (checkSecurityPropertiesAreSpecified(security)) {
-            nodeTasks.add(changeTpmStateTaskFactory.createChangeTpmStateTask(computerSystem, getChangeTpmStatusUpdateDefinition(security, computerSystem)));
+            nodeTasks.add(changeTpmStateTaskFactory.createChangeTpmStateTask(
+                computerSystem.getUri(), getChangeTpmStatusUpdateDefinition(security, computerSystem))
+            );
         }
         return nodeTasks;
     }

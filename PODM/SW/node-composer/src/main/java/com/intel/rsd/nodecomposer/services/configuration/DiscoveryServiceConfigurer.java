@@ -18,16 +18,15 @@ package com.intel.rsd.nodecomposer.services.configuration;
 
 import com.intel.rsd.nodecomposer.externalservices.WebClient;
 import com.intel.rsd.nodecomposer.externalservices.resources.redfish.FabricResource;
-import com.intel.rsd.nodecomposer.services.configuration.client.RestActionInvoker;
+import com.intel.rsd.nodecomposer.services.configuration.client.DiscoveryServiceWebClient;
 import com.intel.rsd.nodecomposer.services.configuration.client.ServiceResourceFinder;
 import com.intel.rsd.nodecomposer.services.configuration.tasks.DiscoveryServiceTask;
 import com.intel.rsd.nodecomposer.services.configuration.tasks.DiscoveryServiceTaskObtainer;
 import com.intel.rsd.nodecomposer.types.Protocol;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.net.URI;
 import java.util.List;
@@ -35,38 +34,35 @@ import java.util.Optional;
 
 import static com.intel.rsd.nodecomposer.types.Protocol.FPGA_OVER_FABRICS;
 import static com.intel.rsd.nodecomposer.types.Protocol.NVME_OVER_FABRICS;
-import static com.intel.rsd.nodecomposer.types.Protocol.OEM;
 import static com.intel.rsd.nodecomposer.utils.Collections.nullOrEmpty;
 import static com.intel.rsd.nodecomposer.utils.Contracts.requiresNonNull;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Slf4j
 @Component
-@Scope(SCOPE_SINGLETON)
 public class DiscoveryServiceConfigurer {
     private final DiscoveryServiceTaskObtainer discoveryServiceTaskObtainer;
     private final UuidEndpointsMapProvider uuidEndpointsMapProvider;
     private final ServiceResourceFinder serviceResourceFinder;
-    private final RestActionInvoker restActionInvoker;
+    private final DiscoveryServiceWebClient discoveryServiceWebClient;
 
-    @Inject
+    @Autowired
     public DiscoveryServiceConfigurer(DiscoveryServiceTaskObtainer discoveryServiceTaskObtainer, UuidEndpointsMapProvider uuidEndpointsMapProvider,
-                                      ServiceResourceFinder serviceResourceFinder, RestActionInvoker restActionInvoker) {
+                                      ServiceResourceFinder serviceResourceFinder, DiscoveryServiceWebClient discoveryServiceWebClient) {
         this.discoveryServiceTaskObtainer = discoveryServiceTaskObtainer;
         this.uuidEndpointsMapProvider = uuidEndpointsMapProvider;
         this.serviceResourceFinder = serviceResourceFinder;
-        this.restActionInvoker = restActionInvoker;
+        this.discoveryServiceWebClient = discoveryServiceWebClient;
     }
 
     @Transactional(REQUIRES_NEW)
-    public void execute(WebClient webClient) {
+    public void configureUsingWebClient(WebClient webClient) {
         requiresNonNull(webClient, "webClient");
 
-        List<DiscoveryServiceTask> listOfTasks = getListOfTasks(webClient, NVME_OVER_FABRICS, NVME_OVER_FABRICS);
-        listOfTasks.addAll(getListOfTasks(webClient, OEM, FPGA_OVER_FABRICS));
+        List<DiscoveryServiceTask> listOfTasks = getListOfTasks(webClient, NVME_OVER_FABRICS);
+        listOfTasks.addAll(getListOfTasks(webClient, FPGA_OVER_FABRICS));
 
         URI discoveryServiceUri = webClient.getBaseUri();
         if (!nullOrEmpty(listOfTasks)) {
@@ -77,12 +73,12 @@ public class DiscoveryServiceConfigurer {
         }
     }
 
-    private List<DiscoveryServiceTask> getListOfTasks(WebClient webClient, Protocol resourceProtocol, Protocol entityProtocol) {
-        Optional<FabricResource> fabricResourceCandidate = serviceResourceFinder.getFabricResource(webClient, resourceProtocol);
+    private List<DiscoveryServiceTask> getListOfTasks(WebClient webClient, Protocol protocol) {
+        Optional<FabricResource> fabricResourceCandidate = serviceResourceFinder.tryFindFabricResource(webClient, protocol);
         if (fabricResourceCandidate.isPresent()) {
             return discoveryServiceTaskObtainer.getListOfTasks(
-                uuidEndpointsMapProvider.createInitiatorUuidToZoneEndpointsMap(entityProtocol),
-                serviceResourceFinder.createUuidWithInitiatorEndpointMapping(webClient, resourceProtocol),
+                uuidEndpointsMapProvider.createInitiatorUuidToZoneEndpointsMap(protocol),
+                serviceResourceFinder.createUuidWithInitiatorEndpointMapping(webClient, protocol),
                 fabricResourceCandidate.get()
             );
         }
@@ -93,7 +89,7 @@ public class DiscoveryServiceConfigurer {
         log.info("Discovery Service {} configure process started.", discoveryServiceUri);
         discoveryServiceTasks.forEach(task -> {
             task.setDiscoveryServiceUri(discoveryServiceUri);
-            task.setRestActionInvoker(restActionInvoker);
+            task.setDiscoveryServiceWebClient(discoveryServiceWebClient);
             log.info("Sending configuration of {} to Discovery Service", task);
             task.perform();
         });

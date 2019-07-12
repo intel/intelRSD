@@ -18,11 +18,14 @@ package com.intel.rsd.resourcemanager.layers.merger.response;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.intel.rsd.resourcemanager.layers.Response;
-import org.springframework.http.HttpStatus;
+import lombok.val;
 import org.testng.annotations.Test;
 
+import static com.intel.rsd.redfish.RedfishErrorCode.InvalidEndpoint;
+import static com.intel.rsd.redfish.RedfishErrors.createRedfishError;
+import static com.intel.rsd.resourcemanager.layers.merger.response.ErrorResponseFactory.createErrorResponse;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -31,30 +34,35 @@ public class ErrorResponseFactoryTest {
 
     @Test
     public void testCreateNotFoundResponse() throws Exception {
-        Response notFoundResponse = ErrorResponseFactory.createNotFoundResponse();
-        assertEquals(notFoundResponse.getHttpStatus(), NOT_FOUND);
-        assertThat(notFoundResponse.getBody())
-            .isInstanceOf(ObjectNode.class);
-        assertThat(notFoundResponse.getBody())
+        val redfishError = createRedfishError(NOT_FOUND);
+
+        val sut = createErrorResponse(redfishError);
+        assertEquals(sut.getHttpStatus(), NOT_FOUND);
+        assertThat(sut.getBody()).isInstanceOf(ObjectNode.class);
+        assertThat(sut.getBody())
             .matches(actual -> actual.has("error"))
             .matches(actual -> !actual.at("/error/code").isMissingNode());
-        assertThat(notFoundResponse.getBody().at("/error/code")).isEqualTo(new TextNode("Base.1.0.InvalidEndpoint"));
+        assertThat(sut.getBody().at("/error/code")).isEqualTo(new TextNode(InvalidEndpoint.asString()));
     }
 
     @Test
     public void testCreateErrorResponse() {
-        String code = "code";
-        String message = "message";
-        HttpStatus status = HttpStatus.CONFLICT;
+        val redfishError = createRedfishError(CONFLICT);
+        val errorResponse = createErrorResponse(redfishError);
 
-        Response errorResponse = ErrorResponseFactory.createErrorResponse(code, message, status);
-        assertEquals(errorResponse.getHttpStatus(), status);
+        assertEquals(errorResponse.getHttpStatus(), redfishError.getHttpStatus());
         assertTrue(errorResponse.getBody() != null);
         assertThat(errorResponse.getBody()).isInstanceOf(ObjectNode.class);
         assertThat(errorResponse.getBody())
-            .matches(actual -> actual.has("error"))
-            .matches(actual -> code.equals(actual.at("/error/code").asText()));
-        assertThat(errorResponse.getBody().at("/error/code")).isEqualTo(new TextNode(code));
-        assertThat(errorResponse.getBody().at("/error/message")).isEqualTo(new TextNode(message));
+            .matches(actual ->
+                    actual.has("error"),
+                "Error response should contain 'error' field"
+            )
+            .matches(actual ->
+                redfishError.getError().getRedfishErrorCode().asString().equals(actual.at("/error/code").asText()),
+                "Error responses has appropriate error code"
+            );
+        assertThat(errorResponse.getBody().at("/error/code")).isEqualTo(new TextNode(redfishError.getError().getRedfishErrorCode().asString()));
+        assertThat(errorResponse.getBody().at("/error/message")).isEqualTo(new TextNode(redfishError.getError().getMessage()));
     }
 }

@@ -34,4 +34,3 @@ public class BasicAuthenticationToken implements ClientRequestFilter {
         requestContext.getHeaders().putSingle(AUTHORIZATION, header);
     }
 }
-

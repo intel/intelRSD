@@ -1,6 +1,9 @@
 global:
   registry: ''
   registry_secret: ''
+  infrastructure_registry: ''
+  northbound_security:
+    enabled: false
   southbound_security:
     enabled: false
     manifest_verification:

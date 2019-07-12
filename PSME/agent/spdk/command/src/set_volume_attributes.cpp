@@ -67,12 +67,12 @@ void initialize_volume(agent::spdk::AgentContext::SPtr context, const Uuid& volu
     }
 
     agent::spdk::command::refresh_storage_pool(context, pool.get_uuid());
-
-
 }
+
 void process_capacity_bytes(agent::spdk::AgentContext::SPtr context,
                             const Uuid& volume_uuid,
                             std::int64_t requested_capacity) {
+
     const auto& volume = module::get_manager<model::Volume>().get_entry(volume_uuid);
     auto pools = module::get_m2m_manager<model::StoragePool, model::Volume>().get_parents(volume_uuid);
     if (pools.empty()) {
@@ -122,6 +122,7 @@ void process_capacity_bytes(agent::spdk::AgentContext::SPtr context,
         THROW(exceptions::SpdkError, "spdk-agent", "Failed to update Volume after resizing!");
     }
 
+    agent::spdk::command::refresh_storage_pool(context, pool.get_uuid());
 }
 
 }

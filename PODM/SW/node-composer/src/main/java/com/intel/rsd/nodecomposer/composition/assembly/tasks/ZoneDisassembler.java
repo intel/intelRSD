@@ -50,12 +50,12 @@ public class ZoneDisassembler extends EntityDisassembler<Zone> {
     }
 
     @Override
-    public void removeRemoteAsset() throws WebClientRequestException {
+    public void decomposeRemotely() throws WebClientRequestException {
         if (isExisting()) {
             try {
                 log.debug("Updating zone: {}", entity);
                 zoneActionsInvoker.updateZone(entity, emptySet());
-                super.removeRemoteAsset();
+                super.decomposeRemotely();
             } catch (BusinessApiException e) {
                 throw new RuntimeException("Detaching endpoints from zone has failed.", e);
             }

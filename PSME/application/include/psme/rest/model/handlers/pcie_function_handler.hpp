@@ -71,7 +71,7 @@ protected:
     /*!
      * @brief Specialization of fetch_siblings()
      *
-     * An PcieFunction can be either a subcomponent of a PcieDevice or a Drive.
+     * An PcieFunction can be either a subcomponent of a PcieDevice or a Drive/Processor.
      * This code handles both cases.
      *
      * @param[in] ctx - keeps data that is required during processing and
@@ -90,6 +90,10 @@ protected:
             fetch_parent_children(ctx, parent_uuid, collection_name,
                                   agent_framework::module::PncComponents::get_instance()->get_drive_function_manager());
         }
+        else if (Component::Processor == ctx.get_parent_component()) {
+            fetch_parent_children(ctx, parent_uuid, collection_name,
+                                  agent_framework::module::PncComponents::get_instance()->get_processor_function_manager());
+        }
         else {
             log_debug("rest", ctx.indent
                 << "[" << static_cast<char>(ctx.mode) << "] "
@@ -101,15 +105,21 @@ protected:
     /*!
      * @brief  Specialization of remove_agent_data()
      *
-     * This override is necessary to properly clean the Drive <-> PcieFunction
+     * This override is necessary to properly clean the Drive/Processor <-> PcieFunction
      * bindings for all the PcieFunctions.
      *
      * @param[in] ctx keeps data that is required during processing and needs to be passed down to sub-handlers
      * @param[in] gami_id uuid of the agent whose data is to be removed.
      * */
     void remove_agent_data(Context& ctx, const std::string& gami_id) override {
-        PncComponents::get_instance()->
-            get_drive_function_manager().clean_resources_for_agent(gami_id);
+        if (Component::Drive == ctx.get_parent_component()) {
+            PncComponents::get_instance()->
+                get_drive_function_manager().clean_resources_for_agent(gami_id);
+        }
+        else if (Component::Processor == ctx.get_parent_component()) {
+            PncComponents::get_instance()->
+                get_processor_function_manager().clean_resources_for_agent(gami_id);
+        }
         PcieFunctionHandlerBase::remove_agent_data(ctx, gami_id);
     }
 
@@ -117,15 +127,21 @@ protected:
     /*!
      * @brief  Specialization of do_remove() from GenericManager.
      *
-     * This override is necessary for clearing the Drive <-> PcieFunction bindings.
+     * This override is necessary for clearing the Drive/Processor <-> PcieFunction bindings.
      *
      * @param[in] ctx keeps data that is required during processing and needs to be passed down to sub-handlers
      * @param[in] uuid uuid of the function to be removed.
      * */
     void do_remove(Context& ctx, const std::string& uuid) override {
         // function is the child in Drive <-> PcieFunction relation
-        PncComponents::get_instance()->
-            get_drive_function_manager().remove_child(uuid);
+        if (Component::Drive == ctx.get_parent_component()) {
+            PncComponents::get_instance()->
+                get_drive_function_manager().remove_child(uuid);
+        }
+        else if (Component::Processor == ctx.get_parent_component()) {
+            PncComponents::get_instance()->
+                get_processor_function_manager().remove_child(uuid);
+        }
         PcieFunctionHandlerBase::do_remove(ctx, uuid);
     }
 
@@ -136,8 +152,17 @@ protected:
         if (Component::PcieDevice == parent_component) {
             return PcieFunctionHandlerBase::do_accept_recursively(visitor, parent_uuid, parent_component);
         }
-        else {
+        else if (Component::Drive == parent_component) {
             auto& manager = PncComponents::get_instance()->get_drive_function_manager();
+            auto children = manager.get_children(parent_uuid);
+            for (const std::string& child_uuid : children) {
+                if (!do_accept(visitor, child_uuid)) {
+                    return false; // break
+                }
+            }
+        }
+        else if (Component::Processor == parent_component) {
+            auto& manager = PncComponents::get_instance()->get_processor_function_manager();
             auto children = manager.get_children(parent_uuid);
             for (const std::string& child_uuid : children) {
                 if (!do_accept(visitor, child_uuid)) {

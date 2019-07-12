@@ -27,13 +27,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.io.Serializable;
 
 import static com.intel.rsd.nodecomposer.types.ComposedNodeState.ASSEMBLED;
 import static com.intel.rsd.nodecomposer.types.ComposedNodeState.FAILED;
 import static java.lang.String.format;
-import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 
 @Component
@@ -49,7 +47,6 @@ public class PowerOffDisassemblyTask extends NodeTask implements Serializable {
     }
 
     @Override
-    @Transactional(REQUIRES_NEW)
     @TimeMeasured(tag = "[NodeDisassemblyTask]")
     public void run() {
         try {
@@ -57,7 +54,7 @@ public class PowerOffDisassemblyTask extends NodeTask implements Serializable {
             validateComposedNodeState(composedNode);
             ComputerSystem computerSystem = getComputerSystemFromNode(composedNode);
 
-            resetActionInvoker.powerOff(computerSystem);
+            resetActionInvoker.forceOff(computerSystem.getUri());
         } catch (BusinessApiException e) {
             throw new RuntimeException(
                 format("Rest action on composed node %s failed with an exception %s", composedNodeODataId, e.getMessage()), e);

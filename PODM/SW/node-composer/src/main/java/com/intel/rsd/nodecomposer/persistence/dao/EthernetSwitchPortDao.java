@@ -19,24 +19,19 @@ package com.intel.rsd.nodecomposer.persistence.dao;
 import com.intel.rsd.nodecomposer.persistence.NonUniqueResultException;
 import com.intel.rsd.nodecomposer.persistence.redfish.EthernetSwitchPort;
 import com.intel.rsd.nodecomposer.types.net.MacAddress;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.TypedQuery;
-import javax.transaction.Transactional;
 import java.util.List;
 
 import static com.intel.rsd.nodecomposer.persistence.redfish.EthernetSwitchPort.GET_ETHERNET_SWITCH_PORT_BY_NEIGHBOR_MAC;
 import static com.intel.rsd.nodecomposer.persistence.redfish.base.StatusControl.statusOf;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class EthernetSwitchPortDao extends Dao<EthernetSwitchPort> {
-    @Transactional(MANDATORY)
+
     public EthernetSwitchPort getEnabledAndHealthyEthernetSwitchPortByNeighborMac(MacAddress neighborMac) throws NonUniqueResultException {
         if (neighborMac == null) {
             return null;

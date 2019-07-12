@@ -16,7 +16,6 @@
 
 package com.intel.rsd.resourcemanager.runner;
 
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.Layer;
 import com.intel.rsd.resourcemanager.layers.ServiceId;
 import lombok.extern.slf4j.Slf4j;
@@ -31,14 +30,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-import static com.intel.rsd.redfish.RedfishErrors.createRedfishError;
 import static com.intel.rsd.resourcemanager.common.HttpServletRequestUtils.getHttpHeaders;
 import static com.intel.rsd.resourcemanager.common.HttpServletRequestUtils.readBody;
-import static com.intel.rsd.resourcemanager.common.QueryParameterType.getParameterTypeByString;
-import static com.intel.rsd.resourcemanager.common.QueryParameterType.getSupportedQueryParams;
-import static java.lang.String.format;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toMap;
 import static org.springframework.http.HttpMethod.resolve;
 import static org.springframework.http.HttpStatus.NOT_IMPLEMENTED;
 import static org.springframework.http.ResponseEntity.status;
@@ -60,12 +53,6 @@ public class NorthboundController {
     public Object invoke(@RequestParam Map<String, String> requestParameters, HttpServletRequest httpServletRequest) throws IOException {
         log.debug("URI: {}", httpServletRequest.getRequestURI());
 
-        val queryParameters = extractSupportedParamsFrom(requestParameters);
-        if (isThereAnyUnsupportedParameters(requestParameters, queryParameters)) {
-            val redfishError = createRedfishError(NOT_IMPLEMENTED, getUnsupportedParametersMessage(requestParameters));
-            return status(redfishError.getHttpStatus()).body(redfishError);
-        }
-
         val httpMethod = resolve(httpServletRequest.getMethod());
 
         if (httpMethod == null) {
@@ -75,21 +62,8 @@ public class NorthboundController {
         val headers = getHttpHeaders(httpServletRequest);
         val body = readBody(httpServletRequest);
 
-        val response = downStreamPipeline.invoke(underlyingServiceId, httpServletRequest.getRequestURI(), httpMethod, headers, body, queryParameters);
+        val response = downStreamPipeline.invoke(underlyingServiceId, httpServletRequest.getRequestURI(), httpMethod, headers, body, requestParameters);
         return response.toResponseEntity();
-    }
-
-    private Map<QueryParameterType, String> extractSupportedParamsFrom(Map<String, String> requestParameters) {
-        return requestParameters.entrySet().stream()
-            .filter(entry -> getSupportedQueryParams().contains(getParameterTypeByString(entry.getKey())))
-            .collect(toMap(entry -> getParameterTypeByString(entry.getKey()), Map.Entry::getValue));
-    }
-
-    private boolean isThereAnyUnsupportedParameters(Map<String, String> requestParameters, Map<QueryParameterType, String> queryParams) {
-        queryParams.forEach((key, value) -> requestParameters.remove(key.getValue()));
-
-        return requestParameters.entrySet().stream()
-            .anyMatch(entry -> getParameterTypeByString(entry.getKey()) != null);
     }
 
     private ServiceId determineUnderlyingServiceId() {
@@ -100,15 +74,5 @@ public class NorthboundController {
         }
 
         throw new IllegalArgumentException("serviceId cannot be null");
-    }
-
-    private String getUnsupportedParametersMessage(Map<String, String> requestParameters) {
-        String unsupportedParameters = requestParameters.entrySet().stream()
-            .filter(entry -> getParameterTypeByString(entry.getKey()) != null)
-            .map(Map.Entry::getKey)
-            .collect(joining(", "));
-        String message = "These parameters are not supported";
-
-        return format("%s: %s", message, unsupportedParameters);
     }
 }

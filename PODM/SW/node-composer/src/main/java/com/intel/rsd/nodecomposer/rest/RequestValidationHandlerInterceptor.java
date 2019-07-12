@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import static com.intel.rsd.json.JsonUtils.createStringWith;
-import static java.lang.Integer.valueOf;
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
 
@@ -55,7 +54,7 @@ public class RequestValidationHandlerInterceptor extends HandlerInterceptorAdapt
         httpServletResponse.resetBuffer();
 
         httpServletResponse.setContentType(APPLICATION_JSON_UTF8_VALUE);
-        httpServletResponse.setStatus(valueOf(redfishError.getError().getCode()));
+        httpServletResponse.setStatus(redfishError.getHttpStatus().value());
 
         try (PrintWriter responseWriter = httpServletResponse.getWriter()) {
             responseWriter.print(createStringWith(redfishError));

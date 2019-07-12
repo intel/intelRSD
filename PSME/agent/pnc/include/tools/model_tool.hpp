@@ -34,6 +34,7 @@
 #include "agent-framework/eventing/events_queue.hpp"
 #include "database_keys.hpp"
 #include "tree_stability/pnc_stabilizer.hpp"
+#include "gas/global_address_space_registers.hpp"
 
 
 
@@ -124,6 +125,13 @@ public:
      * @return Uuid of the storage
      * */
     virtual std::string get_storage_uuid() const;
+
+
+    /*!
+     * @brief Gets the uuid of the main PCI switch
+     * @return Uuid of the switch
+     * */
+    virtual std::string get_switch_uuid() const;
 
 
     /*!

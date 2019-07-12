@@ -34,9 +34,16 @@
   <edmx:Reference Uri="Org.OData.Measures.V1.xml">
     <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
   </edmx:Reference>
+  <edmx:Reference Uri="IOStatistics_v1.xml">
+    <edmx:Include Namespace="IOStatistics"/>
+  </edmx:Reference>
+  <edmx:Reference Uri="SpareResourceSet_v1.xml">
+    <edmx:Include Namespace="SpareResourceSet"/>
+  </edmx:Reference>
 
   <edmx:DataServices>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileSystem">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="FileSystem" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="A hierarchical namespace of files."/>
         <Annotation Term="OData.LongDescription" String="This resource shall be used to represent a hierarchical namespace of files."/>
@@ -78,10 +85,24 @@
           <Annotation Term="OData.LongDescription" String="This value shall indicate that Server Message Block version 3.1.1 is supported by the file system."/>
         </Member>
       </EnumType>
+
+      <ComplexType Name="ImportedShare" Abstract="true">
+        <NavigationProperty Name="ImportedShare" Type="FileShare.FileShare">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="Link to imported FileShare."/>
+          <Annotation Term="OData.LongDescription" String="The value shall be a reference to a file share."/>
+        </NavigationProperty>
+        <Property Name="FileSharePath" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="A path to a file or directory on this file system where this file share is hosted."/>
+          <Annotation Term="OData.LongDescription" String="The value shall be a path (relative to the file system root) to the importing file or directory."/>
+        </Property>
+      </ComplexType>
+
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileSystem.v1_0_0">
-
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="FileSystem" BaseType="FileSystem.FileSystem">
         <Annotation Term="OData.Description" String="An instance of a hierarchical namespace of files."/>
         <Annotation Term="OData.LongDescription" String="This resource shall be used to represent an instance of a hierarchical namespace of files."/>
@@ -101,6 +122,7 @@
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="Remaining capacity allocated to the file system."/>
           <Annotation Term="OData.LongDescription" String="The value of this property shall be the remaining capacity allocated to the file system in bytes."/>
+          <Annotation Term="Redfish.Deprecated" String="This property is deprecated in favor of the Capacity property.  The RemainingCapacity can be computed from the values of that property, for each of the sub groups xxx: Data, MetaData, and Snapshot.  The RemainingCapacity is xxx/ProvisionedBytes - xxx/ConsumedBytes."/>
         </Property>
         <NavigationProperty Name="CapacitySources" Type="Collection(Capacity.CapacitySource)" ContainsTarget="true">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
@@ -124,8 +146,8 @@
           <Annotation Term="OData.LongDescription" String="This property shall be an array containing entries for the supported IO access capabilities. Each entry shall specify a current storage access capability."/>
         </Property>
 
-        <!-- EncryptionMethod from CIM is covered by DataSecurityLoSCapabilities.SecureChannelProtocol  -->
-        <!-- CompressionMethod from CIM is covered by DataStorageLoSCapabilities.ProvisioningPolicy and SpaceEfficent properties  -->
+        <!-- EncryptionMethod from CIM is covered by DataSecurityLoSCapabilities.SecureChannelProtocol -->
+        <!-- CompressionMethod from CIM is covered by DataStorageLoSCapabilities.ProvisioningPolicy and SpaceEfficent properties -->
 
         <Property Name="CaseSensitive" Type="Edm.Boolean">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
@@ -179,6 +201,7 @@
 
       <ComplexType Name="Links" BaseType="Resource.Links">
         <NavigationProperty Name="ReplicaCollection" Type="Collection(FileSystem.FileSystem)">
+		  <Annotation Term="Redfish.Deprecated" String="Deprecated in favor of ReplicaTargets."/>
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="An array of links to replicas for this file system."/>
           <Annotation Term="OData.LongDescription" String="This property shall be an array of links to replicas for this file system. Each entry shall be a link to a replica for this file system."/>
@@ -248,36 +271,32 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileSystem.v1_0_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.Description" String="Updated ExportedFileShares to utilize a collection."/>
       <Annotation Term="OData.LongDescription" String="Updated ExportedFileShares to utilize a FileSystemCollection since there may be 1000's of shares exported by a FileSystem."/>
 
       <EntityType Name="FileSystem" BaseType="FileSystem.v1_0_0.FileSystem">
         <Annotation Term="OData.Description" String="Add ImportedShares."/>
         <Annotation Term="OData.LongDescription" String="Add ImportedShares."/>
-        <NavigationProperty Name="ImportedShares" Type="Collection(FileShare.FileShare)">
+        <Property Name="ImportedShares" Type="Collection(FileSystem.ImportedShare)">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="An array of imported file shares."/>
           <Annotation Term="OData.LongDescription" String="The value shall be an array of imported file shares."/>
-        </NavigationProperty>
+        </Property>
       </EntityType>
 
-      <ComplexType Name="ImportedShare" BaseType="Resource.Links">
-        <NavigationProperty Name="ImportedShare" Type="FileShare.FileShare">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="Link to imported FileShare."/>
-          <Annotation Term="OData.LongDescription" String="The value shall be a reference to a file share."/>
-        </NavigationProperty>
-        <Property Name="FileSharePath" Type="Edm.String">
-          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
-          <Annotation Term="OData.Description" String="A path to a file or directory on this file system where this file share is hosted."/>
-          <Annotation Term="OData.LongDescription" String="The value shall be a path (relative to the file system root) to the importing file or directory."/>
-        </Property>
-      </ComplexType>
+
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileSystem.v1_0_2">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="FileSystem" BaseType="FileSystem.v1_0_1.FileSystem"/>
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileSystem.v1_1_0">
       <Annotation Term="OData.Description" String="This version adds the RemainingCapacityPercent property."/>
-      <EntityType Name="FileSystem" BaseType="FileSystem.v1_0_0.FileSystem">
+      <EntityType Name="FileSystem" BaseType="FileSystem.v1_0_2.FileSystem">
         <Property Name="RemainingCapacityPercent" Type="Edm.Int64">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
           <Annotation Term="OData.Description" String="The percentage of the capacity remaining in the FileSystem."/>
@@ -303,9 +322,8 @@
       </ComplexType>
     </Schema>
 
-
-	<Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileSystem.v1_1_1">
-
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileSystem.v1_1_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="FileSystem" BaseType="FileSystem.v1_1_0.FileSystem">
         <Annotation Term="OData.Description" String="An instance of a hierarchical namespace of files."/>
         <Annotation Term="OData.LongDescription" String="This resource shall be used to represent an instance of a hierarchical namespace of files."/>
@@ -320,9 +338,56 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileSystem.v1_1_2">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.Description" String="This version was for errata to FileSystem."/>
-      <EntityType Name="FileSystem" BaseType="FileSystem.v1_1_0.FileSystem">
-		<Annotation Term="OData.Description" String="CapacitySources changes from Property to NavigationProperty with ContainsTarget=true. Move enums to unversioned namespace.  Change references to unversioned. "/>
+      <EntityType Name="FileSystem" BaseType="FileSystem.v1_1_1.FileSystem">
+        <Annotation Term="OData.Description" String="CapacitySources changes from Property to NavigationProperty with ContainsTarget=true. Move enums to unversioned namespace.  Change references to unversioned. "/>
+      </EntityType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileSystem.v1_1_3">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="FileSystem" BaseType="FileSystem.v1_1_2.FileSystem"/>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileSystem.v1_2_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="Add IOStatistics, RecoverableCapacitySourceCount, and SpareResourceSets. Deprecate FileSystem/RemainingCapacity"/>
+      <EntityType Name="FileSystem" BaseType="FileSystem.v1_1_3.FileSystem">
+        <Annotation Term="OData.Description" String="A hierarchical namespace of files."/>
+        <Annotation Term="OData.LongDescription" String="This resource shall be used to represent a hierarchical namespace of files."/>
+        <Property Name="IOStatistics" Type="IOStatistics.IOStatistics">
+          <Annotation Term="OData.Description" String="Statistics for this FileSystem."/>
+          <Annotation Term="OData.LongDescription" String="The value shall represent IO statistics for this FileSystem."/>
+        </Property>
+        <Property Name="RecoverableCapacitySourceCount" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Current number of capacity source resources that are available as replacements."/>
+          <Annotation Term="OData.LongDescription" String="The value is the number of available capacity source resources currently available in the event that an equivalent capacity source resource fails."/>
+        </Property>
+      </EntityType>
+      <ComplexType Name="Links" BaseType="FileSystem.v1_0_0.Links">
+        <Annotation Term="OData.Description" String="Add ability to manage spare capacity."/>
+        <NavigationProperty Name="SpareResourceSets" Type="Collection(SpareResourceSet.SpareResourceSet)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="An array of references to SpareResourceSets."/>
+          <Annotation Term="OData.LongDescription" String="Each referenced SpareResourceSet shall contain resources that may be utilized to replace the capacity provided by a failed resource having a compatible type."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </ComplexType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileSystem.v1_2_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version is for errata to FileSystem.ImportedShares and adds ReplicaTargets collection. Deprecated ReplicaCollection in links in favor of ReplicaTargets. This version was also created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number. The ImportedShares has also been converted from a NavigationProperty to Property."/>
+      <EntityType Name="FileSystem" BaseType="FileSystem.v1_2_0.FileSystem">
+        <NavigationProperty Name="ReplicaTargets" Type="Collection(Resource.Item)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The resources that are target replicas of this source."/>
+          <Annotation Term="OData.LongDescription" String="The value shall reference the target replicas that are sourced by this replica."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
       </EntityType>
     </Schema>
 

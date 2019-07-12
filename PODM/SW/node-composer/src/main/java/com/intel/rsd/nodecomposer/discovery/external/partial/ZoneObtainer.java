@@ -106,14 +106,12 @@ public class ZoneObtainer {
             .forEach(zone::addEndpoint);
     }
 
-    @Transactional(MANDATORY)
     public ZoneResource retrieveZone(URI zoneUri) throws WebClientRequestException {
         try (WebClient webClient = webClientBuilder.createResourceManagerInstance().retryable().build()) {
             return (ZoneResource) webClient.get(zoneUri);
         }
     }
 
-    @Transactional(MANDATORY)
     public Optional<Zone> getZoneFromEndpoint(ODataId endpoint) {
         return genericDao.tryFind(Endpoint.class, endpoint).map(Endpoint::getZone);
     }

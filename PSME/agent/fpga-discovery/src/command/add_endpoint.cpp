@@ -44,7 +44,7 @@ void throw_if_endpoint_exist(const std::string& endpoint_uuid) {
 
 void throw_if_wrong_transport_protocol(const attribute::IpTransportDetail& single_transport) {
     if (enums::TransportProtocol::RoCEv2 != single_transport.get_transport_protocol()
-    && enums::TransportProtocol::OEM != single_transport.get_transport_protocol()) {
+        && enums::TransportProtocol::OEM != single_transport.get_transport_protocol()) {
         THROW(exceptions::InvalidValue, "fpga-discovery-agent", "Transport protocol should be set on RoCEv2 or OEM");
     }
 }
@@ -138,16 +138,16 @@ void throw_if_ipv4_address_empty(const attribute::IpTransportDetail& single_ip_t
 }
 
 
-void throw_if_rdma_port_empty(const attribute::IpTransportDetail& single_ip_transport_detail) {
+void throw_if_port_empty(const attribute::IpTransportDetail& single_ip_transport_detail) {
     if (!single_ip_transport_detail.get_port().has_value()) {
         THROW(exceptions::InvalidValue, "fpga-discovery-agent", "Mandatory property is missing: Port");
     }
 }
 
 
-void throw_if_wrong_rdma_port(std::uint32_t rdma_port) {
-    if (rdma_port <= 0 || rdma_port > UINT16_MAX) {
-        THROW(exceptions::InvalidValue, "fpga-discovery-agent", "RDMA port is out of range, should be in <1,65535>.");
+void throw_if_wrong_port(std::uint32_t port) {
+    if (port <= 0 || port > UINT16_MAX) {
+        THROW(exceptions::InvalidValue, "fpga-discovery-agent", "Port is out of range, should be in <1,65535>.");
     }
 }
 
@@ -175,9 +175,9 @@ void throw_if_ip_transport_details_more_than_one(const AddEndpoint::Request& req
 }
 
 
-void set_rdma_port(const attribute::IpTransportDetail& ip_transport_detail_req,
-                   attribute::IpTransportDetail& ip_transport_detail) {
-    throw_if_wrong_rdma_port(ip_transport_detail_req.get_port().value());
+void set_port(const attribute::IpTransportDetail& ip_transport_detail_req,
+              attribute::IpTransportDetail& ip_transport_detail) {
+    throw_if_wrong_port(ip_transport_detail_req.get_port().value());
     ip_transport_detail.set_port(std::uint16_t(ip_transport_detail_req.get_port().value()));
 }
 
@@ -209,9 +209,11 @@ void add_endpoint(AddEndpoint::ContextPtr /*ctx*/, const AddEndpoint::Request& r
     std::string endpoint_uuid = req.get_identifiers().front().get_durable_name();
 
     endpoint.add_identifier({endpoint_uuid, enums::IdentifierType::UUID});
-    endpoint.set_uuid(endpoint_uuid);
 
-    throw_if_endpoint_exist(endpoint_uuid);
+    FpgaStabilizer stabilizer;
+    Uuid uuid = stabilizer.stabilize(endpoint);
+
+    throw_if_endpoint_exist(uuid);
 
     endpoint.set_protocol(enums::TransportProtocol::OEM);
     endpoint.set_oem_protocol(enums::OemProtocol::FPGAoF);
@@ -228,25 +230,27 @@ void add_endpoint(AddEndpoint::ContextPtr /*ctx*/, const AddEndpoint::Request& r
 
         const auto ip_transport_detail_req = req.get_ip_transport_details().front();
 
-        throw_if_rdma_port_empty(ip_transport_detail_req);
+        throw_if_port_empty(ip_transport_detail_req);
         throw_if_ipv4_address_empty(ip_transport_detail_req);
         throw_if_ip_transport_details_more_than_one(req);
 
-        set_rdma_port(ip_transport_detail_req, ip_transport_detail);
+        set_port(ip_transport_detail_req, ip_transport_detail);
         ipv4_address.set_address(ip_transport_detail_req.get_ipv4_address().get_address().value());
         ip_transport_detail.set_ipv4_address(ipv4_address);
         set_transport_protocol(ip_transport_detail_req, ip_transport_detail);
         endpoint.add_ip_transport_detail(ip_transport_detail);
 
-        EndpointDatabase db{endpoint_uuid};
-        db.put(FpgaDiscoveryDatabase::RDMA_PORT,
+        EndpointDatabase db{uuid};
+        db.put(FpgaDiscoveryDatabase::PORT,
                std::to_string(static_cast<unsigned int>(ip_transport_detail.get_port())));
         db.put(FpgaDiscoveryDatabase::ROLE, model::literals::Endpoint::TARGET);
         db.put(FpgaDiscoveryDatabase::UUID, endpoint_uuid);
         db.put(FpgaDiscoveryDatabase::IPV4, ip_transport_detail.get_ipv4_address().get_address());
+        db.put(FpgaDiscoveryDatabase::TRANSPORT_PROTOCOL,
+               ip_transport_detail.get_transport_protocol().value().to_string());
 
         FabricDatabase(fabric).append(FpgaDiscoveryDatabase::ENDPOINTS,
-                                      endpoint_uuid);
+                                      uuid);
     }
     else { // EntityRole::Initiator Endpoint
         throw_if_entity_link_not_empty(req.get_connected_entities().front());
@@ -256,15 +260,15 @@ void add_endpoint(AddEndpoint::ContextPtr /*ctx*/, const AddEndpoint::Request& r
         }
 
         FabricDatabase(fabric).append(FpgaDiscoveryDatabase::ENDPOINTS,
-                                      endpoint_uuid);
-        EndpointDatabase(endpoint_uuid).put(FpgaDiscoveryDatabase::ROLE,
+                                      uuid);
+        EndpointDatabase(uuid).put(FpgaDiscoveryDatabase::ROLE,
                                    model::literals::Endpoint::INITIATOR);
-        EndpointDatabase(endpoint_uuid).put(FpgaDiscoveryDatabase::UUID, endpoint_uuid);
+        EndpointDatabase(uuid).put(FpgaDiscoveryDatabase::UUID, endpoint_uuid);
     }
 
-    rsp.set_endpoint(endpoint_uuid);
+    rsp.set_endpoint(uuid);
     get_manager<Endpoint>().add_entry(endpoint);
-    log_debug("fpga-discovery-agent", "Added endpoint with UUID '" + endpoint_uuid + "'");
+    log_info("fpga-discovery-agent", "Added endpoint with UUID '" + uuid + "'");
 }
 }
 

@@ -23,9 +23,13 @@
 
 #pragma once
 
+
+
 #include "state_machine/port_state_machine.hpp"
 #include "state_machine/port_state_worker.hpp"
 #include "discovery/discovery_manager.hpp"
+
+
 
 namespace agent {
 namespace pnc {
@@ -43,7 +47,8 @@ public:
      * @param[in] port_uuid Donwstream port uuid that will be managed by the created manager
      * */
     PortStateManager(PortStateWorkerPtr worker, const std::string& id, const std::string& switch_uuid,
-        const std::string& port_uuid);
+                     const std::string& port_uuid);
+
 
     /*!
      * Copy constructor is deleted!
@@ -51,11 +56,13 @@ public:
      */
     PortStateManager(const PortStateManager&) = delete;
 
+
     /*!
      * Move constructor is deleted!
      * PortStateManager initializes state manager with references to itself - moving is not allowed
      */
     PortStateManager(PortStateManager&&) = delete;
+
 
     /*!
      * Copy assignment operator is deleted!
@@ -63,14 +70,17 @@ public:
      */
     PortStateManager& operator=(const PortStateManager&) = delete;
 
+
     /*!
      * Move assignment operator is deleted!
      * PortStateManager initializes state manager with references to itself - moving is not allowed
      */
     PortStateManager& operator=(PortStateManager&&) = delete;
 
+
     /*! Destructor */
     ~PortStateManager();
+
 
     /*!
      * @brief Initializes binding information - should be called first
@@ -79,11 +89,13 @@ public:
      */
     void init_binding(bool is_bound, bool is_bound_to_host);
 
+
     /*!
      * @brief Initializes link presence - should be called after init_binding
      * @param[in] is_present Is any device present on the port
      */
     void init_presence(bool is_present);
+
 
     /*!
      * @brief Updates the state of the manager - generates proper events depending on the current state
@@ -94,6 +106,7 @@ public:
      */
     void update(bool is_present, bool is_bound, bool is_bound_to_host, bool is_being_erased);
 
+
     /*
      * @brief Returns uuid of the port that is being managed by the manager
      * @return Port uuid
@@ -101,6 +114,7 @@ public:
     std::string get_port_uuid() const {
         return m_port_uuid;
     }
+
 
     /*
      * @brief Returns uuid of the device (i.e. Drive) that is managed by the manager
@@ -110,40 +124,62 @@ public:
         return m_device_uuid;
     }
 
+
     /*!
      * @brief Checks if there is a drive managed by the manager
      * @return True if there is a drive attached to the managed port
      * */
     bool is_device_present() const {
         return (PortState::Oob_Busy == m_sm.get_current_state() || PortState::Full_Standby == m_sm.get_current_state())
-                && !m_device_uuid.empty();
+               && !m_device_uuid.empty();
     }
+
 
 private:
 
     /*! Generate events for an already initialized state machine (after init_link) */
-    void generate_events(bool is_present, bool is_bound, bool is_being_erased);
+    void generate_events(bool is_present, bool is_bound, bool is_bound_to_host, bool is_being_erased);
+
 
     /*! State machine action: bind port to the management partition */
     bool action_bind(const PortTransition&);
 
+
     /*! State machine action: unbind port to the management partition */
     bool action_unbind(const PortTransition&);
+
 
     /*! State machine action: perform full discovery and unbind */
     bool action_full_unbind(const PortTransition&);
 
+
     /*! State machine action: bind to the management partition, perform full discovery, unbind and restore bindings */
     bool action_full_bind_unbind_recover(const PortTransition&);
+
 
     /*! State machine action: out-of-band discovery */
     bool action_oob(const PortTransition&);
 
+
     /*! State machine action: remove model data */
     bool action_remove(const PortTransition&);
 
+
     /*! State machine action: bind to the management partition, perform in-band discovery and unbind */
     bool action_ib_bind_unbind(const PortTransition&);
+
+
+    /*! State machine action: recovers bindings */
+    bool action_bindings_recover(const PortTransition&);
+
+
+    /*! State machine action: unbind port from non-mgmt host */
+    bool action_unbind_nonmgmt(const PortTransition&);
+
+
+    /*! State machine action: unbind port from non-mgmt host, bind to the management partition, perform in-band discovery and unbind */
+    bool action_unbind_nonmgmt_ib_discovery(const PortTransition&);
+
 
     /*! Worker used to implement transition actions */
     PortStateWorkerPtr m_worker;

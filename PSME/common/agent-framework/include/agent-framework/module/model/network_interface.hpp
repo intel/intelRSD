@@ -31,8 +31,10 @@ namespace model {
 /*! Network Interface */
 class NetworkInterface : public Resource {
 public:
-    explicit NetworkInterface(const std::string& parent_uuid = {}, enums::Component parent_type = enums::Component::System);
-    ~NetworkInterface();
+    explicit NetworkInterface(const std::string& parent_uuid = {},
+                              enums::Component parent_type = enums::Component::System);
+
+    virtual ~NetworkInterface();
 
     using Ipv6Addresses = attribute::Array<attribute::Ipv6Address>;
     using Ipv4Addresses = attribute::Array<attribute::Ipv4Address>;

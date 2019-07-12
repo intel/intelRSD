@@ -15,26 +15,29 @@
  */
 
 dependencies {
-    compileOnly("org.springframework.boot:spring-boot-starter-web")
-    compileOnly("org.springframework.integration:spring-integration-hazelcast:${springIntegrationHazelcastVersion}")
-    compileOnly("com.intel.rsd:podm-common:${podmCommonVersion}")
-    compileOnly("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
+    api("org.slf4j:slf4j-api")
+    api("com.fasterxml.jackson.core:jackson-databind")
+    api("org.springframework:spring-web")
+    api("org.springframework.boot:spring-boot")
+    implementation("org.apache.tomcat.embed:tomcat-embed-core")
+    implementation("org.springframework.integration:spring-integration-hazelcast:${springIntegrationHazelcastVersion}")
+    implementation("com.intel.rsd:podm-common:${podmCommonVersion}")
+    implementation("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
 
-    compile("com.google.guava:guava:${guavaVersion}")
-    compile("org.springframework.cloud:spring-cloud-starter-netflix-hystrix")
+    implementation("com.google.guava:guava:${guavaVersion}")
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-hystrix")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
-    testCompile("com.fasterxml.jackson.core:jackson-databind")
-    testCompile("org.springframework.boot:spring-boot-starter-web")
-    testCompile("org.testng:testng")
-    testCompile("com.intel.rsd:podm-common:${podmCommonVersion}")
-    testCompile("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
-    testCompile("org.mockito:mockito-all:${mockitoVersion}")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind")
+    testImplementation("org.springframework.boot:spring-boot-starter-web")
+    testImplementation("org.testng:testng:${testNGVersion}")
+    testImplementation("com.intel.rsd:podm-common:${podmCommonVersion}")
+    testImplementation("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
+    testImplementation("org.mockito:mockito-all:${mockitoVersion}")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
 }
-
 jacocoTestCoverageVerification {
     violationRules {
         rule {

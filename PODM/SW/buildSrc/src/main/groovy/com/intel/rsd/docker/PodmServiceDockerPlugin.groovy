@@ -59,22 +59,26 @@ class PodmServiceDockerPlugin implements Plugin<Project> {
         def buildDockerImageTask = target.task("buildDockerImage", type: PodmServiceDockerBuildImage, dependsOn: ['createDockerfile', 'buildJavaEntrypoint'])
 
         target.task("tagDockerImage", type: DockerTagImage, dependsOn: 'buildDockerImage') {
+            repository = "$dockerRegistryHost/${(project.extensions.getByType(PodmServiceExtension).appName ?: target.name)}"
+            //todo: if scheme is not provided then host is set to null...
+            tag = version
+            targetImageId { buildDockerImageTask.getImageId() }
             doFirst {
                 if (dockerRegistryHost.isAllWhitespace()) {
                     throw new GradleException("$DOCKER_REGISTRY_HOST_VAR_NAME env variable is not set")
                 }
                 println("Using docker registry host: $dockerRegistryHost")
+                logger.quiet("tagDockerImage; repository='${repository ?: "(null)"}'; tag='${tag ?: "(null)"}'; imageId='${imageId ?: "(null)"}'")
             }
-            repository = "$dockerRegistryHost/${(project.extensions.getByType(PodmServiceExtension).appName ?: target.name)}"
-            //todo: if scheme is not provided then host is set to null...
-            tag = version
-            targetImageId { buildDockerImageTask.getImageId() }
         }
 
         target.task("pushDockerImage", type: DockerPushImage, dependsOn: 'tagDockerImage') {
             imageName = "$dockerRegistryHost/${(project.extensions.getByType(PodmServiceExtension).appName ?: target.name)}"
             tag = version
             registryCredentials = dockerExtension.registryCredentials
+            doFirst {
+                logger.quiet("""pushDockerImage; imageName='${imageName ?: "(null)"}'; tag='${tag ?: "(null)"}'""")
+            }
         }
     }
 }

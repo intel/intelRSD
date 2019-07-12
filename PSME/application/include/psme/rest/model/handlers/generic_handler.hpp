@@ -574,7 +574,7 @@ typename GenericHandler<Request, Model, IdPolicy>::UpdateStatus GenericHandler<R
     };
 
     if (UpdateStatus::StatusChanged == status) {
-        ctx.add_event(get_component(), eventing::EventType::StatusChange, entry.get_uuid());
+        ctx.add_event(get_component(), agent_framework::model::enums::EventType::StatusChange, entry.get_uuid());
         ctx.num_status_changed++;
         log_event("Status changed");
     }

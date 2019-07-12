@@ -601,7 +601,7 @@ public:
      * @brief Get DCPMEM Erase task
      * @return Memory task
      * */
-    const OptionalField<std::string>& get_dcpmem_erase_task() const {
+    const OptionalField<Uuid>& get_dcpmem_erase_task() const {
         return m_dcpmem_erase_task;
     }
 
@@ -609,7 +609,7 @@ public:
      * @brief Set DCPMEM Erase task
      * @param[in] task the Memory task
      * */
-    void set_dcpmem_erase_task(const OptionalField<std::string>& dcpmem_erase_task) {
+    void set_dcpmem_erase_task(const OptionalField<Uuid>& dcpmem_erase_task) {
         m_dcpmem_erase_task = dcpmem_erase_task;
     }
 

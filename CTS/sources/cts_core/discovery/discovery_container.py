@@ -29,8 +29,9 @@ from pandas.io.json import json_normalize
 from urlparse import urlsplit, urlunsplit, urlparse
 
 from cts_core.commons.json_helpers import split_path_into_segments
-from cts_core.commons.error import cts_error, cts_warning
+from cts_core.commons.error import cts_error, cts_warning, cts_message
 from cts_core.commons.odata_id_generalized_mapper import OdataIdGeneralizedMapper
+from cts_core.metadata.model.annotation import Annotation
 from cts_core.validation.validation_status import ValidationStatus
 from cts_core.validation.get.metadata_get_validator import MetadataGetValidator
 from cts_core.discovery.api_resource import ApiResource, ApiResourceProxy
@@ -267,6 +268,34 @@ class DiscoveryContainer(dict):
         return [key for key in self._dataframes.keys() if
                 self.metadata_container.entities[odata_type].is_compatible(key)]
 
+    def validate_redfish_uris_consistency(self, api_resource, metadata_container):
+        odata_id = api_resource.odata_id
+        odata_type = api_resource.odata_type
+        entity = metadata_container.entities.get(odata_type)
+
+        if entity is None:
+            mapped_type = metadata_container._map_types.get(odata_type)
+            entity = metadata_container.entities.get(mapped_type)
+            if entity is None:
+                cts_error("No entity in metadata with @odata.type={odata_type}".format(odata_type=odata_type))
+                return ValidationStatus.FAILED
+
+        if Annotation.REDFISH_URIS not in entity._annotations:
+            return ValidationStatus.PASSED
+
+        redfish_uris_list = entity._annotations[Annotation.REDFISH_URIS].redfish_uris
+        matched_uris = [redfish_uri for redfish_uri in redfish_uris_list
+                        if re.match(re.sub(r"{.+}", ".+", redfish_uri), odata_id)]
+
+        if not matched_uris:
+            cts_error("Resource {res} does not match expected RedfishUri in metadata. Expected {expected}"
+                                .format(res=odata_id, expected=redfish_uris_list))
+            return ValidationStatus.FAILED
+        else:
+            cts_message("Resource {res} is compliant with expected RedfishUri in metadata"
+                            .format(res=odata_id))
+            return ValidationStatus.PASSED
+
     def count_resources(self, odata_type, any_child_version=None):
         """
         :type odata_type: str
@@ -354,6 +383,20 @@ class DiscoveryContainer(dict):
                 cts_error('References to unknown resources: {refs}', refs=', '.join(diff))
 
         return resources
+
+    def odata_type_lookup(self, odata_type):
+        """
+        Find all resources with similar odata_type
+        :param odata_type:
+        :return:
+        """
+
+        def get_elements_with_proper_odata_type(elements):
+            return [element for element in elements if element.odata_type is not None]
+
+        resources = [ApiResourceProxy(r, self) for r in get_elements_with_proper_odata_type(self.itervalues())
+                     if odata_type in r.odata_type]
+        return set([r.odata_type for r in resources])
 
     def dump_content(self, filename):
         with open(filename, 'wb') as f:

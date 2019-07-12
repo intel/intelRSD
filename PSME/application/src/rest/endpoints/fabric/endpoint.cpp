@@ -88,8 +88,6 @@ json::Json make_transport_detail_prototype() {
 json::Json make_entity_prototype() {
     json::Json json = json::Json();
     json[constants::Endpoint::ENTITY_ROLE] = json::Json::value_t::null;
-    json[constants::Endpoint::PCI_FUNCTION_NUMBER] = json::Json::value_t::null;
-    json[constants::Endpoint::PCI_CLASS_CODE] = json::Json::value_t::null;
     json[constants::Endpoint::ENTITY_PCI_ID] = json::Json::value_t::null;
     json[constants::Endpoint::ENTITY_LINK] = json::Json::value_t::null;
     json[constants::Common::IDENTIFIERS] = json::Json::value_t::array;
@@ -128,38 +126,38 @@ bool handle_pcie_device_target(json::Json& json, const agent_framework::model::a
         // fill identifiers
         fill_identifiers<Device>(json, device);
 
-        const auto pcie_function_uuids = agent_framework::module::get_m2m_manager<Device, agent_framework::model::PcieFunction>()
-            .get_children(device.get_uuid());
+        const auto pcie_functions = agent_framework::module::get_manager<agent_framework::model::PcieFunction>()
+            .get_entries();
 
-        if (pcie_function_uuids.size() == 0) {
-            log_info("rest", Device::get_component() << " " << device.get_uuid() << " has no PCIeFunctions!");
-            return false;
-        }
-
-        try {
-            const auto function = agent_framework::module::get_manager<agent_framework::model::PcieFunction>()
-                .get_entry(pcie_function_uuids.front());
-
-            try {
-                if (function.get_function_id().has_value()) {
-                    json[constants::Endpoint::PCI_FUNCTION_NUMBER] = std::stoi(function.get_function_id());
+        for (const auto& function: pcie_functions) {
+            if (function.get_functional_device() == entity.get_entity()) {
+                try {
+                    try {
+                        if (function.get_function_id().has_value()) {
+                            json[constants::Endpoint::ENTITY_PCI_ID][PcieFunction::FUNCTION_NUMBER] = std::stoi(function.get_function_id());
+                        }
+                    }
+                    catch (const std::exception& ex) {
+                        log_warning("rest", "Invalid function id type:" << ex.what());
+                    }
+                    json[constants::Endpoint::ENTITY_PCI_ID][PcieFunction::CLASS_CODE] = function.get_pci_class_code();
+                    json[constants::Endpoint::ENTITY_PCI_ID][PcieFunction::DEVICE_ID] = function.get_pci_device_id();
+                    json[constants::Endpoint::ENTITY_PCI_ID][PcieFunction::VENDOR_ID] = function.get_pci_vendor_id();
+                    json[constants::Endpoint::ENTITY_PCI_ID][PcieFunction::SUBSYSTEM_ID] = function.get_pci_subsystem_id();
+                    json[constants::Endpoint::ENTITY_PCI_ID][PcieFunction::SUBSYSTEM_VENDOR_ID] = function.get_pci_subsystem_vendor_id();
                 }
+                catch (agent_framework::exceptions::InvalidUuid&) {
+                    log_error("rest",
+                              Device::get_component() << " " << device.get_uuid() << " has non-existing PCIeFunctions!");
+                    return false;
+                }
+                return true;
             }
-            catch (const std::exception& ex) {
-                log_warning("rest", "Invalid function id type:" << ex.what());
-            }
-            json[constants::Endpoint::PCI_CLASS_CODE] = function.get_pci_class_code();
-            json[constants::Endpoint::ENTITY_PCI_ID][PcieFunction::DEVICE_ID] = function.get_pci_device_id();
-            json[constants::Endpoint::ENTITY_PCI_ID][PcieFunction::VENDOR_ID] = function.get_pci_vendor_id();
-            json[constants::Endpoint::ENTITY_PCI_ID][PcieFunction::SUBSYSTEM_ID] = function.get_pci_subsystem_id();
-            json[constants::Endpoint::ENTITY_PCI_ID][PcieFunction::SUBSYSTEM_VENDOR_ID] = function.get_pci_subsystem_vendor_id();
         }
-        catch (agent_framework::exceptions::InvalidUuid&) {
-            log_error("rest",
-                      Device::get_component() << " " << device.get_uuid() << " has non-existing PCIeFunctions!");
-            return false;
-        }
-        return true;
+
+        log_info("rest", Device::get_component() << " " << device.get_uuid() << " has no PCIeFunctions!");
+        return false;
+
     }
     return false;
 }

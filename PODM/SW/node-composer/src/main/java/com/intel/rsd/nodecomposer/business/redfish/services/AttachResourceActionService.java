@@ -29,16 +29,11 @@ import com.intel.rsd.nodecomposer.business.services.redfish.requests.AttachResou
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import static com.intel.rsd.nodecomposer.business.Violations.createWithViolations;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class AttachResourceActionService {
     private final ResourceAttacherFactory resourceAttacherFactory;
@@ -55,7 +50,6 @@ public class AttachResourceActionService {
         this.attachResourceInfoService = attachResourceInfoService;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public void perform(ODataId target, AttachResourceRequest request) throws BusinessApiException {
         validateRequest(request);
         validateComposedNode(target);
@@ -69,7 +63,6 @@ public class AttachResourceActionService {
         attacher.attach(composedNode, entity);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public ActionInfoDto getActionInfo(ODataId target) throws BusinessApiException {
         ComposedNode composedNode = traverser.traverseComposedNode(target);
         return attachResourceInfoService.getActionInfo(composedNode);

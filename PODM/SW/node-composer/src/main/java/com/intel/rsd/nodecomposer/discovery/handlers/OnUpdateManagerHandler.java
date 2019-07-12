@@ -48,6 +48,7 @@ public class OnUpdateManagerHandler {
 
     @Transactional(MANDATORY)
     public void preUpdate(Manager manager) {
+        log.info("Updating manager({}, status({}))", manager, manager.getStatus());
         if (manager.isOffline()) {
             updateAssets(manager, OFFLINE, false);
         } else if (manager.isAvailable()) {

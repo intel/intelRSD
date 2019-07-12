@@ -1,0 +1,9 @@
+{
+  "name": "3.7.3",
+  "resources": {
+    "thermal_members": ["Thermal.Thermal", "Thermal"]
+  },
+  "actions": [
+    ["all_not_null_test", ["thermal_members", "Thermal", ["Fans[*]/Status/State", "Fans[*]/Status/Health"]]]
+  ]
+}

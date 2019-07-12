@@ -102,8 +102,9 @@ private:
     * @param[in] device_uuid Uuid of the PCIe device
     * @param[in] decoder sysfs decoder
     * @param[in] sysfs_device Sysfs data of the device
+    * @return UUID of the PCIe device
     */
-    void sysfs_device_discovery(const Uuid& dsp_port_uuid,
+    Uuid sysfs_device_discovery(const Uuid& dsp_port_uuid,
                                 const Uuid& device_uuid,
                                 const agent::pnc::sysfs::SysfsDecoder& decoder,
                                 const agent::pnc::sysfs::SysfsDevice& sysfs_device) const override;
@@ -135,6 +136,24 @@ private:
      * @param device_uuid UUID of the drive to synchronize with database
      */
     void sync_device_properties_with_db(const Uuid& device_uuid) const override;
+
+
+    /*!
+     * @brief Add drive or processor to model based on sysfs data (if not added earlier during oob discovery)
+     * @param[in] dsp_port_uuid Uuid of the Downstream Port
+     * @param[in] serial_number serial number which will be used to stabilize discovered PCIe device UUID
+     * @return Stabilized discovered PCIe device UUID
+     */
+    Uuid add_from_sysfs(const Uuid& dsp_port_uuid,
+                        const std::string& serial_number) const override;
+
+
+    /*!
+     * @brief Stabilizes drive and updates drive-related model structures
+     * @param drive Existing drive to be stabilized and used to model update
+     * @return Stabilized discovered drive UUID
+     */
+    const Uuid stabilize_drive_update_model(const agent_framework::model::Drive& drive) const;
 };
 
 }

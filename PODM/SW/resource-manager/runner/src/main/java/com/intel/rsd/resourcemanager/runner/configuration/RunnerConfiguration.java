@@ -17,9 +17,23 @@
 package com.intel.rsd.resourcemanager.runner.configuration;
 
 import com.intel.rsd.resourcemanager.layers.CrawlerFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustAllStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
+
+import javax.net.ssl.SSLContext;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 
 @Configuration
 public class RunnerConfiguration {
@@ -27,5 +41,17 @@ public class RunnerConfiguration {
     @Bean
     CrawlerFactory nextLayerCrawlerFactory(@Value("${crawler.thread.pool.size:20}") int threadPoolSize) {
         return new CrawlerFactory(threadPoolSize);
+    }
+
+    @Qualifier("northbound")
+    @Bean
+    public RestTemplate restTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+
+        SSLContext sslContext = SSLContextBuilder.create().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build();
+
+        CloseableHttpClient httpClient = HttpClients.custom()
+            .setSSLSocketFactory(new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE)).build();
+
+        return new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
     }
 }

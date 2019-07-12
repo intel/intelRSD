@@ -78,8 +78,8 @@ void fill_drive_data(Drive& drive, const tools::BaseDriveHandler::DriveData& dd)
 }
 
 
-void fill_volume_data(Volume& volume, const BaseDriveHandler::VolumeData& vd, const Uuid& pool_uuid,
-                      std::uint64_t pool_size) {
+void fill_volume_data(Volume& volume, const BaseDriveHandler::VolumeData& vd,
+                      const Uuid& pool_uuid, std::uint64_t pool_size) {
 
     if (vd.block_size_bytes.has_value()) {
         volume.set_block_size_bytes(vd.block_size_bytes);
@@ -95,6 +95,8 @@ void fill_volume_data(Volume& volume, const BaseDriveHandler::VolumeData& vd, co
         caps.add_providing_pool(pool_uuid);
         volume.set_capacity_sources({caps});
     }
+
+    volume.add_identifier({vd.uuid, enums::IdentifierType::UUID});
 }
 
 
@@ -111,6 +113,7 @@ void print_drive_log(const Drive& drive) {
 void print_volume_log(const Volume& volume) {
     log_debug("nvme-agent", "\tBlock size (bytes): " << volume.get_block_size_bytes());
     log_debug("nvme-agent", "\tVolume size (bytes): " << volume.get_capacity().get_allocated_bytes());
+    log_debug("nvme-agent", "\tVolume GUID: " << attribute::Identifier::get_uuid(volume));
 }
 
 }
@@ -255,8 +258,6 @@ void discover_volumes(std::shared_ptr<BaseDriveHandler> handler, const std::stri
         print_volume_log(volume);
 
         ns.stabilize(volume);
-        volume.add_identifier({volume.get_uuid(), enums::IdentifierType::UUID});
-
         get_manager<Volume>().add_entry(volume);
         get_m2m_manager<StoragePool, Volume>().add_entry(storage_pool_uuid, volume.get_uuid());
     }

@@ -61,7 +61,7 @@ public class VolumeDisassembler extends EntityDisassembler<Volume> {
     }
 
     @Override
-    public void removeRemoteAsset() throws WebClientRequestException {
+    public void decomposeRemotely() throws WebClientRequestException {
         if (!isExisting()) {
             return;
         }
@@ -74,6 +74,6 @@ public class VolumeDisassembler extends EntityDisassembler<Volume> {
                 throw new RuntimeException(e.getMessage(), e);
             }
         }
-        super.removeRemoteAsset();
+        super.decomposeRemotely();
     }
 }

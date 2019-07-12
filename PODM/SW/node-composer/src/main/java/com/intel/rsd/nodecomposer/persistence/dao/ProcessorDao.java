@@ -27,10 +27,8 @@ import com.intel.rsd.nodecomposer.persistence.redfish.Processor;
 import com.intel.rsd.nodecomposer.persistence.redfish.Switch;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -43,12 +41,9 @@ import static com.intel.rsd.nodecomposer.types.Protocol.FPGA_OVER_FABRICS;
 import static com.intel.rsd.nodecomposer.types.SystemType.VIRTUAL;
 import static com.intel.rsd.nodecomposer.utils.Contracts.requiresNonNull;
 import static java.util.stream.Collectors.toSet;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Slf4j
 @Component
-@Scope(SCOPE_SINGLETON)
 public class ProcessorDao extends Dao<Processor> {
     private final PciePortDao pciePortDao;
     private final GenericDao genericDao;
@@ -61,7 +56,6 @@ public class ProcessorDao extends Dao<Processor> {
         this.processorHelper = processorHelper;
     }
 
-    @Transactional(MANDATORY)
     public Set<Processor> getAchievablePcieProcessors(ComputerSystem computerSystem) {
         requiresNonNull(computerSystem, "ComputerSystem can not be null.");
 
@@ -73,7 +67,6 @@ public class ProcessorDao extends Dao<Processor> {
             .collect(toSet());
     }
 
-    @Transactional(MANDATORY)
     public Set<Processor> getAvailableFpgaOverFabricsProcessors() {
         return genericDao.findAll(Processor.class).stream()
             .filter(ProcessorHelper::isRemoteFpga)
@@ -82,7 +75,6 @@ public class ProcessorDao extends Dao<Processor> {
             .collect(toSet());
     }
 
-    @Transactional(MANDATORY)
     public Set<Processor> retrieveRequestedFpgaProcessors(List<RequestedNode.Processor> processors) {
         return processors.stream()
             .map(ODataIdPossessor::getResourceODataId)

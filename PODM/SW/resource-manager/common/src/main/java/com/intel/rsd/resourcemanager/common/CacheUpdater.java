@@ -20,9 +20,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.hazelcast.core.IAtomicReference;
+import com.hazelcast.spi.exception.PartitionMigratingException;
 import com.intel.rsd.json.JsonUtils;
 import lombok.NonNull;
 import lombok.val;
+import org.springframework.retry.annotation.Retryable;
 
 import java.net.URI;
 import java.util.Map;
@@ -44,6 +46,7 @@ public class CacheUpdater {
         this.serviceDetectorApiConsumer = serviceDetectorApiConsumer;
     }
 
+    @Retryable(value = PartitionMigratingException.class)
     public void update(Map<String, String> managerUriToBodyMapping,
                        Map<String, URI> routableManagerUuidToUriMapping,
                        IAtomicReference<String> managerCollectionReference) {

@@ -78,6 +78,10 @@ void get_collection(const GetCollection::Request& request, GetCollection::Respon
     else if (process_resource_collections<model::Endpoint,
             Link<LinkType::Weak, model::enums::CollectionType::Ports, model::Port>
             >(uuid, name, response)) {}
+    else if (process_resource_collections<model::Processor,
+            Link<LinkType::Weak, model::enums::CollectionType::Processors, model::Processor>,
+            Link<LinkType::Weak, model::enums::CollectionType::PCIeFunctions, model::PcieFunction>
+            >(uuid, name, response)) {}
     else {
         THROW(::agent_framework::exceptions::InvalidUuid, "pnc-gami",
             "Component not found - invalid UUID: " + uuid);

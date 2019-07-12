@@ -21,7 +21,7 @@
 #include "discovery/helpers/memory_helper.hpp"
 #include "utils/conversion.hpp"
 #include "utils/string_utils.hpp"
-
+#include "utils/byte_swap.hpp"
 
 using namespace agent::compute::discovery;
 using namespace agent_framework::model;
@@ -152,9 +152,9 @@ void MemoryBuilder::update_acpi_nfit_data(agent_framework::model::Memory& memory
 
     if (nfit_control_region.has_value()) {
         const auto& nfit_control_region_data = nfit_control_region.value().data;
-        memory.set_module_manufacturer_id(agent_framework::model::utils::to_hex_string<2>(nfit_control_region_data.VendorID));
-        memory.set_module_product_id(agent_framework::model::utils::to_hex_string<2>(nfit_control_region_data.DeviceID));
-        memory.set_memory_subsystem_controller_manufacturer_id(agent_framework::model::utils::to_hex_string<2>(nfit_control_region_data.SubsystemVendorID));
+        memory.set_module_manufacturer_id(agent_framework::model::utils::to_hex_string<2>(::utils::byte_swap_16(nfit_control_region_data.VendorID)));
+        memory.set_module_product_id(agent_framework::model::utils::to_hex_string<2>(::utils::byte_swap_16(nfit_control_region_data.DeviceID)));
+        memory.set_memory_subsystem_controller_manufacturer_id(agent_framework::model::utils::to_hex_string<2>(::utils::byte_swap_16(nfit_control_region_data.SubsystemVendorID)));
         memory.set_memory_subsystem_controller_product_id(agent_framework::model::utils::to_hex_string<2>(nfit_control_region_data.SubsystemDeviceID));
     }
 

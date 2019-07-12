@@ -35,6 +35,8 @@ class ProcessorDiscoverer : public AbstractPcieDeviceDiscoverer {
 public:
 
     using BaseClass = AbstractPcieDeviceDiscoverer;
+    using SysfsFunctionsVec = std::vector<agent::pnc::sysfs::SysfsFunction>;
+    using PcieFunctionsVec = std::vector<agent_framework::model::PcieFunction>;
 
 
     ProcessorDiscoverer(const tools::Toolset& tools,
@@ -76,11 +78,12 @@ private:
     * @param[in] device_uuid Uuid of the PCIe device
     * @param[in] decoder sysfs decoder
     * @param[in] sysfs_device Sysfs data of the device
+    * @return UUID of the PCIe device
     */
-    void sysfs_device_discovery(const Uuid& dsp_port_uuid,
+    Uuid sysfs_device_discovery(const Uuid& dsp_port_uuid,
                                 const Uuid& device_uuid,
                                 const agent::pnc::sysfs::SysfsDecoder& decoder,
-                                const agent::pnc::sysfs::SysfsDevice& sysfs_device) const;
+                                const agent::pnc::sysfs::SysfsDevice& sysfs_device) const override;
 
 
     /*!
@@ -131,6 +134,52 @@ private:
      * @param device_uuid UUID of the processor to synchronize with database
      */
     void sync_device_properties_with_db(const Uuid& device_uuid) const override;
+
+
+    /*!
+     * @brief Get pcie functions based on the sysfs device functions
+     * @param[in] device_uuid Uuid of the PCIe device
+     * @param[in] dsp_port_uuid Uuid of the Downstream Port
+     * @param[in] functions Sysfs functions of the PCIe device
+     * @return PCIe functions for given PCIe device
+     */
+    PcieFunctionsVec get_pcie_functions(const Uuid& device_uuid,
+                                        const Uuid& dsp_port_uuid,
+                                        const SysfsFunctionsVec& functions) const;
+
+
+    /*!
+     * @brief Check if PCIe devices is a processor (from sysfs)
+     * @param[in] pcie_functions pcie functions of the PCIe device
+     * @return True if device is processor, false otherwise
+     */
+    bool is_processing_accelerator_class_device(const PcieFunctionsVec& pcie_functions) const;
+
+
+    /*!
+     * @brief Add drive or processor to model based on sysfs data (if not added earlier during oob discovery)
+     * @param[in] dsp_port_uuid Uuid of the Downstream Port
+     * @param[in] serial_number serial number which will be used to stabilize discovered PCIe device UUID
+     * @return stabilized discovered PCIe device UUID
+     */
+    Uuid add_from_sysfs(const Uuid& dsp_port_uuid,
+                        const std::string& serial_number) const override;
+
+
+    /*!
+     * @brief Generate serial number from Downstream Port UUID
+     * @param[in] dsp_port_uuid Uuid of the Downstream Port
+     * @return generated serial number
+     */
+    std::string get_serial_number_based_on_dsp_port(const Uuid& dsp_port_uuid) const;
+
+
+    /*!
+     * @brief Stabilizes processor and updates processor-related model structures
+     * @param processor Existing processor to be stabilized and used to model update
+     * @return Stabilized discovered processor UUID
+     */
+    const Uuid stabilize_processor_update_model(const agent_framework::model::Processor& processor) const;
 };
 
 }

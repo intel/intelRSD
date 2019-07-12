@@ -19,10 +19,10 @@ package com.intel.rsd.nodecomposer.mappers.subresources;
 import com.intel.rsd.nodecomposer.externalservices.resources.redfish.IpV6AddressObject;
 import com.intel.rsd.nodecomposer.mappers.subresources.strategies.EmbeddableCleanAndCreateStrategy;
 import com.intel.rsd.nodecomposer.persistence.redfish.embeddables.IpV6Address;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.Objects;
 
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
@@ -30,7 +30,7 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 @Component
 @Scope(SCOPE_PROTOTYPE)
 public class IpV6AddressMapper extends SubresourceMapper<IpV6AddressObject, IpV6Address> {
-    @Inject
+    @Autowired
     public IpV6AddressMapper(EmbeddableCleanAndCreateStrategy<IpV6Address> entityCleanAndCreateStrategy) {
         super(IpV6Address.class, entityCleanAndCreateStrategy);
     }

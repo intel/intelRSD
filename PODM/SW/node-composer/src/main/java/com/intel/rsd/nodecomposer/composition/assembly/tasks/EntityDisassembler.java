@@ -44,14 +44,14 @@ public abstract class EntityDisassembler<T extends DiscoverableEntity> {
         }
     }
 
-    public void removeRemoteAsset() throws WebClientRequestException {
+    public void decomposeRemotely() throws WebClientRequestException {
         if (isExisting()) {
             webClient.delete(entity.getUri().toUri());
             log.debug("Removed remote asset: {}", entity);
         }
     }
 
-    public void removeEntity() {
+    public void decomposeLocaly() {
         entityRemover.accept(entity);
         log.debug("Removed entity: {}", entity);
     }
@@ -60,8 +60,8 @@ public abstract class EntityDisassembler<T extends DiscoverableEntity> {
         try {
             log.debug("Deallocating: {}", entity);
             deallocate();
-            removeRemoteAsset();
-            removeEntity();
+            decomposeRemotely();
+            decomposeLocaly();
         } catch (WebClientRequestException e) {
             unlink();
             log.debug("Remote asset cannot be removed({}), unlinking: {}", e.getMessage(), entity);

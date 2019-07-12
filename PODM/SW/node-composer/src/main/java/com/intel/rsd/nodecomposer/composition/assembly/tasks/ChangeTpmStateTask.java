@@ -30,12 +30,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.io.Serializable;
 import java.net.URI;
 
 import static com.intel.rsd.nodecomposer.types.redfish.ActionsResourceNames.ACTIONS_OEM_CHANGE_TPM_STATE;
-import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 import static org.springframework.web.util.UriComponentsBuilder.fromUri;
 
@@ -56,7 +54,6 @@ public class ChangeTpmStateTask extends NodeTask implements Serializable {
 
     @Override
     @TimeMeasured(tag = "[AssemblyTask]")
-    @Transactional(REQUIRES_NEW)
     public void run() {
         try {
             ComputerSystem computerSystem = computerSystemDao.find(computerSystemODataId);

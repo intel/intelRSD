@@ -32,6 +32,7 @@ namespace opaepp {
 
 using ModelUuidToTokenMap = std::map<Uuid, fpga_token>;
 using ModelUuidToFpgaUniqueKeyMap = std::map<Uuid, std::string>;
+using FpgaUniqueKeyToTokenPair = std::pair<std::string, fpga_token>;
 using FpgaUniqueKeyToTokenMap = std::map<std::string, fpga_token>;
 
 /*!
@@ -77,7 +78,7 @@ public:
 
     /*!
      * @brief Sets mapping of unique uuid from FPGA to FPGA token from opae
-     * @param opae_uuid_to_token_map container which maps unique uuid from FPGA to opae fpga token
+     * @param fpga_unique_key_to_token_map container which maps unique uuid from FPGA to opae fpga token
      */
     void set_enumerated_devices_mapping(const FpgaUniqueKeyToTokenMap& fpga_unique_key_to_token_map);
 

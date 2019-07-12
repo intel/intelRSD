@@ -43,7 +43,8 @@ class ResourceMerger {
         if (body.get("Members@odata.count") != null) {
             val objectNode = body as ObjectNode
             if (objectNode["Members"] != null) {
-                objectNode["Members"] = createArrayNode().addAll(objectNode["Members"].distinctBy { it.get("@odata.id").asText() })
+                val jsonNodeList = objectNode["Members"].distinctBy { it["@odata.id"].asText() }
+                objectNode["Members"] = createArrayNode().addAll(jsonNodeList)
             }
             objectNode.set("Members@odata.count", IntNode(objectNode.at("/Members").size()))
         }
@@ -51,7 +52,7 @@ class ResourceMerger {
     }
 
     private fun mergeValueNode(result: ObjectNode, key: String?, value: ValueNode) {
-        when(key) {
+        when (key) {
             "@odata.type" -> mergeOdataTypeValue(result, key, value as TextNode)
             else ->
                 if (result[key] == null || result[key] == NullNode.instance) {
@@ -75,7 +76,7 @@ class ResourceMerger {
 
     private fun mergeOdataTypeValue(result: ObjectNode, name: String?, valueToMerge: TextNode) {
         val currentValue = result[name] as? ValueNode ?: NullNode.instance
-        if (currentValue == valueToMerge) return;
+        if (currentValue == valueToMerge) return
 
         var candidate = oDataTypeOrNull(valueToMerge.asText()) ?: return
         var current = oDataTypeOrNull(currentValue.asText()) ?: run {

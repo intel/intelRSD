@@ -21,6 +21,7 @@
   <edmx:DataServices>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="DataStorageLineOfService">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
 
       <EntityType Name="DataStorageLineOfService" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="Describe data storage capabilities"/>
@@ -29,6 +30,7 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="DataStorageLineOfService.v1_0_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
 
       <EntityType Name="DataStorageLineOfService" BaseType="DataStorageLineOfService.DataStorageLineOfService">
         <Annotation Term="OData.Description" String="Describe data storage capabilities."/>
@@ -53,7 +55,14 @@
 	  </EntityType>
 	</Schema>
 
+  <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="DataStorageLineOfService.v1_0_1">
+    <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+    <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+    <EntityType Name="DataStorageLineOfService" BaseType="DataStorageLineOfService.v1_0_0.DataStorageLineOfService"/>
+  </Schema>
+
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="DataStorageLineOfService.v1_1_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.Description" String="Add AccessCapabilities to DataStorageLineOfService. Change references to unversioned."/>
 
       <EntityType Name="DataStorageLineOfService" BaseType="DataStorageLineOfService.v1_0_0.DataStorageLineOfService">
@@ -63,6 +72,27 @@
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
           <Annotation Term="OData.Description" String="Required access capabilities."/>
           <Annotation Term="OData.LongDescription" String="Each entry specifies a required storage access capability."/>
+        </Property>
+      </EntityType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="DataStorageLineOfService.v1_1_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="DataStorageLineOfService" BaseType="DataStorageLineOfService.v1_1_0.DataStorageLineOfService"/>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="DataStorageLineOfService.v1_2_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="Add desired recoverable capacity sources to DataStorageLineOfService. This version was also created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+
+      <EntityType Name="DataStorageLineOfService" BaseType="DataStorageLineOfService.v1_1_0.DataStorageLineOfService">
+        <Annotation Term="OData.Description" String="Describe data storage capabilities."/>
+        <Annotation Term="OData.LongDescription" String="This structure may be used to describe a service option covering storage provisioning and availability."/>
+        <Property Name="RecoverableCapacitySourceCount" Type="Edm.Int64">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="Required minimum number of available capacity source resources."/>
+          <Annotation Term="OData.LongDescription" String="The value is minimum required number of available capacity source resources that shall be available in the event that an equivalent capacity source resource fails.  It is assumed that drives and memory components can be replaced, repaired or otherwise added to increase an associated resource's RecoverableCapacitySourceCount."/>
         </Property>
       </EntityType>
 	</Schema>

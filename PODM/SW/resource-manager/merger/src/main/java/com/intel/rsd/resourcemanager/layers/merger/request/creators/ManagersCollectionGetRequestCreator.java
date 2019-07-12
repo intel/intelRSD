@@ -18,7 +18,6 @@ package com.intel.rsd.resourcemanager.layers.merger.request.creators;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.intel.rsd.resourcemanager.common.DetectedManagersCache;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.layers.merger.request.ExecutableRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +55,7 @@ public class ManagersCollectionGetRequestCreator implements SelectableRequestCre
     }
 
     @Override
-    public ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<QueryParameterType, String> requestParams) {
+    public ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<String, String> requestParams) {
         return layer -> defaultReadOnlyRequestCreator.process(
             concat(
                 defaultReadOnlyRequestCreator.invoke(path, method, headers, body, requestParams, layer),

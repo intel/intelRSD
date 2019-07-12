@@ -20,7 +20,6 @@
 
 
 
-#include "agent-framework/generic/singleton.hpp"
 #include "agent-framework/module/utils/uuid.hpp"
 #include "opaepp/opae-proxy/opae_proxy_transport_detail.hpp"
 
@@ -35,21 +34,8 @@ namespace agent {
 namespace fpgaof {
 namespace loader {
 
-class FpgaofConfiguration final : public agent_framework::generic::Singleton<FpgaofConfiguration> {
+class FpgaofConfiguration final {
 public:
-
-    /*!
-     * @brief Set NIC drivers
-     * @param[in] drivers List of drivers
-     * */
-    void set_nic_drivers(const std::vector<std::string>& drivers);
-
-
-    /*!
-     * @brief Get NIC drivers from configuration file
-     * @return NIC drivers collection
-     */
-    const std::vector<std::string>& get_nic_drivers();
 
 
     /*!
@@ -97,25 +83,6 @@ public:
      * @return parent id
      */
     std::string get_parent_id();
-
-
-    /*!
-     * @brief Set rdma port
-     * @param rdma_port rdma_port
-     */
-    void set_rdma_port(uint32_t rdma_port);
-
-
-    /*!
-     * @brief Get rdma-port from configuration file
-     * @return rdma_port
-     */
-    uint32_t get_rdma_port();
-
-    /*!
-     * @brief Default destructor
-     * */
-    virtual ~FpgaofConfiguration();
 
 
     /*!
@@ -167,10 +134,8 @@ public:
 
 private:
     std::mutex m_mutex{};
-    std::vector<std::string> m_nic_drivers{};
     std::string m_ipv4_address{};
     uint32_t m_location_offset{};
-    uint32_t m_rdma_port{};
     std::string m_parent_id{};
     std::map<Uuid, uint16_t> m_endpoint_fpgaof_port_map{};
     std::string m_secure_erase_gbs_file_path{};

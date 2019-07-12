@@ -28,9 +28,9 @@ namespace {
 json::Json make_prototype() {
     json::Json r(json::Json::value_t::object);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Intel_RackScale.Trigger.Trigger";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Trigger.Trigger";
     r[Common::ODATA_ID] = json::Json::value_t::null;
-    r[Common::ODATA_TYPE] = "#Intel_RackScale.Triggers.v1_0_0.Triggers";
+    r[Common::ODATA_TYPE] = "#Triggers.v1_0_0.Triggers";
     r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Triggers";
     r[Common::DESCRIPTION] = "Triggers description";

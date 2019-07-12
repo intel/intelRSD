@@ -49,6 +49,8 @@ constexpr const char Command::GET_DRIVE_INFO[];
 constexpr const char Command::ADD_ENDPOINT[];
 constexpr const char Command::DELETE_ENDPOINT[];
 constexpr const char Command::DELETE_DRIVE[];
+constexpr const char Command::GET_LOG_SERVICE_INFO[];
+constexpr const char Command::GET_LOG_ENTRY_INFO[];
 
 constexpr const char Command::DELETE_TASK[];
 

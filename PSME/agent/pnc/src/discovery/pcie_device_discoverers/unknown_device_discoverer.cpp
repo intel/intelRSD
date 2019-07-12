@@ -23,10 +23,29 @@
 using namespace agent::pnc::discovery::device_discoverers;
 
 
-agent_framework::model::Endpoint
-UnknownDeviceDiscoverer::discover_endpoint(const Uuid& fabric_uuid, const Uuid&) const {
-    return m_factory->init_builder(m_factory->get_endpoint_builder(), fabric_uuid)
-        ->add_unknown_target_entity().build();
+bool
+UnknownDeviceDiscoverer::oob_port_device_discovery(const gas::GlobalAddressSpaceRegisters& gas,
+                                                   const Uuid& dsp_port_uuid) const {
+
+    log_error("pnc-discovery", "Out-of-band device discovery failed or device is not a drive or processor");
+
+    Uuid device_uuid{};
+
+    discover_target_endpoint(gas, device_uuid, dsp_port_uuid);
+
+    return true;
+}
+
+
+bool
+UnknownDeviceDiscoverer::ib_port_device_discovery(const Uuid& /*switch_uuid*/,
+                                                  const Uuid& /*dsp_port_uuid*/,
+                                                  uint8_t /*bridge_id*/,
+                                                  const Uuid& /*device_uuid*/) const {
+
+    log_error("pnc-discovery", "In-band device discovery failed or device is not a drive or processor");
+
+    return true;
 }
 
 
@@ -59,4 +78,12 @@ void
 UnknownDeviceDiscoverer::sysfs_discovery(const Uuid& /*device_uuid*/,
                                          const agent::pnc::sysfs::SysfsDevice& /*sysfs_device*/) const {
 
+}
+
+
+Uuid
+UnknownDeviceDiscoverer::add_from_sysfs(const Uuid& /*dsp_port_uuid*/,
+                                        const std::string& /*serial_number*/) const {
+
+    return Uuid{};
 }

@@ -220,6 +220,21 @@ Uuid run_add_zone_task(const attribute::Array<Uuid>& host_endpoints_uuids,
 }
 
 
+void add_initiator_zone(const attribute::Array<Uuid>& host_endpoints_uuids,
+                        const Uuid& zone_uuid,
+                        const Uuid& fabric_uuid) {
+    log_info("pnc-gami", "Adding endpoints to zone.");
+
+    std::for_each(host_endpoints_uuids.begin(), host_endpoints_uuids.end(), [&](const Uuid& host_endpoint_uuid) {
+        get_m2m_manager<Zone, Endpoint>().add_entry(zone_uuid, host_endpoint_uuid);
+        log_debug("pnc-gami", "Added host endpoints: " + host_endpoint_uuid + " to zone: " + zone_uuid);
+    });
+
+    const attribute::Array<Uuid> target_endpoints_uuids{};
+    store_zone_in_db(host_endpoints_uuids, target_endpoints_uuids, zone_uuid, fabric_uuid);
+}
+
+
 void add_zone(const AddZone::Request& request, AddZone::Response& response) {
 
     log_debug("pnc-gami", "Adding zone");
@@ -249,6 +264,9 @@ void add_zone(const AddZone::Request& request, AddZone::Response& response) {
 
     if (host_endpoints_uuids.empty() && target_endpoints_uuids.empty()) {
         store_zone_in_db(host_endpoints_uuids, target_endpoints_uuids, zone_uuid, request.get_fabric());
+    }
+    else if (target_endpoints_uuids.empty()) {
+        add_initiator_zone(host_endpoints_uuids, zone_uuid, request.get_fabric());
     }
     else {
         auto task_uuid = run_add_zone_task(host_endpoints_uuids,

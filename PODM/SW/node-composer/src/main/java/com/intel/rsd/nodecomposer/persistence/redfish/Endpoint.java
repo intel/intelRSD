@@ -54,7 +54,6 @@ import java.util.Set;
 
 import static com.intel.rsd.nodecomposer.persistence.redfish.Endpoint.GET_ENDPOINTS_ASSOCIATED_WITH_COMPUTER_SYSTEM_BY_PROTOCOL;
 import static com.intel.rsd.nodecomposer.persistence.redfish.Endpoint.GET_ENDPOINTS_WITH_NULL_USERNAME_BY_PROTOCOL;
-import static com.intel.rsd.nodecomposer.persistence.redfish.Endpoint.GET_ENDPOINT_MATCHING_UUID;
 import static com.intel.rsd.nodecomposer.persistence.redfish.base.StatusControl.statusOf;
 import static com.intel.rsd.nodecomposer.types.AttachableType.ENDPOINT;
 import static com.intel.rsd.nodecomposer.types.DurableNameFormat.IQN;
@@ -72,18 +71,31 @@ import static javax.persistence.FetchType.LAZY;
 
 @javax.persistence.Entity
 @NamedQueries({
-    @NamedQuery(name = GET_ENDPOINT_MATCHING_UUID,
-        query = "SELECT e FROM Endpoint e JOIN e.identifiers i WHERE i.durableName LIKE CONCAT('%',:uuid,'%')"),
-    @NamedQuery(name = GET_ENDPOINTS_WITH_NULL_USERNAME_BY_PROTOCOL,
-        query = "SELECT e FROM Endpoint e WHERE e.authentication.username IS NULL AND e.protocol = :protocol"),
-    @NamedQuery(name = GET_ENDPOINTS_ASSOCIATED_WITH_COMPUTER_SYSTEM_BY_PROTOCOL,
-        query = "SELECT e FROM Endpoint e WHERE e.computerSystem IS NOT NULL AND e.protocol = :protocol")
+    @NamedQuery(
+        name = GET_ENDPOINTS_WITH_NULL_USERNAME_BY_PROTOCOL,
+        query = "SELECT e FROM Endpoint e WHERE e.authentication.username IS NULL AND e.protocol = :protocol"
+    ),
+    @NamedQuery(
+        name = GET_ENDPOINTS_ASSOCIATED_WITH_COMPUTER_SYSTEM_BY_PROTOCOL,
+        query = "SELECT e FROM Endpoint e WHERE e.computerSystem IS NOT NULL AND e.protocol = :protocol"
+    ),
+    @NamedQuery(
+        name = Endpoint.GET_INITIATOR_ENDPOINT_BY_FABRIC_AND_SYSTEM,
+        query = "SELECT ce.endpoint FROM ConnectedEntity ce "
+            + "WHERE ce.entityRole =:role AND ce.endpoint.fabric.uri = :fabric AND ce.endpoint.computerSystem.uri = :system"
+    ),
+    @NamedQuery(
+        name = Endpoint.GET_INITIATOR_ENDPOINT_BY_STORAGE_SERVICE_AND_SYSTEM,
+        query = "SELECT ce.endpoint FROM ConnectedEntity ce "
+            + "WHERE ce.entityRole =:role AND ce.endpoint.fabric.storageService.uri = :ss AND ce.endpoint.computerSystem.uri = :system"
+    )
 })
 @Table(name = "endpoint")
 @EntityListeners(EndpointListener.class)
 @SuppressWarnings({"checkstyle:MethodCount", "checkstyle:ClassFanOutComplexity"})
 public class Endpoint extends DiscoverableEntity implements HasProtocol, ComposableAsset, AttachableAsset {
-    public static final String GET_ENDPOINT_MATCHING_UUID = "GET_ENDPOINT_MATCHING_UUID";
+    public static final String GET_INITIATOR_ENDPOINT_BY_FABRIC_AND_SYSTEM = "GET_INITIATOR_ENDPOINT_BY_FABRIC_AND_SYSTEM";
+    public static final String GET_INITIATOR_ENDPOINT_BY_STORAGE_SERVICE_AND_SYSTEM = "GET_INITIATOR_ENDPOINT_BY_STORAGE_SERVICE_AND_SYSTEM";
     public static final String GET_ENDPOINTS_WITH_NULL_USERNAME_BY_PROTOCOL = "GET_ENDPOINTS_WITH_NULL_USERNAME_BY_PROTOCOL";
     public static final String GET_ENDPOINTS_ASSOCIATED_WITH_COMPUTER_SYSTEM_BY_PROTOCOL = "GET_ENDPOINTS_ASSOCIATED_WITH_COMPUTER_SYSTEM_BY_PROTOCOL";
 
@@ -399,10 +411,6 @@ public class Endpoint extends DiscoverableEntity implements HasProtocol, Composa
 
     public Optional<Identifier> findIqnIdentifier() {
         return firstByPredicate(getIdentifiers(), identifier -> IQN.equals(identifier.getDurableNameFormat()));
-    }
-
-    public Optional<IpTransportDetails> findIscsiTransport() {
-        return firstByPredicate(getIpTransportDetails(), e -> ISCSI.equals(e.getTransportProtocol()));
     }
 
     public boolean isAttachable() {

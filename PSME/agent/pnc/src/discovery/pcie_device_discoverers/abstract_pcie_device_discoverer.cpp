@@ -48,10 +48,6 @@ AbstractPcieDeviceDiscoverer::oob_port_device_discovery(const gas::GlobalAddress
 
     log_debug("pnc-discovery", get_device_type_name() + " discovery: getting switch data...");
 
-    std::string fabric_uuid = m_tools.model_tool->get_fabric_uuid();
-
-    auto dsp_port = agent_framework::module::get_manager<agent_framework::model::Port>().get_entry(dsp_port_uuid);
-
     try {
 
         log_debug("pnc-discovery",
@@ -61,18 +57,13 @@ AbstractPcieDeviceDiscoverer::oob_port_device_discovery(const gas::GlobalAddress
 
         sync_device_properties_with_db(device_uuid);
 
-        auto endpoint = discover_endpoint(fabric_uuid, device_uuid);
-
-        if (!endpoint.get_connected_entities().empty()) {
-
-            std::string endpoint_uuid = add_and_stabilize_endpoint(endpoint, dsp_port, device_uuid);
-
-            update_endpoint_zone_binding(gas, endpoint_uuid, dsp_port);
-        }
+        discover_target_endpoint(gas, device_uuid, dsp_port_uuid);
 
         return true;
     }
     catch (agent::pnc::discovery::PncDiscoveryExceptionDeviceNotFound&) {
+
+        auto dsp_port = agent_framework::module::get_manager<agent_framework::model::Port>().get_entry(dsp_port_uuid);
 
         log_debug("pnc-discovery",
                   "No " + get_device_type_name() + " detected on physical port " << dsp_port.get_port_id());
@@ -136,16 +127,15 @@ AbstractPcieDeviceDiscoverer::ib_port_device_discovery(const Uuid& switch_uuid,
 
             SysfsDevice sysfsdevice = devices.front();
 
-            sysfs_device_discovery(dsp_port_uuid, device_uuid, decoder, sysfsdevice);
+            auto discovered_device_uuid = sysfs_device_discovery(dsp_port_uuid, device_uuid, decoder, sysfsdevice);
 
-            if (device_uuid.empty()) {
-
+            if (discovered_device_uuid.empty()) {
                 // no device detected but sysfs device found
                 log_warning("pnc-discovery", "Unsupported device found!");
             }
             else {
                 // normal situation
-                sysfs_discovery(device_uuid, sysfsdevice);
+                sysfs_discovery(discovered_device_uuid, sysfsdevice);
             }
         }
 
@@ -285,7 +275,7 @@ AbstractPcieDeviceDiscoverer::add_and_stabilize_endpoint(agent_framework::model:
 }
 
 
-void
+Uuid
 AbstractPcieDeviceDiscoverer::sysfs_device_discovery(const Uuid& dsp_port_uuid,
                                                      const Uuid& device_uuid,
                                                      const agent::pnc::sysfs::SysfsDecoder& decoder,
@@ -315,13 +305,16 @@ AbstractPcieDeviceDiscoverer::sysfs_device_discovery(const Uuid& dsp_port_uuid,
                                           enums::Component::PcieDevice,
                                           agent_framework::model::enums::Notification::Add,
                                           manager_uuid);
+
+    return device_uuid;
 }
 
 
-agent_framework::model::Endpoint AbstractPcieDeviceDiscoverer::discover_endpoint(const Uuid& fabric_uuid,
-                                                                                 const Uuid& device_uuid) const {
+void AbstractPcieDeviceDiscoverer::discover_target_endpoint(const gas::GlobalAddressSpaceRegisters& gas,
+                                                            const Uuid& device_uuid, const Uuid& dsp_port_uuid) const {
 
     Endpoint endpoint{};
+    std::string fabric_uuid = m_tools.model_tool->get_fabric_uuid();
 
     const auto& endpoint_discovery_mode = loader::PncConfiguration::get_instance()->get_fabric_discovery_mode();
 
@@ -332,15 +325,23 @@ agent_framework::model::Endpoint AbstractPcieDeviceDiscoverer::discover_endpoint
     }
     else {
 
-        endpoint = recreate_target_endpoint_from_db(fabric_uuid, device_uuid);
+        endpoint = recreate_target_endpoint_from_db(fabric_uuid, device_uuid, dsp_port_uuid);
     }
 
-    return endpoint;
+    if (!endpoint.get_connected_entities().empty()) {
+
+        auto dsp_port = agent_framework::module::get_manager<agent_framework::model::Port>().get_entry(dsp_port_uuid);
+
+        auto endpoint_uuid = add_and_stabilize_endpoint(endpoint, dsp_port, device_uuid);
+
+        update_endpoint_zone_binding(gas, endpoint_uuid, dsp_port);
+    }
 }
 
 
 agent_framework::model::Endpoint AbstractPcieDeviceDiscoverer::recreate_target_endpoint_from_db(const Uuid& fabric_uuid,
-                                                                                                const Uuid& device_uuid) const {
+                                                                                                const Uuid& device_uuid,
+                                                                                                const Uuid& port_uuid) const {
 
     log_debug("pnc-discovery", "Recreate target endpoint from db");
 
@@ -361,8 +362,9 @@ agent_framework::model::Endpoint AbstractPcieDeviceDiscoverer::recreate_target_e
             log_debug("pnc-discovery", "Found target endpoint in fabric db, endpoint uuid: " << endpoint_uuid);
 
             auto device_uuid_db = endpoint_db.get(db_keys::DEVICE);
+            auto endpoint_port_uuid_db = endpoint_db.get(db_keys::DEVICE_PORT);
 
-            if (device_uuid == device_uuid_db) {
+            if (device_uuid == device_uuid_db || port_uuid == endpoint_port_uuid_db) {
 
                 EndpointBuilder endpoint_builder;
                 endpoint_builder.init(fabric_uuid);

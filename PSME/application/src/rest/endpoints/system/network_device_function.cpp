@@ -24,6 +24,7 @@
 #include "psme/rest/validators/schemas/network_device_function.hpp"
 #include "agent-framework/module/requests/common.hpp"
 #include "agent-framework/module/responses/common.hpp"
+#include "psme/rest/endpoints/system/network_device_functions_collection.hpp"
 
 
 
@@ -202,8 +203,12 @@ endpoint::NetworkDeviceFunction::~NetworkDeviceFunction() {}
 void endpoint::NetworkDeviceFunction::get(const server::Request& req, server::Response& res) {
     auto json = make_prototype();
 
+    psme::rest::server::Parameters request_parameters;
+    request_parameters = utils::get_network_device_request_parameters(req.params);
+    request_parameters.set(PathParam::NETWORK_DEVICE_FUNCTION_ID, req.params.get(PathParam::NETWORK_DEVICE_FUNCTION_ID));
+
     auto function = psme::rest::model::find<agent_framework::model::System, agent_framework::model::NetworkDevice, agent_framework::model::NetworkDeviceFunction>(
-        req.params).get();
+        request_parameters).get();
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
 
@@ -278,8 +283,13 @@ void endpoint::NetworkDeviceFunction::patch(const server::Request& request, serv
     static const constexpr char TRANSACTION_NAME[] = "PatchNetworkDeviceFunction";
 
     const auto& json = JsonValidator::validate_request_body<schema::NetworkDeviceFunctionPatchSchema>(request);
+
+    psme::rest::server::Parameters request_parameters;
+    request_parameters = utils::get_network_device_request_parameters(request.params);
+    request_parameters.set(PathParam::NETWORK_DEVICE_FUNCTION_ID, request.params.get(PathParam::NETWORK_DEVICE_FUNCTION_ID));
+
     auto function = psme::rest::model::find<agent_framework::model::System, agent_framework::model::NetworkDevice, agent_framework::model::NetworkDeviceFunction>(
-        request.params).get();
+        request_parameters).get();
 
     auto gami_agent = psme::core::agent::AgentManager::get_instance()->get_agent(function.get_agent_id());
     agent_framework::model::attribute::Attributes attributes = fill_attributes(json);

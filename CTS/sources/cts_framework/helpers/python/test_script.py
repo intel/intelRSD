@@ -30,6 +30,8 @@ from traceback import format_exc
 
 from cts_core.commons.error import cts_error
 from cts_core.metadata.metadata_manager import MetadataMalformed
+from cts_framework.commons.enums import ErrorReturnCodes
+from cts_core.commons.api_caller import ApiCaller
 
 def exit(self, status=0, message=None):
     if message:
@@ -189,6 +191,29 @@ class TestScript(object):
         {"description": cls.service_description, "parameters_list": cls.service_parameter_list,
          "execute": cls.service_execute}[configuration.ACTION](configuration)
 
+
+    @classmethod
+    def _check_endpoint_connection(cls, can_run, configuration):
+        if can_run:
+            service_root = ApiCaller(configuration)
+            link, kwargs = service_root._build_request(configuration.ApiEndpoint)
+            url = link.link[:link.link.rfind("/")+1] + "redfish/v1"
+
+            response, status_code = service_root._do_request(kwargs, url,"Get")
+            if status_code in range(400, 600):
+                cts_error("{url:id} Get failed. Status code: {code}", url=url, code=status_code)
+                try:
+                    cts_error('{code} : {description}. Please check your configuration.', code=status_code,
+                              description=ErrorReturnCodes.ErrorCodes[status_code])
+                except KeyError:
+                    pass
+                return False
+            else:
+                return True
+        else:
+            return False
+
+
     @classmethod
     def __additional_configuration_types_check(cls, configuration, expected_param_type):
         configuration_vars = vars(configuration)
@@ -236,8 +261,10 @@ class TestScript(object):
     def service_execute(cls, configuration):
         print "TEST_CASE::Checking configuration"
         can_run = True
+        namespace_configuration = configuration
         can_run, configuration = cls.sanitize_configuration(can_run, configuration)
         can_run = cls.validate_configuration(can_run, configuration)
+        can_run = cls._check_endpoint_connection(can_run, namespace_configuration)
 
         if can_run:
             print "STATUS::%s" % ResultStatus.PASSED

@@ -19,6 +19,8 @@
  * */
 
 #include "psme/rest/endpoints/system/processor.hpp"
+#include "psme/rest/endpoints/chassis/pcie_device.hpp"
+#include "psme/rest/endpoints/chassis/pcie_function.hpp"
 #include "psme/rest/validators/json_validator.hpp"
 #include "psme/rest/validators/schemas/processor.hpp"
 #include "psme/rest/utils/status_helpers.hpp"
@@ -31,6 +33,7 @@
 using namespace psme::rest;
 using namespace psme::rest::constants;
 using namespace psme::rest::validators;
+using namespace psme::rest::endpoint::utils;
 
 namespace {
 
@@ -39,7 +42,7 @@ json::Json make_prototype() {
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Processor.Processor";
     r[Common::ODATA_ID] = json::Json::value_t::null;
-    r[Common::ODATA_TYPE] = "#Processor.v1_3_0.Processor";
+    r[Common::ODATA_TYPE] = "#Processor.v1_4_0.Processor";
     r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Processor";
     r[Common::DESCRIPTION] = "Processor Description";
@@ -70,36 +73,35 @@ json::Json make_prototype() {
     rackscale[Processor::INTEGRATED_MEMORY] = json::Json::value_t::array;
     rackscale[Processor::THERMAL_DESIGN_POWER_WATT] = json::Json::value_t::null;
     rackscale[Processor::FPGA] = json::Json::value_t::null;
-    rackscale[Common::METRICS] = json::Json::value_t::null;
     r[Common::OEM][Common::RACKSCALE] = std::move(rackscale);
 
-    r[Common::LINKS][Common::OEM][Common::RACKSCALE][constants::Processor::ENDPOINTS] = json::Json::value_t::array;
+    r[Common::LINKS][Common::ODATA_TYPE] = "#Processor.v1_1_0.Links";
+    r[Common::LINKS][constants::Processor::ENDPOINTS] = json::Json::value_t::array;
 
     return r;
 }
 
 
-void fill_fpga_oem(const agent_framework::model::Processor& processor, json::Json& json) {
+void fill_fpga(const agent_framework::model::Processor& processor, json::Json& json) {
     json::Json fpga = json::Json();
-    fpga[constants::Fpga::FPGA_TYPE] = processor.get_fpga().get_type();
+    add_to_json_if_has_value(fpga, constants::Fpga::TYPE, processor.get_fpga().get_type());
+    add_to_json_if_has_value(fpga, constants::Fpga::MODEL, processor.get_fpga().get_model());
+    add_to_json_if_has_value(fpga, constants::Fpga::FIRMWARE_ID, processor.get_fpga().get_firmware_id());
+    add_to_json_if_has_value(fpga, constants::Fpga::FIRMWARE_MANUFACTURER,
+                             processor.get_fpga().get_firmware_manufacturer());
+    add_to_json_if_has_value(fpga, constants::Fpga::FIRMWARE_VERSION, processor.get_fpga().get_firmware_version());
+    add_to_json_if_has_value(fpga, constants::Fpga::HOST_INTERFACE, processor.get_fpga().get_host_interface());
 
-    if (processor.get_fpga().get_model().has_value()) {
-        fpga[constants::Fpga::MODEL] = processor.get_fpga().get_model();
-    }
-    fpga[constants::Fpga::FW_ID] = processor.get_fpga().get_fw_id();
-    fpga[constants::Fpga::FW_MANUFACTURER] = processor.get_fpga().get_fw_manufacturer();
-    fpga[constants::Fpga::FW_VERSION] = processor.get_fpga().get_fw_version();
-    if (processor.get_fpga().get_host_interface().has_value()) {
-        fpga[constants::Fpga::HOST_INTERFACE] = processor.get_fpga().get_host_interface();
-    }
     fpga[constants::Fpga::EXTERNAL_INTERFACES] = processor.get_fpga().get_external_interfaces().to_json();
-    fpga[constants::Fpga::SIDEBAND_INTERFACE] = processor.get_fpga().get_sideband_interface();
-    fpga[constants::Fpga::PCIE_VIRTUAL_FUNCTIONS] = processor.get_fpga().get_pcie_virtual_functions();
+    add_to_json_if_has_value(fpga, constants::Fpga::PCIE_VIRTUAL_FUNCTIONS,
+                             processor.get_fpga().get_pcie_virtual_functions());
     fpga[constants::Fpga::PROGRAMMABLE_FROM_HOST] = processor.get_fpga().get_programmable_from_host();
-    fpga[constants::Fpga::RECONFIGURATION_SLOTS_DETAILS] = processor.get_fpga().get_reconfiguration_slots_details().to_json();
-    fpga[constants::Fpga::ERASED] = processor.get_fpga().get_erased();
-    json[Common::OEM][Common::RACKSCALE][constants::Processor::FPGA] = std::move(fpga);
+    fpga[constants::Fpga::RECONFIGURATION_SLOTS] = processor.get_fpga().get_reconfiguration_slots().to_json();
+    json[constants::Processor::FPGA] = std::move(fpga);
+}
 
+
+void fill_oem(const agent_framework::model::Processor& processor, json::Json& json) {
     for (const auto& memory : processor.get_integrated_memory()) {
         json::Json p = json::Json();
 
@@ -110,6 +112,10 @@ void fill_fpga_oem(const agent_framework::model::Processor& processor, json::Jso
     }
 
     json[Common::OEM][Common::RACKSCALE][Processor::THERMAL_DESIGN_POWER_WATT] = processor.get_tdp_watt();
+
+    if (agent_framework::model::enums::ProcessorType::FPGA == processor.get_processor_type()) {
+        json[Common::OEM][Common::RACKSCALE][constants::Processor::FPGA][constants::Fpga::ERASED] = processor.get_fpga().get_erased();
+    }
 }
 
 
@@ -173,8 +179,43 @@ void fill_endpoint_links(const agent_framework::model::Processor& processor, jso
             json::Json endpoint_link = json::Json();
             endpoint_link[Common::ODATA_ID] = psme::rest::endpoint::utils::get_component_url(
                 agent_framework::model::enums::Component::Endpoint, endpoint_uuid);
-            json[Common::LINKS][Common::OEM][Common::RACKSCALE][constants::Processor::ENDPOINTS].push_back(
+            json[Common::LINKS][constants::Processor::ENDPOINTS].push_back(
                 std::move(endpoint_link));
+        }
+    }
+}
+
+
+void fill_pcie_links(const agent_framework::model::Processor& processor, json::Json& json) {
+
+    auto& pcie_function_manager =
+        agent_framework::module::get_manager<agent_framework::model::PcieFunction>();
+    auto& pcie_device_manager =
+        agent_framework::module::get_manager<agent_framework::model::PcieDevice>();
+
+    const auto& pcie_devices_uuids = pcie_device_manager.get_keys();
+
+    for (const auto& pcie_device_uuid: pcie_devices_uuids) {
+        const auto& pcie_functions = pcie_function_manager.get_entries(pcie_device_uuid);
+        for (const auto& pcie_function: pcie_functions) {
+            if (pcie_function.get_functional_device().has_value() &&
+                pcie_function.get_functional_device() == processor.get_uuid()) {
+
+                // Add PCIeFunction
+                json::Json pcie_function_link = json::Json();
+                pcie_function_link[Common::ODATA_ID] = psme::rest::endpoint::utils::get_component_url(
+                    agent_framework::model::enums::Component::PcieFunction, pcie_function.get_uuid());
+                json[Common::LINKS][constants::Processor::PCIE_FUNCTIONS].push_back(
+                    std::move(pcie_function_link));
+
+                // Add PCIeDevice
+                json::Json pcie_device_link = json::Json();
+                pcie_device_link[Common::ODATA_ID] = psme::rest::endpoint::utils::get_component_url(
+                    agent_framework::model::enums::Component::PcieDevice, pcie_device_uuid);
+                json[Common::LINKS][constants::Processor::PCIE_DEVICE] = std::move(pcie_device_link);
+
+                break;  // We assume 1 PCIeDevice and 1 PCIeFunction
+            }
         }
     }
 }
@@ -221,22 +262,23 @@ void endpoint::Processor::get(const server::Request& req, server::Response& res)
         json[Common::OEM][Common::RACKSCALE][constants::Processor::CAPABILITIES], processor.get_capabilities());
 
     if (agent_framework::model::enums::ProcessorType::FPGA == processor.get_processor_type()) {
-        ::fill_fpga_oem(processor, json);
+        fill_fpga(processor, json);
         if (!utils::has_resource_capability(processor, Capability::COMPUTE)) {
-            ::fill_fpga_actions(req, json);
+            fill_fpga_actions(req, json);
         }
+        fill_pcie_links(processor, json);
     }
+    else if (agent_framework::model::enums::ProcessorType::CPU == processor.get_processor_type()) {
+        fill_cpu_id(processor, json);
+        json[constants::Processor::MAX_SPEED] = processor.get_max_speed_mhz();
+        json[constants::Processor::TOTAL_CORES] = processor.get_total_cores();
+        json[constants::Processor::TOTAL_THREADS] = processor.get_total_threads();
+    }
+    json[constants::Common::METRICS][Common::ODATA_ID] =
+        PathBuilder(req).append(constants::Common::METRICS).build();
 
-    ::fill_cpu_id(processor, json);
-
-    json[constants::Processor::MAX_SPEED] = processor.get_max_speed_mhz();
-    json[constants::Processor::TOTAL_CORES] = processor.get_total_cores();
-    json[constants::Processor::TOTAL_THREADS] = processor.get_total_threads();
-
-    json[Common::OEM][Common::RACKSCALE][constants::Common::METRICS][Common::ODATA_ID] =
-        PathBuilder(req).append(constants::PathParam::OEM_INTEL_RACKSCALE).append(constants::Common::METRICS).build();
-
-    ::fill_endpoint_links(processor, json);
+    fill_oem(processor, json);
+    fill_endpoint_links(processor, json);
 
     set_response(res, json);
 }

@@ -313,6 +313,7 @@ PartitionData GptPartitionTable::get_partition(unsigned id) const {
     pd.size_lba = m_gpt_table[id].last_lba - m_gpt_table[id].first_lba + 1;
 
     pd.name = m_gpt_table[id].name;
+    pd.uuid = m_gpt_table[id].guid;
 
     return pd;
 }

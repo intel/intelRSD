@@ -86,9 +86,6 @@ private:
     void set_reconfiguration_slots_details();
 
 
-    void set_sideband_interface();
-
-
     void set_type();
 
 

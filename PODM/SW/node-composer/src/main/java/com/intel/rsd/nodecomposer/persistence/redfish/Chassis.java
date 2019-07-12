@@ -49,6 +49,9 @@ public class Chassis extends DiscoverableEntity {
     @OneToMany(mappedBy = "chassis", fetch = LAZY, cascade = {MERGE, PERSIST})
     private Set<Storage> storages = new HashSet<>();
 
+    @OneToMany(mappedBy = "chassis", fetch = LAZY, cascade = {MERGE, PERSIST})
+    private Set<NetworkAdapter> networkAdapters = new HashSet<>();
+
     @ManyToMany(fetch = LAZY, cascade = {MERGE, PERSIST})
     @JoinTable(
         name = "chassis_computer_system",
@@ -251,6 +254,28 @@ public class Chassis extends DiscoverableEntity {
         }
     }
 
+    public Set<NetworkAdapter> getNetworkAdapters() {
+        return networkAdapters;
+    }
+
+    public void addNetworkAdapter(NetworkAdapter networkAdapter) {
+        requiresNonNull(networkAdapter, "networkAdapter");
+
+        networkAdapters.add(networkAdapter);
+        if (!this.equals(networkAdapter.getChassis())) {
+            networkAdapter.setChassis(this);
+        }
+    }
+
+    public void unlinkNetworkAdapter(NetworkAdapter networkAdapter) {
+        if (networkAdapters.contains(networkAdapter)) {
+            networkAdapters.remove(networkAdapter);
+            if (networkAdapter != null) {
+                networkAdapter.unlinkChassis(this);
+            }
+        }
+    }
+
     public Set<ComputerSystem> getAllComputerSystemsUnderneath() {
         return getAllComputerSystemsUnderneathChassis(this, new HashSet<>());
     }
@@ -268,6 +293,7 @@ public class Chassis extends DiscoverableEntity {
         unlinkCollection(computerSystems, this::unlinkComputerSystem);
         unlinkCollection(pcieDevices, this::unlinkPcieDevice);
         unlinkCollection(fabricSwitches, this::unlinkSwitch);
+        unlinkCollection(networkAdapters, this::unlinkNetworkAdapter);
         unlinkContainedByChassis(containedByChassis);
     }
 

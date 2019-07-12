@@ -20,17 +20,14 @@ import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.composition.allocation.ComposedNodeStateChanger;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.NodeTasksCoordinator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
 
 import static com.intel.rsd.nodecomposer.types.ComposedNodeState.ASSEMBLING;
 import static javax.transaction.Transactional.TxType.NOT_SUPPORTED;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class NodeAssembler {
     private final ComposedNodeStateChanger composedNodeStateChanger;
     private final NodeTasksCoordinator nodeTasksCoordinator;

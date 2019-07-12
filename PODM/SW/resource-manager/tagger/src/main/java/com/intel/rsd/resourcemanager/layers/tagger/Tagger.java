@@ -17,7 +17,6 @@
 package com.intel.rsd.resourcemanager.layers.tagger;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.Layer;
 import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.layers.ServiceId;
@@ -64,7 +63,7 @@ public class Tagger extends Layer {
     @Override
     @SuppressWarnings({"checkstyle:CyclomaticComplexity", "checkstyle:NPathComplexity", "checkstyle:MethodLength"})
     protected Response invokeImpl(ServiceId serviceId, String path, HttpMethod method, HttpHeaders headers, JsonNode body,
-                                  Map<QueryParameterType, String> requestParams) {
+                                  Map<String, String> requestParams) {
         List<TagDefinition> tagDefinitionsForPath = tagDefinitionsProvider.getTagDefinitionsForPath(path);
 
         if (!tagDefinitionsForPath.isEmpty()) {

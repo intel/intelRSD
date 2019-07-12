@@ -44,6 +44,8 @@
 #include "agent-framework/module/requests/network.hpp"
 #include "agent-framework/module/requests/pnc.hpp"
 #include "agent-framework/module/requests/rmm.hpp"
+#include "agent-framework/module/requests/common/get_log_service_info.hpp"
+#include "agent-framework/module/requests/common/get_log_entry_info.hpp"
 #include "configuration/configuration.hpp"
 
 
@@ -153,6 +155,15 @@ using FanHandler = GenericHandler
         IdPolicy<Component::Fan, NumberingZone::PARENT_SPACE>>;
 
 
+// aliases for sel handlers
+using LogServiceHandler = GenericHandler
+    <requests::GetLogServiceInfo, LogService,
+        IdPolicy<Component::LogService, NumberingZone::PARENT_SPACE>>;
+using LogEntryHandler = GenericHandler
+    <requests::GetLogEntryInfo, LogEntry,
+        IdPolicy<Component::LogEntry, NumberingZone::PARENT_SPACE>>;
+
+
 HandlerManager::~HandlerManager() {}
 
 
@@ -233,7 +244,11 @@ HandlerManager::HandlerManager() :
         {enums::Component::PSU,
             HandlerPtr(new PsuHandler())},
         {enums::Component::Fan,
-            HandlerPtr(new FanHandler())}
+            HandlerPtr(new FanHandler())},
+        {enums::Component::LogService,
+            HandlerPtr(new LogServiceHandler())},
+        {enums::Component::LogEntry,
+            HandlerPtr(new LogEntryHandler())}
     },
     m_collection_handlers{
         {enums::CollectionType::Systems,
@@ -349,7 +364,13 @@ HandlerManager::HandlerManager() :
                            .find(enums::Component::PSU)->second)},
         {enums::CollectionType::Fans,
             HandlerPtr(m_component_handlers
-                           .find(enums::Component::Fan)->second)}
+                           .find(enums::Component::Fan)->second)},
+        {enums::CollectionType::LogServices,
+            HandlerPtr(m_component_handlers
+                           .find(enums::Component::LogService)->second)},
+         {enums::CollectionType::LogEntries,
+            HandlerPtr(m_component_handlers
+                           .find(enums::Component::LogEntry)->second)}
     } {}
 
 

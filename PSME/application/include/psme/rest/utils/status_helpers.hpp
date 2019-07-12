@@ -59,7 +59,7 @@ public:
      * @return Health Rollup optional
      */
     agent_framework::module::utils::OptionalField<agent_framework::model::enums::Health> get(
-        const std::string& uuid,
+        const Uuid& uuid,
         const Component filter = Component::None) {
 
         my_uuid = uuid;
@@ -122,11 +122,13 @@ protected:
  * @param v the json value sent as a GET response
  */
 template <typename T>
-void status_to_json(const T& resource, json::Json& v) {
+void status_to_json(const T& resource, json::Json& v, bool calculate_rollup = true) {
     auto& status = resource.get_status();
     v[constants::Common::STATUS][constants::Common::STATE] = status.get_state().to_string();
     v[constants::Common::STATUS][constants::Common::HEALTH] = status.get_health();
-    v[constants::Common::STATUS][constants::Common::HEALTH_ROLLUP] = HealthRollup<T>().get(resource.get_uuid());
+    if (calculate_rollup) {
+        v[constants::Common::STATUS][constants::Common::HEALTH_ROLLUP] = HealthRollup<T>().get(resource.get_uuid());
+    }
 }
 
 }

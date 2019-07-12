@@ -44,6 +44,7 @@ json::Json make_prototype() {
     r[Common::NAME] = "CapacitySource";
     r[Common::DESCRIPTION] = "Capacity Source description";
 
+    r[Swordfish::PROVIDED_CAPACITY][Common::ODATA_TYPE] = "#Capacity.v1_0_0.Capacity";
     r[Swordfish::PROVIDED_CAPACITY][Data::DATA][Data::ALLOCATED_BYTES] = json::Json::value_t::null;
     r[Swordfish::PROVIDED_CAPACITY][Data::DATA][Data::CONSUMED_BYTES] = json::Json::value_t::null;
     r[Swordfish::PROVIDED_CAPACITY][Data::DATA][Data::GUARANTEED_BYTES] = json::Json::value_t::null;

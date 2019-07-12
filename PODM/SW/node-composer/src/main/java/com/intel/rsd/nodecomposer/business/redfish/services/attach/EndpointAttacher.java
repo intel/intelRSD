@@ -17,14 +17,16 @@
 package com.intel.rsd.nodecomposer.business.redfish.services.attach;
 
 import com.intel.rsd.nodecomposer.business.Violations;
+import com.intel.rsd.nodecomposer.business.redfish.services.helpers.AttachActionValidator;
+import com.intel.rsd.nodecomposer.business.redfish.services.helpers.TargetEndpointFinder;
 import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
 import com.intel.rsd.nodecomposer.persistence.redfish.Endpoint;
 import com.intel.rsd.nodecomposer.persistence.redfish.Fabric;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.AttachableAsset;
-import com.intel.rsd.nodecomposer.persistence.redfish.base.ConnectedEntity;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
 import com.intel.rsd.nodecomposer.types.Protocol;
+import lombok.val;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -39,6 +41,12 @@ import static com.intel.rsd.nodecomposer.types.EntityRole.TARGET;
 @SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public class EndpointAttacher extends Attacher<Endpoint> {
 
+    public EndpointAttacher(AttachActionValidator<Endpoint> attachActionValidator, TargetEndpointFinder targetEndpointFinder,
+                            RemoteAttacher remoteAttacher, LocalAttacher localAttacher) {
+
+        super(attachActionValidator, targetEndpointFinder, remoteAttacher, localAttacher);
+    }
+
     @Override
     protected Fabric retrieveFabricFromAsset(Endpoint endpoint) {
         return endpoint.getFabric();
@@ -51,9 +59,9 @@ public class EndpointAttacher extends Attacher<Endpoint> {
 
     @Override
     public Violations getAssetSpecificViolations(ComposedNode composedNode, Endpoint endpoint) {
-        Violations violations = new Violations();
+        val violations = new Violations();
 
-        Set<ConnectedEntity> connectedEntities = endpoint.getConnectedEntities();
+        val connectedEntities = endpoint.getConnectedEntities();
         if (connectedEntities == null || connectedEntities.isEmpty()) {
             violations.addViolation("Selected Endpoint should have at least one ConnectedEntity.");
         }
@@ -79,7 +87,7 @@ public class EndpointAttacher extends Attacher<Endpoint> {
     }
 
     private Stream<AttachableAsset> collectEndpointRelatedAssets(Endpoint endpoint) {
-        Set<AttachableAsset> endpointRelatedAssets = new HashSet<>(endpoint.getProcessors());
+        val endpointRelatedAssets = new HashSet<AttachableAsset>(endpoint.getProcessors());
         endpointRelatedAssets.addAll(endpoint.getVolumes());
         endpointRelatedAssets.addAll(endpoint.getDrives());
         return endpointRelatedAssets.stream();

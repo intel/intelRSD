@@ -51,7 +51,9 @@ ENUM(PortEvent, unsigned,
     DeviceNotFound,               // Device presence initialization event, no devices are present on the port
     DeviceUnbound,                // Update event, previously bound port was unbound
     DeviceHotPlugged,             // Update event, hotplug detected
-    DeviceHotUnplugged            // Update event, hotunplug detected
+    DeviceHotUnplugged,           // Update event, hotunplug detected
+    ModelBindingNotDetected,      // Synchronization event, binding from model does not exists on switch
+    IllegalBindingDetected        // Synchronization event, binding on switch is illegal (does not exist in model)
 );
 
 /*! Declaration of the PortStateMachine class */

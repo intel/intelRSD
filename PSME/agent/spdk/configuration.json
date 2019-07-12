@@ -14,7 +14,7 @@
     },
     "managers": [
         {
-            "nic-drivers": [ "e1000", "ixgbe", "i40e", "mlx5_core", "mlx4_core" ],
+            "nic-drivers": [ "ixgbe", "i40e", "mlx5_core", "mlx4_core" ],
             "spdk-socket": "/var/tmp/spdk.sock",
             "spdk-polling-interval-sec": 300,
             "service-port": 4420

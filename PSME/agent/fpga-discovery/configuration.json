@@ -28,7 +28,7 @@
     "loggers" : [
         {
             "name" : "fpga-discovery-agent",
-            "level" : "DEBUG",
+            "level" : "INFO",
             "timeformat" : "DATE_NS",
             "color" : true,
             "output" : true,

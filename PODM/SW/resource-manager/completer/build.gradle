@@ -15,20 +15,20 @@
  */
 
 dependencies {
-    compileOnly project(":layer")
-    compileOnly project(":common")
-    compileOnly("com.intel.rsd:podm-common:${podmCommonVersion}")
-    compileOnly("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
+    implementation project(":layer")
+    implementation project(":common")
+    implementation("com.intel.rsd:podm-common:${podmCommonVersion}")
+    implementation("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
-    testCompile project(":layer")
-    testCompile project(":common")
+    testImplementation project(":layer")
+    testImplementation project(":common")
 
-    testCompile("org.testng:testng")
-    testCompile("org.assertj:assertj-core:${assertjVersion}")
-    testCompile("org.mockito:mockito-all:${mockitoVersion}")
-    testCompile("com.intel.rsd:podm-common:${podmCommonVersion}")
+    testImplementation("org.testng:testng:${testNGVersion}")
+    testImplementation("org.assertj:assertj-core:${assertjVersion}")
+    testImplementation("org.mockito:mockito-all:${mockitoVersion}")
+    testImplementation("com.intel.rsd:podm-common:${podmCommonVersion}")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
 }

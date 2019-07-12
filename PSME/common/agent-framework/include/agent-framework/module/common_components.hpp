@@ -62,6 +62,10 @@ public:
     using PcieFunctionManager = GenericManager<model::PcieFunction>;
     using ZoneEndpointManager = managers::ManyToManyManager;
     using StorageServiceDrivesManager = managers::ManyToManyManager;
+    using ProcessorProcessorManager = managers::ManyToManyManager;
+    using LogServiceManager = GenericManager<model::LogService>;
+    using LogEntryManager = GenericManager<model::LogEntry>;
+
 
     virtual ~CommonComponents();
 
@@ -105,6 +109,7 @@ public:
         return m_task_manager;
     }
 
+
     /*!
      * Get metric manager
      *
@@ -114,6 +119,7 @@ public:
         return m_metric_manager;
     }
 
+
     /*!
      * Get metric definition manager
      *
@@ -122,6 +128,7 @@ public:
     MetricDefinitionManager& get_metric_definition_manager() {
         return m_metric_definition_manager;
     }
+
 
     /*!
      * @brief Get network interface manager
@@ -140,6 +147,7 @@ public:
         return m_storage_subsystem_manager;
     }
 
+
     /*!
      * @brief Get StorageService Drives manager
      * @return Reference to a storage service drives manager
@@ -147,7 +155,6 @@ public:
     StorageServiceDrivesManager& get_storage_service_drives_manager() {
         return m_storage_service_drives_manager;
     }
-
 
 
     /*!
@@ -176,6 +183,7 @@ public:
         return m_storage_pool_volumes_manager;
     }
 
+
     /*!
      * @brief Get processor manager
      * @return Instance of processor manager
@@ -183,6 +191,7 @@ public:
     ProcessorManager& get_processor_manager() {
         return m_processor_manager;
     }
+
 
     /*!
      * Get fabric manager
@@ -193,6 +202,7 @@ public:
         return m_fabric_manager;
     }
 
+
     /*!
      * @brief Get manager for Zones
      * @return manager for Zones
@@ -200,6 +210,7 @@ public:
     ZoneManager& get_zone_manager() {
         return m_zone_manager;
     }
+
 
     /*!
      * @brief Get manager for Endpoints
@@ -209,6 +220,7 @@ public:
         return m_endpoint_manager;
     }
 
+
     /*!
      * @brief Get manager for PcieDevices
      * @return manager for PcieDevices
@@ -216,6 +228,7 @@ public:
     PcieDeviceManager& get_pcie_device_manager() {
         return m_pcie_device_manager;
     }
+
 
     /*!
      * @brief Get manager for PcieFunctions
@@ -225,6 +238,7 @@ public:
         return m_pcie_function_manager;
     }
 
+
     /*!
      * @brief Get manager for Zone-Endpoint mappings
      * @return manager for Zone-Endpoint mappings
@@ -233,6 +247,32 @@ public:
         return m_zone_endpoint_manager;
     }
 
+
+    /*!
+     * @brief Get manager for Processor-Processor mappings
+     * @return manager for Processor-Processor mappings
+     * */
+    ProcessorProcessorManager& get_processor_processor_manager() {
+        return m_processor_processor_manager;
+    }
+
+
+    /*!
+     * @brief Get manager for LogServices
+     * @return manager for LogServices
+     * */
+    LogServiceManager& get_log_service_manager() {
+        return m_log_service_manager;
+    }
+
+
+    /*!
+     * @brief Get manager for LogEntries
+     * @return manager for LogEntries
+     * */
+    LogEntryManager& get_log_entry_manager() {
+        return m_log_entry_manager;
+    }
 
 private:
     ModuleManager m_module_manager{};
@@ -254,6 +294,9 @@ private:
     PcieDeviceManager m_pcie_device_manager{};
     PcieFunctionManager m_pcie_function_manager{};
     ZoneEndpointManager m_zone_endpoint_manager{};
+    ProcessorProcessorManager m_processor_processor_manager{};
+    LogServiceManager m_log_service_manager{};
+    LogEntryManager m_log_entry_manager{};
 };
 
 }

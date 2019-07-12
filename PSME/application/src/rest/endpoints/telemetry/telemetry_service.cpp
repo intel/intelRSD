@@ -28,9 +28,9 @@ namespace {
 json::Json make_prototype() {
     json::Json r(json::Json::value_t::object);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Intel_RackScale.TelemetryService.TelemetryService";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#TelemetryService.TelemetryService";
     r[Common::ODATA_ID] = json::Json::value_t::null;
-    r[Common::ODATA_TYPE] = "#Intel_RackScale.TelemetryService.v1_0_0.TelemetryService";
+    r[Common::ODATA_TYPE] = "#TelemetryService.v1_1_0.TelemetryService";
     r[Common::ID] = "TelemetryService";
     r[Common::NAME] = "Telemetry Service";
 
@@ -39,7 +39,6 @@ json::Json make_prototype() {
     r[Common::STATUS][Common::HEALTH_ROLLUP] = "OK";
 
     r[TelemetryService::METRIC_DEFINITIONS][Common::ODATA_ID] = endpoint::PathBuilder(PathParam::BASE_URL)
-        .append(PathParam::OEM_INTEL_RACKSCALE)
         .append(Root::TELEMETRY_SERVICE)
         .append(TelemetryService::METRIC_DEFINITIONS).build();
 

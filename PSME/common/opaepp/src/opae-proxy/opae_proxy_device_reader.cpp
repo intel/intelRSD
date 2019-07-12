@@ -79,43 +79,26 @@ void read_optional_string(OptionalField<std::string>& property,
 }
 
 
-DeviceReader& OpaeProxyDeviceReader::read_devices() {
-    uint32_t devices_count;
-
-    auto result = fpgaofEnumerate(m_proxy_context->get_backend(), NULL, 0, NULL, 0, &devices_count);
-    OpaeApiError::throw_if_unexpected_result(result, "fpgaofEnumerate", "Could not get number of devices");
-
-    FpgaUniqueKeyToTokenMap fpga_unique_key_to_token_map;
-    std::vector<fpga_token> tokens(devices_count);
-    result = fpgaofEnumerate(m_proxy_context->get_backend(), NULL, 0, tokens.data(), devices_count, &devices_count);
-    OpaeApiError::throw_if_unexpected_result(result, "fpgaofEnumerate", "Could not get tokens for device discovery");
-
-    for (auto& token : tokens) {
-        try {
-            auto device = discover(token);
-            auto fpga_unique_key = device.get_pci_address();
-            fpga_unique_key_to_token_map[fpga_unique_key] = token;
-            m_devices.emplace_back(std::move(device));
-        }
-        catch (const OpaeppError& ex) {
-            log_error("opaepp", "Could not read OPAE device: " << ex.what());
-        }
-
-        fpgaofDestroyToken(m_proxy_context->get_backend(), &token);
-    }
-    m_proxy_context->set_enumerated_devices_mapping(fpga_unique_key_to_token_map);
-    return *this;
-}
-
-
-DeviceReader& OpaeProxyDeviceReader::read_devices(const PcieDeviceAddress& pcie_device_address) {
+OpaeProxyDeviceReader::Devices OpaeProxyDeviceReader::get_devices() {
 
     // properties section:
 
-    fpga_properties properties;
+    fpga_properties properties = nullptr;
+
+    // enumeration section:
+
+    return read_devices(properties, true);
+}
+
+
+OpaeProxyDeviceReader::Devices OpaeProxyDeviceReader::get_devices(const PcieDeviceAddress& pcie_device_address) {
+
+    // properties section:
+
+    fpga_properties properties{};
     auto backend_ptr = m_proxy_context->get_backend();
 
-    auto result = fpgaofGetProperties(backend_ptr, NULL, &properties);
+    auto result = fpgaofGetProperties(backend_ptr, nullptr, &properties);
     OpaeApiError::throw_if_unexpected_result(result, "fpgaofGetProperties");
 
     result = fpgaofPropertiesSetBus(backend_ptr, properties, pcie_device_address.m_bus_num);
@@ -125,34 +108,35 @@ DeviceReader& OpaeProxyDeviceReader::read_devices(const PcieDeviceAddress& pcie_
     result = fpgaofPropertiesSetFunction(backend_ptr, properties, pcie_device_address.m_func_num);
     OpaeApiError::throw_if_unexpected_result(result, "fpgaofPropertiesSetFunction");
 
+    // enumeration section::
+
+    return read_devices(properties);
+}
+
+
+OpaeProxyDeviceReader::Devices OpaeProxyDeviceReader::get_devices(const PcieDeviceAddress& pcie_device_address,
+                                                                  fpga_objtype obj_type) {
+
+    // properties section:
+
+    fpga_properties properties{};
+    auto backend_ptr = m_proxy_context->get_backend();
+
+    auto result = fpgaofGetProperties(backend_ptr, nullptr, &properties);
+    OpaeApiError::throw_if_unexpected_result(result, "fpgaofGetProperties");
+
+    result = fpgaofPropertiesSetBus(backend_ptr, properties, pcie_device_address.m_bus_num);
+    OpaeApiError::throw_if_unexpected_result(result, "fpgaofPropertiesSetBus");
+    result = fpgaofPropertiesSetDevice(backend_ptr, properties, pcie_device_address.m_device_num);
+    OpaeApiError::throw_if_unexpected_result(result, "fpgaofPropertiesSetDevice");
+    result = fpgaofPropertiesSetFunction(backend_ptr, properties, pcie_device_address.m_func_num);
+    OpaeApiError::throw_if_unexpected_result(result, "fpgaofPropertiesSetFunction");
+    result = fpgaofPropertiesSetObjectType(backend_ptr, properties, obj_type);
+    OpaeApiError::throw_if_unexpected_result(result, "fpgaofPropertiesSetObjectType");
 
     // enumeration section::
 
-    uint32_t devices_count;
-    result = fpgaofEnumerate(m_proxy_context->get_backend(), &properties, 1, NULL, 0, &devices_count);
-    OpaeApiError::throw_if_unexpected_result(result, "fpgaofEnumerate", "Could not get number of devices");
-
-    std::vector<fpga_token> tokens(devices_count);
-    result = fpgaofEnumerate(m_proxy_context->get_backend(), &properties, 1, tokens.data(), devices_count,
-                             &devices_count);
-    OpaeApiError::throw_if_unexpected_result(result, "fpgaofEnumerate", "Could not get tokens for device discovery");
-
-    for (auto& token : tokens) {
-
-        try {
-            Device device = discover(token);
-            m_devices.emplace_back(std::move(device));
-        }
-        catch (const OpaeppError& ex) {
-            log_error("opaepp", "Could not read OPAE device: " << ex.what());
-        }
-        fpgaofDestroyToken(m_proxy_context->get_backend(), &token);
-    }
-
-    fpgaDestroyProperties(&properties);
-    OpaeApiError::throw_if_unexpected_result(result, "fpgaDestroyProperties");
-
-    return *this;
+    return read_devices(properties);
 }
 
 
@@ -160,6 +144,78 @@ Device OpaeProxyDeviceReader::discover(fpga_token& token) {
     Device device;
     read_properties(device, token);
     return device;
+}
+
+
+OpaeProxyDeviceReader::Devices OpaeProxyDeviceReader::read_devices(fpga_properties& properties,
+                                                                   bool key_to_token_mapping) {
+
+    fpga_result result{};
+    uint32_t devices_count{};
+    std::vector<fpga_token> tokens{};
+
+    if (properties) {
+
+        result = fpgaofEnumerate(m_proxy_context->get_backend(), &properties, 1, NULL, 0, &devices_count);
+
+        OpaeApiError::throw_if_unexpected_result(result, "fpgaofEnumerate", "Could not get number of devices");
+
+        tokens.resize(devices_count);
+
+        result = fpgaofEnumerate(m_proxy_context->get_backend(), &properties, 1, tokens.data(),
+                                 devices_count, &devices_count);
+    }
+    else {
+
+        result = fpgaofEnumerate(m_proxy_context->get_backend(), NULL, 0, NULL, 0, &devices_count);
+
+        OpaeApiError::throw_if_unexpected_result(result, "fpgaofEnumerate", "Could not get number of devices");
+
+        tokens.resize(devices_count);
+
+        result = fpgaofEnumerate(m_proxy_context->get_backend(), NULL, 0, tokens.data(),
+                                 devices_count, &devices_count);
+    }
+
+    OpaeApiError::throw_if_unexpected_result(result, "fpgaofEnumerate", "Could not get tokens for device discovery");
+
+    Devices devices{};
+    devices.reserve(tokens.size());
+
+    FpgaUniqueKeyToTokenMap fpga_unique_key_to_token_map{};
+
+    for (auto& token : tokens) {
+
+        try {
+            Device device = discover(token);
+
+            if (key_to_token_mapping) {
+                if (device.get_device_type() == FPGA_DEVICE) {
+                    fpga_unique_key_to_token_map.insert(std::make_pair(device.get_pci_address(), token));
+                }
+            }
+
+            devices.emplace_back(std::move(device));
+        }
+        catch (const OpaeppError& ex) {
+            log_error("opaepp", "Could not read OPAE device: " << ex.what());
+        }
+
+        result = fpgaofDestroyToken(m_proxy_context->get_backend(), &token);
+        OpaeApiError::throw_if_unexpected_result(result, "fpgaofDestroyToken", "Could not destroy token");
+    }
+
+    if (properties) {
+
+        result = fpgaDestroyProperties(&properties);
+        OpaeApiError::throw_if_unexpected_result(result, "fpgaDestroyProperties", "Could not destroy properties");
+    }
+
+    if (key_to_token_mapping) {
+        m_proxy_context->set_enumerated_devices_mapping(fpga_unique_key_to_token_map);
+    }
+
+    return devices;
 }
 
 

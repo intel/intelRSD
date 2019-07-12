@@ -48,7 +48,6 @@ BUILD_ALL="all"
 CLEAN=false
 UNIT_TEST_PREFIX="unittest"
 TARGET_SUBDIRECTORIES=("agent" "agent-stubs" "application" "encrypter" "common" "devtools")
-VERSION_REGEXP="^[0-9]+(\.[0-9]+){2,4}$"
 
 # POSSIBLE CONFIGURATIONS
 POSSIBLE_BUILD_TYPES=("debug" "release" "coverage" "asanitize" "tsanitize")
@@ -129,7 +128,7 @@ function usage() {
     echo "      -s | --style: Run style check. Default: ${DEFAULT_STYLE_CHECK}."
     echo "      -x | --suffix : Adds a suffix to the build path. By default, path is as follows: BUILD_PATH=build.\${BUILD_TYPE}.\${COMPILER}.\${ARCHITECTURE}bit. The suffix is added at the end: \${BUILD_PATH}.\${SUFFIX}."
     echo "      -u | --unit-tests: Run unit tests associated with the given targets. Default: ${DEFAULT_UNIT_TESTS}."
-    echo "      -v | --version: Set the build branch and version of the build. Possible build branches: [${POSSIBLE_BRANCHES[*]}]. The following version number is matched by regex to be v.v.v or v.v.v.v. Default: branch ${DEFAULT_BUILD_BRANCH}, no version."
+    echo "      -v | --version: Set the build branch and version of the build. Possible build branches: [${POSSIBLE_BRANCHES[*]}]. Default: branch ${DEFAULT_BUILD_BRANCH}, no version."
     echo "      -d | --download: download thirdparty files, ON-always, OFF-never, otherwise download missing"
     echo "      -D | --define [OPTION]: add a flag/option to pass to cmake. Options from \${OPTIONS} env variable are passed as well"
     echo "      -C | --clean: rebuild from the scratch"
@@ -359,11 +358,6 @@ function prepare {
 
         if [[ $BRANCH_FOUND == "$NOT_FOUND" ]] ; then
             echo "Unknown branch $BUILD_BRANCH detected, exiting..."
-            exit 1
-        fi
-
-        if ! [[ $BUILD_VERSION =~ $VERSION_REGEXP ]] ; then
-            echo "Invalid version $BUILD_VERSION detected, exiting..."
             exit 1
         fi
     fi

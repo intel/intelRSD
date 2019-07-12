@@ -64,7 +64,7 @@ class MetadataDiffAction(Action):
         self.parser.add_argument("-q", "--qualifiers", type=str, nargs="*")
 
     def process_action(self, configuration):
-        print "Using CTS in version %s" % (ColorPrinter.format_text(BuildInformation.BUILD_VERSION, bold=True))
+        print "Using CTS in version %s" % (ColorPrinter.format_text(BuildInformation.get_version(), bold=True))
         print "\nComparing...\n\n"
 
         with ErrorMute():

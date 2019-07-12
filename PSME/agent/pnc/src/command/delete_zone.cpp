@@ -31,6 +31,8 @@
 #include "tools/database_keys.hpp"
 #include "agent-framework/database/database_entities.hpp"
 
+
+
 using namespace agent_framework::command;
 using namespace agent_framework::module;
 using namespace agent_framework::model;
@@ -51,6 +53,7 @@ void remove_zone_from_model_and_db(const Uuid& zone_uuid) {
 
     log_debug("pnc-gami", "Zone removed from model, zone uuid: " << zone_uuid);
 }
+
 
 void unbind_endpoints(const attribute::Array<std::string>& endpoint_uuids, const std::string& zone_uuid) {
 
@@ -93,41 +96,47 @@ void delete_zone(const DeleteZone::Request& request, DeleteZone::Response& respo
 
     log_info("pnc-gami", "Deleting endpoints from zone.");
 
-    auto response_builder = []() -> json::Json {
-        DeleteZone::Response res{};
-        return res.to_json();
-    };
+    if (Zone::is_initiator_in_zone(zone_uuid) && Zone::is_target_in_zone(zone_uuid)) {
+        auto response_builder = []() -> json::Json {
+            DeleteZone::Response res{};
+            return res.to_json();
+        };
 
-    auto exception_builder = [](const agent_framework::exceptions::GamiException& exception) {
-        return agent_framework::exceptions::PncError("Could not unbind endpoint. " + exception.get_message());
-    };
+        auto exception_builder = [](const agent_framework::exceptions::GamiException& exception) {
+            return agent_framework::exceptions::PncError("Could not unbind endpoint. " + exception.get_message());
+        };
 
-    agent_framework::action::TaskCreator task_creator{};
-    task_creator.prepare_task();
+        agent_framework::action::TaskCreator task_creator{};
+        task_creator.prepare_task();
 
-    auto initiator_counter = std::count_if(endpoints_uuids.begin(), endpoints_uuids.end(),
-                                           [](const Uuid& endpoint_uuid) {
-                                               return Endpoint::is_initiator(endpoint_uuid);
-                                           });
+        auto initiator_counter = std::count_if(endpoints_uuids.begin(), endpoints_uuids.end(),
+                                               [](const Uuid& endpoint_uuid) {
+                                                   return Endpoint::is_initiator(endpoint_uuid);
+                                               });
 
     if (initiator_counter) {
-
         task_creator.add_subtask(std::bind(unbind_endpoints, endpoints_uuids, zone_uuid));
     }
 
     task_creator.add_subtask(std::bind(remove_endpoints_from_zone_model, endpoints_uuids, zone_uuid));
-    task_creator.add_postrun_action(std::bind(remove_zone_from_model_and_db, zone_uuid));
+    task_creator.add_subtask(std::bind(remove_zone_from_model_and_db, zone_uuid));
 
-    task_creator.set_promised_error_thrower(exception_builder);
-    task_creator.set_promised_response(response_builder);
+        task_creator.set_promised_error_thrower(exception_builder);
+        task_creator.set_promised_response(response_builder);
 
-    task_creator.register_task();
-    auto task = task_creator.get_task();
-    agent_framework::action::TaskRunner::get_instance().run(task);
+        task_creator.register_task();
+        auto task = task_creator.get_task();
+        agent_framework::action::TaskRunner::get_instance().run(task);
 
-    log_info("pnc-agent", "Endpoint unbinding started.");
+        log_info("pnc-agent", "Endpoint unbinding started.");
 
-    response.set_task(task_creator.get_task_resource().get_uuid());
+        response.set_task(task_creator.get_task_resource().get_uuid());
+    }
+    else {
+        /* no need to unbind so do not create task - take actions immediately */
+        remove_endpoints_from_zone_model(endpoints_uuids, zone_uuid);
+        remove_zone_from_model_and_db(zone_uuid);
+    }
 }
 }
 

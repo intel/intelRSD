@@ -36,7 +36,7 @@ namespace utils {
  *
  * @return Timestamp string
  * */
-const std::string make_iso_8601_timestamp();
+const std::string make_iso_8601_timestamp(time_t raw_time = time(nullptr));
 
 }
 }

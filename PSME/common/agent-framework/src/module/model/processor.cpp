@@ -60,6 +60,7 @@ json::Json Processor::to_json() const {
     result[literals::Processor::THERMAL_DESIGN_POWER_WATT] = get_tdp_watt();
     result[literals::Processor::FPGA] = get_fpga().to_json();
     result[literals::Processor::OEM] = get_oem().to_json();
+    result[literals::Processor::COLLECTIONS] = get_collections().to_json();
 
     return result;
 }
@@ -87,6 +88,7 @@ Processor Processor::from_json(const json::Json& json) {
     processor.set_tdp_watt(json[literals::Processor::THERMAL_DESIGN_POWER_WATT]);
     processor.set_fpga(attribute::Fpga::from_json(json[literals::Processor::FPGA]));
     processor.set_oem(attribute::Oem::from_json(json[literals::Processor::OEM]));
+    processor.set_collections(Collections::from_json(json[literals::Processor::COLLECTIONS]));
 
     return processor;
 }

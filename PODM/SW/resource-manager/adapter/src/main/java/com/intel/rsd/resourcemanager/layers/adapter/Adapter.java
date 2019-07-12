@@ -18,7 +18,6 @@ package com.intel.rsd.resourcemanager.layers.adapter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.Layer;
 import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.layers.ServiceId;
@@ -51,7 +50,7 @@ public class Adapter extends Layer {
 
     @Override
     protected Response invokeImpl(ServiceId serviceId, String path, HttpMethod method, HttpHeaders headers, JsonNode body,
-                                  Map<QueryParameterType, String> requestParams) {
+                                  Map<String, String> requestParams) {
         val response = passToNextLayer(serviceId, path, method, headers, body, requestParams);
         val responseBody = (ObjectNode) response.getBody();
 

@@ -1,6 +1,6 @@
-FROM alpine:3.7
+FROM alpine:3.9
 RUN apk add --update --no-cache \
-        dhcp=4.3.5-r0 python3=3.6.5-r0
+        dhcp>=4.4.1-r1 python3>=3.6.8-r2
 
 #TODO: DHCP configuration could be different on different nodes?
 
@@ -12,3 +12,4 @@ RUN touch /var/lib/dhcp/dhcpd.leases
 
 EXPOSE 67/udp
 ENTRYPOINT ["/app/entrypoint.sh"]
+

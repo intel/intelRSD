@@ -22,6 +22,7 @@
   <edmx:DataServices>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOPerformanceLineOfService">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="IOPerformanceLineOfService" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="Describe data protection capabilities"/>
         <Annotation
@@ -31,7 +32,7 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOPerformanceLineOfService.v1_0_0">
-
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="IOPerformanceLineOfService" BaseType="IOPerformanceLineOfService.IOPerformanceLineOfService">
         <Annotation Term="OData.Description" String="Describe service option within the IO performance line of service."/>
         <Annotation Term="OData.LongDescription" String="This structure may be used to define a service option related to IO performance."/>
@@ -72,7 +73,15 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOPerformanceLineOfService.v1_0_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.Description" String="Change references to unversioned. "/>
+      <EntityType Name="IOPerformanceLineOfService" BaseType="IOPerformanceLineOfService.v1_0_0.IOPerformanceLineOfService"/>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOPerformanceLineOfService.v1_0_2">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="IOPerformanceLineOfService" BaseType="IOPerformanceLineOfService.v1_0_1.IOPerformanceLineOfService"/>
     </Schema>
 
   </edmx:DataServices>

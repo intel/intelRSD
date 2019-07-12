@@ -250,6 +250,13 @@ public:
      */
     virtual OptionalField<std::uint8_t> get_partition_id_by_zone(const agent::pnc::gas::GlobalAddressSpaceRegisters& gas, const Uuid& zone_uuid) const;
 
+
+    /*!
+     * @brief Gets Global Address Space Registers
+     * @param switch_uuid Uuid of the PCI switch
+     * @return Global Address Space Registers object for the PCI switch
+     */
+    virtual gas::GlobalAddressSpaceRegisters get_gas(const Uuid& switch_uuid);
 };
 
 using GasToolPtr = std::shared_ptr<GasTool>;

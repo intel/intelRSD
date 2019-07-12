@@ -26,7 +26,7 @@ extern const char ENDPOINT_NQN_PROPERTY[];
 extern const char ENDPOINT_ROLE_PROPERTY[];
 extern const char ZONE_ENDPOINTS_PROPERTY[];
 
-extern const char RDMA_PORT_PROPERTY[];
+extern const char PORT_PROPERTY[];
 extern const char UUID_PROPERTY[];
 extern const char IPV4_PROPERTY[];
 extern const char FPGA_DEVICE_UUID_PROPERTY[];

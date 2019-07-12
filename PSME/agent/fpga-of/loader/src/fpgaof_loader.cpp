@@ -18,6 +18,7 @@
 
 #include "loader/fpgaof_loader.hpp"
 #include "logger/logger.hpp"
+#include "utils.hpp"
 
 
 
@@ -107,6 +108,13 @@ void check_required_fields(const json::Json& config) {
 		if (transport_protocol != "TCP" && transport_protocol != "RDMA") {
 			throw std::runtime_error("Allowable values in each entry in 'opae-proxy:transports:protocol' are 'TCP' or 'RDMA'.");
 		}
+
+		if (transport_protocol == "RDMA") {
+		    bool rdma_supported = agent::fpgaof::utils::is_rdma_supported_for_address(transport["ipv4"]);
+		    if (!rdma_supported) {
+                throw std::runtime_error("'opae-proxy:transports:protocol' field has 'RDMA' value, but the interface with IP address '" + transport["ipv4"].get<std::string>() + "' doesn't support RDMA.");
+		    }
+		}
 	}
 
 	if (!opae_proxy_prop.count("secureEraseGBS") ||
@@ -140,10 +148,6 @@ void check_required_fields(const json::Json& config) {
         if (!manager.count("ipv4") || !manager["ipv4"].is_string()) {
             throw std::runtime_error("Each entry in manager must have 'ipv4' field.");
         }
-        if (!manager.count("nic-drivers") || !manager["nic-drivers"].is_array()) {
-            throw std::runtime_error("Each entry in manager must have "
-                                         "'nic-drivers' field of type: array.");
-        }
         if (!manager.count("locationOffset") || !manager["locationOffset"].is_number()) {
             throw std::runtime_error("Each entry in manager must have "
                                          "'locationOffset' field.");
@@ -156,19 +160,14 @@ void check_required_fields(const json::Json& config) {
 }
 
 
-void load_manager(std::shared_ptr<FpgaofConfiguration> configuration, const json::Json& manager_json) {
-    configuration->set_ipv4_address(manager_json["ipv4"].get<std::string>());
+void load_manager(FpgaofConfiguration& configuration, const json::Json& manager_json) {
+    configuration.set_ipv4_address(manager_json["ipv4"].get<std::string>());
     std::vector<std::string> drivers{};
-    for (const auto& driver : manager_json["nic-drivers"]) {
-        drivers.push_back(driver.get<std::string>());
-    }
-    configuration->set_nic_drivers(drivers);
-    configuration->set_location_offset(manager_json["locationOffset"].get<std::uint32_t>());
-    configuration->set_parent_id(manager_json["parentId"].get<std::string>());
-    configuration->set_rdma_port(manager_json["rdma-port"].get<std::uint32_t>());
+    configuration.set_location_offset(manager_json["locationOffset"].get<std::uint32_t>());
+    configuration.set_parent_id(manager_json["parentId"].get<std::string>());
 }
 
-void load_managers(std::shared_ptr<FpgaofConfiguration> configuration, const json::Json& config) {
+void load_managers(FpgaofConfiguration& configuration, const json::Json& config) {
     auto& managers_array = config["managers"];
 
     for (const auto& manager_json : managers_array) {
@@ -178,7 +177,7 @@ void load_managers(std::shared_ptr<FpgaofConfiguration> configuration, const jso
     }
 }
 
-void load_opae_proxy_transports(std::shared_ptr<FpgaofConfiguration> configuration, const json::Json& config_json) {
+void load_opae_proxy_transports(FpgaofConfiguration& configuration, const json::Json& config_json) {
 	std::vector<opaepp::TransportDetails> transports;
 	auto& transports_json_array = config_json["transports"];
 
@@ -190,29 +189,29 @@ void load_opae_proxy_transports(std::shared_ptr<FpgaofConfiguration> configurati
 		transports.push_back(transport_details);
 	}
 
-	configuration->set_opae_proxy_transports(transports);
+	configuration.set_opae_proxy_transports(transports);
 }
 
-void load_opae_proxy(std::shared_ptr<FpgaofConfiguration> configuration, const json::Json& config_json) {
+void load_opae_proxy(FpgaofConfiguration& configuration, const json::Json& config_json) {
     auto& opae_proxy_obj = config_json["opae-proxy"];
     load_opae_proxy_transports(configuration, opae_proxy_obj);
 
 	auto& secure_erase_gbs_obj = opae_proxy_obj["secureEraseGBS"];
-	configuration->set_secure_erase_gbs_file_path(secure_erase_gbs_obj.get<std::string>());
+	configuration.set_secure_erase_gbs_file_path(secure_erase_gbs_obj.get<std::string>());
 }
 
 }
 
 
-FpgaofLoader::FpgaofLoader() : m_configuration(FpgaofConfiguration::get_instance()) {
+FpgaofLoader::FpgaofLoader() : m_configuration(std::make_shared<FpgaofConfiguration>()) {
 }
 
 
 bool FpgaofLoader::load(const json::Json& json) {
     try {
         check_required_fields(json);
-        load_managers(m_configuration, json);
-        load_opae_proxy(m_configuration, json);
+        load_managers(*m_configuration, json);
+        load_opae_proxy(*m_configuration, json);
     }
     catch (const std::exception& e) {
         log_error("fpgaof-agent", "Load module configuration failed: " << e.what());

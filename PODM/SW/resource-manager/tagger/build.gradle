@@ -18,28 +18,28 @@ dependencies {
     compile project(":layer")
     compile project(":common")
 
-    compileOnly("org.springframework.boot:spring-boot-starter-data-jpa")
-    compileOnly("org.hibernate:hibernate-core:${hibernateVersion}")
-    compileOnly("org.hibernate:hibernate-entitymanager:${hibernateVersion}")
-    compileOnly("org.apache.commons:commons-lang3")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.hibernate:hibernate-core:${hibernateVersion}")
+    implementation("org.hibernate:hibernate-entitymanager:${hibernateVersion}")
+    implementation("org.apache.commons:commons-lang3")
 
-    compileOnly("com.intel.rsd:podm-common:${podmCommonVersion}")
-    compileOnly("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
+    implementation("com.intel.rsd:podm-common:${podmCommonVersion}")
+    implementation("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
-    runtime("org.postgresql:postgresql")
+    implementation("org.postgresql:postgresql")
 
-    testCompile("org.testng:testng")
-    testCompile("org.mockito:mockito-all:${mockitoVersion}")
-    testCompile("com.fasterxml.jackson.core:jackson-databind")
+    testImplementation("org.testng:testng:${testNGVersion}")
+    testImplementation("org.mockito:mockito-all:${mockitoVersion}")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind")
 
-    testCompile("org.springframework.boot:spring-boot-starter-data-jpa")
-    testCompile("org.hibernate:hibernate-core:${hibernateVersion}")
-    testCompile("org.hibernate:hibernate-entitymanager:${hibernateVersion}")
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    testImplementation("org.hibernate:hibernate-core:${hibernateVersion}")
+    testImplementation("org.hibernate:hibernate-entitymanager:${hibernateVersion}")
 
-    testCompile("com.intel.rsd:podm-common:${podmCommonVersion}")
-    testCompile("org.apache.commons:commons-lang3")
+    testImplementation("com.intel.rsd:podm-common:${podmCommonVersion}")
+    testImplementation("org.apache.commons:commons-lang3")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
 }

@@ -21,15 +21,40 @@
   <edmx:Reference Uri="IOConnectivityLineOfService_v1.xml">
     <edmx:Include Namespace="IOConnectivityLineOfService"/>
   </edmx:Reference>
-  
+  <edmx:Reference Uri="Org.OData.Capabilities.V1.xml">
+    <edmx:Include Namespace="Org.OData.Capabilities.V1" Alias="Capabilities"/>
+  </edmx:Reference>
+
   <edmx:DataServices>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOConnectivityLoSCapabilities">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="IOConnectivityLoSCapabilities" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="Describe IO connectivity capabilities"/>
         <Annotation Term="OData.LongDescription" String="This resource shall be used to describe the capabilities to provide IO connectivity."/>
+        <Annotation Term="Capabilities.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Capabilities.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Capabilities.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Redfish.Uris">
+          <Collection>
+            <String>/redfish/v1/StorageServices/{StorageServiceId}/IOConnectivityLoSCapabilities</String>
+          </Collection>
+        </Annotation>
       </EntityType>
     </Schema>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOConnectivityLoSCapabilities.v1_0_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="IOConnectivityLoSCapabilities" BaseType="IOConnectivityLoSCapabilities.IOConnectivityLoSCapabilities">
         <Annotation Term="OData.Description" String="Describe IO Connectivity capabilities."/>
         <Annotation Term="OData.LongDescription" String="Each instance of IOConnectivityLoSCapabilities describes capabilities of the system to support various IO Connectivity service options."/>
@@ -49,7 +74,7 @@
           <Annotation Term="OData.LongDescription" String="The value shall be the maximum bytes per second that a connection can support."/>
           <Annotation Term="Measures.Unit" String="By/s"/>
         </Property>
-        <NavigationProperty Name="SupportedLinesOfService" Type="Collection(IOConnectivityLineOfService.IOConnectivityLineOfService)">
+        <NavigationProperty Name="SupportedLinesOfService" Type="Collection(IOConnectivityLineOfService.IOConnectivityLineOfService)" ContainsTarget="true">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
           <Annotation Term="OData.Description" String="Collection of known and supported IOConnectivityLinesOfService."/>
           <Annotation Term="OData.LongDescription" String="The collection shall contain known and supported IOConnectivityLinesOfService."/>
@@ -59,10 +84,19 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOConnectivityLoSCapabilities.v1_0_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.Description" String="Changed type of AccessProtocols to Collection of Protocol.Protocol."/>
+      <EntityType Name="IOConnectivityLoSCapabilities" BaseType="IOConnectivityLoSCapabilities.v1_0_0.IOConnectivityLoSCapabilities"/>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOConnectivityLoSCapabilities.v1_0_2">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="IOConnectivityLoSCapabilities" BaseType="IOConnectivityLoSCapabilities.v1_0_1.IOConnectivityLoSCapabilities"/>
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOConnectivityLoSCapabilities.v1_1_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="IOConnectivityLoSCapabilities" BaseType="IOConnectivityLoSCapabilities.v1_0_0.IOConnectivityLoSCapabilities">
         <Property Name="Actions" Type="IOConnectivityLoSCapabilities.v1_1_0.Actions" Nullable="false">
           <Annotation Term="OData.Description" String="The available actions for this resource."/>
@@ -91,8 +125,20 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOConnectivityLoSCapabilities.v1_1_1">
-        <Annotation Term="OData.LongDescription" String="Change IOConnectivityLineOfService to EntityType."/>
-	</Schema>
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.LongDescription" String="Change IOConnectivityLineOfService to EntityType."/>
+      <EntityType Name="IOConnectivityLoSCapabilities" BaseType="IOConnectivityLoSCapabilities.v1_1_0.IOConnectivityLoSCapabilities">
+        <Annotation Term="OData.Description" String="Use Redfish Location type, and change IOConnectivityLineOfService to EntityType.  Move enums to unversioned namespace. Change references to unversioned."/>
+      </EntityType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOConnectivityLoSCapabilities.v1_1_2">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="Make SupportedLinesOfService be a containment NavigationProperty. This version was also created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="IOConnectivityLoSCapabilities" BaseType="IOConnectivityLoSCapabilities.v1_1_1.IOConnectivityLoSCapabilities">
+        <Annotation Term="OData.Description" String="Make SupportedLinesOfService be a containment NavigationProperty."/>
+      </EntityType>
+    </Schema>
 
   </edmx:DataServices>
 </edmx:Edmx>

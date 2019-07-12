@@ -32,22 +32,22 @@ compileTestKotlin {
 }
 
 dependencies {
-    compileOnly("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
     implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-    compile("org.springframework.cloud:spring-cloud-commons")
-    compile project(":layer")
-    compile project(":common")
-    compile("com.intel.rsd:podm-common:${podmCommonVersion}")
+    implementation("org.springframework.cloud:spring-cloud-commons")
+    implementation project(":layer")
+    implementation project(":common")
+    implementation("com.intel.rsd:podm-common:${podmCommonVersion}")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
-    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
     testImplementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-    testCompile("org.testng:testng")
+    testImplementation("org.testng:testng:${testNGVersion}")
     testCompileOnly("org.projectlombok:lombok")
-    testCompile("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
+    testImplementation("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
     testAnnotationProcessor("org.projectlombok:lombok")
 }
 

@@ -18,11 +18,14 @@
  * limitations under the License.
  * */
 
+#include "agent-framework/discovery/builders/ethernet_interface_builder.hpp"
 #include "psme/rest/endpoints/manager/manager_network_interface.hpp"
+#include "psme/rest/endpoints/utils.hpp"
 #include "psme/rest/constants/constants.hpp"
 #include "psme/rest/utils/status_helpers.hpp"
 #include "configuration/configuration.hpp"
 #include "net/network_interface.hpp"
+
 #include <sstream>
 
 
@@ -30,6 +33,7 @@
 using namespace psme::rest;
 using namespace psme::rest::constants;
 using namespace agent_framework::model::enums;
+using namespace agent_framework::discovery;
 
 namespace {
 json::Json make_prototype() {
@@ -40,7 +44,7 @@ json::Json make_prototype() {
     r[Common::ODATA_TYPE] = "#EthernetInterface.v1_1_0.EthernetInterface";
     r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Manager NIC";
-    r[Common::DESCRIPTION] = "Manager NIC description";
+    r[Common::DESCRIPTION] = "Manager NIC";
     r[Common::STATUS][Common::STATE] = json::Json::value_t::null;
     r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
     r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
@@ -76,27 +80,61 @@ json::Json make_prototype() {
     return r;
 }
 
+void read_from_network_interface(const agent_framework::model::NetworkInterface& nic, json::Json& r) {
+    endpoint::utils::fill_name_and_description(nic, r);
+
+    r[Common::MAC_ADDRESS] = nic.get_mac_address();
+    r[NetworkInterface::PERMANENT_MAC_ADDRESS] = nic.get_factory_mac_address();
+    r[NetworkInterface::SPEED_MBPS] = nic.get_speed_mbps();
+    r[NetworkInterface::AUTO_NEG] = nic.get_autosense();
+    r[NetworkInterface::FULL_DUPLEX] = nic.get_full_duplex();
+    r[NetworkInterface::MTU_SIZE] = nic.get_frame_size();
+    r[NetworkInterface::MAX_IPv6_STATIC_ADDRESSES] = nic.get_max_ipv6_static_addresses();
+    r[NetworkInterface::IPv6_DEFAULT_GATEWAY] = nic.get_ipv6_default_gateway();
+    r[NetworkInterface::INTERFACE_ENABLED] = (nic.get_status().get_state() == State::Enabled);
+
+    const auto& supported_protocols = nic.get_supported_transport_protocols();
+    for (const auto& supported_protocol : supported_protocols) {
+        r[Common::OEM][Common::RACKSCALE][NetworkInterface::SUPPORTED_PROTOCOLS]
+            .push_back(supported_protocol.to_string());
+    }
+
+    for (const auto& address : nic.get_ipv4_addresses()) {
+        json::Json ipv4_address = json::Json();
+
+        ipv4_address[Common::ODATA_TYPE] = "#IPAddresses.v1_0_0.IPv4Address";
+        ipv4_address[IpAddress::ADDRESS] = address.get_address();
+        ipv4_address[IpAddress::SUBNET_MASK] = address.get_subnet_mask();
+        ipv4_address[IpAddress::ADDRESS_ORIGIN] = address.get_address_origin();
+        ipv4_address[IpAddress::GATEWAY] = address.get_gateway();
+
+        r[NetworkInterface::IPv4_ADDRESSES].push_back(std::move(ipv4_address));
+    }
+
+    for (const auto& address : nic.get_ipv6_addresses()) {
+        json::Json ipv6_address = json::Json();
+
+        ipv6_address[Common::ODATA_TYPE] = "#IPAddresses.v1_0_0.IPv6Address";
+        ipv6_address[IpAddress::ADDRESS] = address.get_address();
+        ipv6_address[IpAddress::PREFIX_LENGTH] = address.get_prefix_length();
+        ipv6_address[IpAddress::ADDRESS_ORIGIN] = address.get_address_origin();
+        ipv6_address[IpAddress::ADDRESS_STATE] = address.get_address_state();
+
+        r[NetworkInterface::IPv6_ADDRESSES].push_back(std::move(ipv6_address));
+    }
+
+    // Calculate health rollup only if nic comes from model
+    psme::rest::endpoint::status_to_json(nic, r,
+        agent_framework::module::get_manager<agent_framework::model::NetworkInterface>().entry_exists(nic.get_uuid()));
+}
 
 void read_interface_from_hw(json::Json& r, const std::string& nic_name) {
     try {
         auto iface = net::NetworkInterface::for_name(nic_name);
+        auto interface = EthernetInterfaceBuilder::build_default(Uuid{});
+        EthernetInterfaceBuilder::update_with_net(interface, iface);
 
-        const auto& address_list = iface.get_address_list();
-        for (size_t idx = 0; idx < address_list.size(); ++idx) {
-            const auto& ip_address = iface.get_address(idx);
-            const auto& subnet_mask = iface.get_subnet_mask(idx);
-
-            if (net::AddressFamily::IPv4 == ip_address.get_address_family()) {
-                json::Json ipv4_address;
-                ipv4_address[Common::ODATA_TYPE] = "#IPAddresses.v1_0_0.IPv4Address";
-                ipv4_address[IpAddress::ADDRESS] = ip_address.to_string();
-                ipv4_address[IpAddress::SUBNET_MASK] = subnet_mask.to_string();
-                r[NetworkInterface::IPv4_ADDRESSES].push_back(std::move(ipv4_address));
-            }
-        }
-        std::stringstream mac_address_str{};
-        mac_address_str << iface.get_hw_address();
-        r[Common::MAC_ADDRESS] = mac_address_str.str();
+        read_from_network_interface(interface, r);
     }
     catch (const std::exception& ex) {
         log_error("rest", "Unable to read data for nic: " + nic_name + ". Exception " << ex.what());
@@ -124,53 +162,10 @@ void read_from_model(json::Json& r, const agent_framework::model::Manager& manag
         ipv4_address[Common::ODATA_TYPE] = "#IPAddresses.v1_0_0.IPv4Address";
         ipv4_address[IpAddress::ADDRESS] = manager.get_ipv4_address();
         ipv4_address[IpAddress::SUBNET_MASK] = json::Json::value_t::null;
+        ipv4_address[IpAddress::ADDRESS_ORIGIN] = json::Json::value_t::null;
+        ipv4_address[IpAddress::GATEWAY] = json::Json::value_t::null;
         r[NetworkInterface::IPv4_ADDRESSES].push_back(std::move(ipv4_address));
     }
-}
-
-
-void read_from_network_interface(const agent_framework::model::NetworkInterface& nic, json::Json& r) {
-
-    r[NetworkInterface::PERMANENT_MAC_ADDRESS] = nic.get_factory_mac_address();
-    r[Common::MAC_ADDRESS] = nic.get_mac_address();
-    r[NetworkInterface::SPEED_MBPS] = nic.get_speed_mbps();
-    r[NetworkInterface::AUTO_NEG] = nic.get_autosense();
-    r[NetworkInterface::FULL_DUPLEX] = nic.get_full_duplex();
-    r[NetworkInterface::MTU_SIZE] = nic.get_frame_size();
-    r[NetworkInterface::MAX_IPv6_STATIC_ADDRESSES] = nic.get_max_ipv6_static_addresses();
-    r[NetworkInterface::INTERFACE_ENABLED] = true;
-    r[NetworkInterface::IPv6_DEFAULT_GATEWAY] = nic.get_ipv6_default_gateway();
-
-    const auto& supported_protocols = nic.get_supported_transport_protocols();
-    for (const auto& supported_protocol : supported_protocols) {
-        r[Common::OEM][Common::RACKSCALE][NetworkInterface::SUPPORTED_PROTOCOLS].push_back(
-            supported_protocol.to_string());
-    }
-
-    for (const auto& address : nic.get_ipv4_addresses()) {
-        json::Json ipv4_address = json::Json();
-
-        ipv4_address[Common::ODATA_TYPE] = "#IPAddresses.v1_0_0.IPv4Address";
-        ipv4_address[IpAddress::ADDRESS] = address.get_address();
-        ipv4_address[IpAddress::SUBNET_MASK] = address.get_subnet_mask();
-        ipv4_address[IpAddress::ADDRESS_ORIGIN] = address.get_address_origin();
-        ipv4_address[IpAddress::GATEWAY] = address.get_gateway();
-
-        r[NetworkInterface::IPv4_ADDRESSES].push_back(std::move(ipv4_address));
-    }
-
-    for (const auto& address : nic.get_ipv6_addresses()) {
-        json::Json ipv6_address = json::Json();
-
-        ipv6_address[Common::ODATA_TYPE] = "#IPAddresses.v1_0_0.IPv6Address";
-        ipv6_address[IpAddress::ADDRESS] = address.get_address();
-        ipv6_address[IpAddress::PREFIX_LENGTH] = address.get_prefix_length();
-        ipv6_address[IpAddress::ADDRESS_ORIGIN] = address.get_address_origin();
-        ipv6_address[IpAddress::ADDRESS_STATE] = address.get_address_state();
-
-        r[NetworkInterface::IPv6_ADDRESSES].push_back(std::move(ipv6_address));
-    }
-    psme::rest::endpoint::status_to_json(nic, r);
 }
 
 }

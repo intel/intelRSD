@@ -16,14 +16,14 @@
 
 package com.intel.rsd.nodecomposer.services.configuration.tasks;
 
-import com.intel.rsd.nodecomposer.services.configuration.client.RestActionInvoker;
+import com.intel.rsd.nodecomposer.services.configuration.client.DiscoveryServiceWebClient;
 import lombok.Setter;
 
 import java.net.URI;
 
 @Setter
 public abstract class DiscoveryServiceTask {
-    RestActionInvoker restActionInvoker;
+    DiscoveryServiceWebClient discoveryServiceWebClient;
     URI discoveryServiceUri;
 
     public abstract void perform();

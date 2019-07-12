@@ -15,18 +15,18 @@
  */
 
 dependencies {
-    compileOnly project(":layer")
-    compileOnly project(":common")
-    compileOnly("org.springframework.boot:spring-boot-starter-web")
-    compileOnly("com.intel.rsd:podm-common:${podmCommonVersion}")
+    implementation project(":layer")
+    implementation project(":common")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("com.intel.rsd:podm-common:${podmCommonVersion}")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
-    testCompile project(":layer")
-    testCompile project(":common")
-    testCompile("org.testng:testng")
-    testCompile("org.assertj:assertj-core:${assertjVersion}")
-    testCompile("com.intel.rsd:podm-common:${podmCommonVersion}")
+    testImplementation project(":layer")
+    testImplementation project(":common")
+    testImplementation("org.testng:testng:${testNGVersion}")
+    testImplementation("org.assertj:assertj-core:${assertjVersion}")
+    testImplementation("com.intel.rsd:podm-common:${podmCommonVersion}")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
 }

@@ -22,6 +22,7 @@ import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.layers.merger.ResourceMerger;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -34,14 +35,16 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.intel.rsd.redfish.RedfishErrors.createRedfishError;
+import static com.intel.rsd.redfish.RedfishErrors.createRedfishErrorWithCustomMessage;
 import static com.intel.rsd.resourcemanager.layers.merger.response.ErrorResponseFactory.createErrorResponse;
-import static com.intel.rsd.resourcemanager.layers.merger.response.ErrorResponseFactory.createNotFoundResponse;
 import static java.util.Arrays.asList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Component
 @Slf4j
@@ -56,7 +59,7 @@ public class ResponseConverter {
 
     public Response merge(@NonNull Response... responses) {
         if (responses.length == 0) {
-            return createNotFoundResponse();
+            return createErrorResponse(createRedfishError(NOT_FOUND));
         }
 
         if (responses.length == 1) {
@@ -69,28 +72,28 @@ public class ResponseConverter {
 
     private Optional<Response> validateResponses(Collection<Response> allResponses) {
         if (allResponses.stream().anyMatch(r -> !r.getHttpStatus().is2xxSuccessful())) {
-            String message = "At least one underlying service has responded with non 2xx status: ";
+            val errorMessage = "At least one underlying service has responded with non 2xx status: ";
             if (allResponses.stream().map(Response::getHttpStatus).distinct().count() == 1) {
-                return getResponse(allResponses, allResponses.iterator().next().getHttpStatus(), message);
+                return getResponse(allResponses.iterator().next().getHttpStatus(), errorMessage, allResponses);
             }
-            return getResponse(allResponses, INTERNAL_SERVER_ERROR, message);
+            return getResponse(INTERNAL_SERVER_ERROR, errorMessage, allResponses);
         }
 
         if (allResponses.stream().map(Response::getHttpStatus).distinct().count() != 1) {
-            String message = "Affected underlying services have responded with different 2xx status codes";
-            return getResponse(allResponses, INTERNAL_SERVER_ERROR, message);
+            val errorMessage = "Affected underlying services have responded with different 2xx status codes";
+            return getResponse(INTERNAL_SERVER_ERROR, errorMessage, allResponses);
         }
         return empty();
     }
 
     @NotNull
-    private Optional<Response> getResponse(Collection<Response> allResponses, HttpStatus responseStatus, String responseMessage) {
-        return of(createErrorResponse(
-            "Base.1.0.ResponseGeneration",
-            responseMessage,
-            responseStatus,
+    private Optional<Response> getResponse(HttpStatus errorStatus, String errorMessage, Collection<Response> allResponses) {
+        val redfishError = createRedfishErrorWithCustomMessage(
+            errorStatus,
+            errorMessage,
             allResponses.stream().map(this::getSummaryOfResponse).toArray(String[]::new)
-        ));
+        );
+        return of(createErrorResponse(redfishError));
     }
 
     private String getSummaryOfResponse(Response response) {

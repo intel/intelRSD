@@ -19,7 +19,6 @@ package com.intel.rsd.resourcemanager.layers.queryparameter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.Response;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -37,7 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.immutableEnumSet;
-import static com.intel.rsd.resourcemanager.common.QueryParameterType.FILTER;
+import static com.intel.rsd.resourcemanager.layers.queryparameter.QueryParameterType.FILTER;
 import static com.intel.rsd.resourcemanager.layers.queryparameter.QueryParameterConstants.RANDOM_STRING;
 import static com.intel.rsd.resourcemanager.layers.queryparameter.QueryParameterConstants.REDFISH_MEMBERS;
 import static com.intel.rsd.resourcemanager.layers.queryparameter.QueryParameterConstants.REDFISH_MEMBERS_COUNT;

@@ -16,6 +16,7 @@
 
 package com.intel.rsd.resourcemanager.runner.requiredlayer;
 
+import com.intel.rsd.http.HtmlErrorToJsonNodeConverter;
 import com.intel.rsd.http.RsdClient;
 import lombok.val;
 import org.springframework.context.annotation.Bean;
@@ -30,21 +31,24 @@ import java.util.Collection;
 
 @Configuration
 public class RequiredLayerConfiguration {
-
     @Bean
     RestTemplateBasedRestClient restTemplateBasedRestClient(@RsdClient ClientHttpRequestFactory httpComponentsClientHttpRequestFactory,
                                                             Collection<HttpMessageConverter<?>> additionalMessageConverters,
                                                             @RsdClient Collection<ClientHttpRequestInterceptor> additionalInterceptors) {
-
         val bufferingRequestFactory = new BufferingClientHttpRequestFactory(httpComponentsClientHttpRequestFactory);
         val rsdRestTemplate = createRestTemplate(bufferingRequestFactory, additionalMessageConverters, additionalInterceptors);
         return new RestTemplateBasedRestClient(rsdRestTemplate);
     }
 
-    RestTemplate createRestTemplate(ClientHttpRequestFactory clientHttpRequestFactory,
-                                    Collection<HttpMessageConverter<?>> additionalMessageConverters,
-                                    Collection<ClientHttpRequestInterceptor> additionalInterceptors) {
+    @Bean
+    @RsdClient
+    HttpMessageConverter htmlErrorToJsonNodeConverter() {
+        return new HtmlErrorToJsonNodeConverter();
+    }
 
+    private RestTemplate createRestTemplate(ClientHttpRequestFactory clientHttpRequestFactory,
+                                            Collection<HttpMessageConverter<?>> additionalMessageConverters,
+                                            Collection<ClientHttpRequestInterceptor> additionalInterceptors) {
         return new RsdRestTemplate(clientHttpRequestFactory, additionalMessageConverters, additionalInterceptors);
     }
 }

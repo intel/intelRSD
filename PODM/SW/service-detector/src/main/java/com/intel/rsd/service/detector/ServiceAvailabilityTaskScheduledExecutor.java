@@ -61,6 +61,7 @@ public class ServiceAvailabilityTaskScheduledExecutor {
         for (Service service : serviceRepository.findAll()) {
             ServiceAvailabilityCheckerTask serviceAvailabilityCheckerTask = serviceAvailabilityCheckerTaskFactory.createTask(service.getId());
             if (!blockingQueueForExecutor.contains(serviceAvailabilityCheckerTask)) {
+                log.trace("Checking service({})", service.getServiceUri());
                 threadPoolTaskExecutor.execute(serviceAvailabilityCheckerTask);
             }
         }

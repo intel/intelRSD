@@ -22,9 +22,11 @@
  * @section DESCRIPTION
 """
 import collections
+import re
 
-from cts_core.commons.error import cts_error, cts_warning
+from cts_core.commons.error import cts_error, cts_warning, cts_message
 from cts_core.commons.preconditions import Preconditions
+from cts_core.metadata.model.annotation import Annotation
 from cts_core.validation.validation_status import ValidationStatus
 
 
@@ -52,11 +54,13 @@ class MetadataGetValidator:
         for idx, api_resource in enumerate(resources):
             print "TEST_CASE::%s" % api_resource.odata_id
             print "MESSAGE::[%5d/%5d] Checking %s : %s" % (
-            idx + 1, count, api_resource.odata_id, api_resource.odata_type)
+                idx + 1, count, api_resource.odata_id, api_resource.odata_type)
 
             api_resource_status = self.validate_single_entity(api_resource)
             print "STATUS::%s" % api_resource_status
-            status = ValidationStatus.join_statuses(status, api_resource_status)
+
+            redfish_uri_compliance = discovery_container.validate_redfish_uris_consistency(api_resource, self._metadata_container)
+            status = ValidationStatus.join_statuses(status, api_resource_status, redfish_uri_compliance)
 
         print "SCREEN::Overall status: %s" % status
         return status
@@ -75,6 +79,7 @@ class MetadataGetValidator:
                                                               checking=api_resource.odata_id,
                                                               message=api_resource.odata_type,
                                                               status=api_resource_status))
+
         return list_of_validated_elements
 
     def validate_single_entity(self, api_resource):

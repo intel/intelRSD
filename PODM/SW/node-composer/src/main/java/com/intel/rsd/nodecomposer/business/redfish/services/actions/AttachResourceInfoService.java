@@ -36,7 +36,6 @@ import com.intel.rsd.nodecomposer.types.Protocol;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -54,8 +53,8 @@ import static com.intel.rsd.nodecomposer.types.Protocol.PCIE;
 import static com.intel.rsd.nodecomposer.types.actions.ComposedNodeActionNames.ATTACH_RESOURCE_ACTION_INFO;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptySet;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
-import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Component
 @SuppressWarnings({"checkstyle:MethodCount"})
@@ -76,7 +75,6 @@ public class AttachResourceInfoService {
         this.processorHelper = processorHelper;
     }
 
-    @Transactional(MANDATORY)
     public ActionInfoDto getActionInfo(ComposedNode composedNode) {
         ActionInfoDto actionInfoDto = new ActionInfoDto();
         actionInfoDto.setId(ATTACH_RESOURCE_ACTION_INFO);
@@ -106,7 +104,7 @@ public class AttachResourceInfoService {
     }
 
     private Set<Processor> getProcessorsAllowableToAttach(ComposedNode composedNode) {
-        Set<Processor> processors = getPcieProcessorsAllowableToAttach(composedNode);
+        Set<Processor> processors = new HashSet<>(getPcieProcessorsAllowableToAttach(composedNode));
         processors.addAll(processorDao.getAvailableFpgaOverFabricsProcessors());
         return processors;
     }
@@ -124,7 +122,7 @@ public class AttachResourceInfoService {
     }
 
     private Set<Processor> getPcieProcessorsAllowableToAttach(ComposedNode composedNode) {
-        return processorDao.getAchievablePcieProcessors(composedNode.getComputerSystem());
+        return ofNullable(composedNode.getComputerSystem()).map(processorDao::getAchievablePcieProcessors).orElse(emptySet());
     }
 
     private Set<Volume> getVolumesAllowableToAttach() {

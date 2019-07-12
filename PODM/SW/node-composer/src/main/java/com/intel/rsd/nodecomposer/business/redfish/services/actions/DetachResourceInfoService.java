@@ -27,10 +27,8 @@ import com.intel.rsd.nodecomposer.persistence.redfish.Processor;
 import com.intel.rsd.nodecomposer.persistence.redfish.Volume;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -42,11 +40,8 @@ import static com.intel.rsd.nodecomposer.business.redfish.services.helpers.Proce
 import static com.intel.rsd.nodecomposer.types.Protocol.ISCSI;
 import static com.intel.rsd.nodecomposer.types.actions.ComposedNodeActionNames.DETACH_RESOURCE_ACTION_INFO;
 import static java.util.stream.Collectors.toSet;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class DetachResourceInfoService {
     private final VolumeHelper volumeHelper;
     private final ProcessorHelper processorHelper;
@@ -57,7 +52,6 @@ public class DetachResourceInfoService {
         this.processorHelper = processorHelper;
     }
 
-    @Transactional(MANDATORY)
     public ActionInfoDto getActionInfo(ComposedNode composedNode) {
         ActionInfoDto actionInfoDto = new ActionInfoDto();
         actionInfoDto.setId(DETACH_RESOURCE_ACTION_INFO);

@@ -18,7 +18,6 @@ package com.intel.rsd.resourcemanager.runner.requiredlayer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.intel.rsd.collections.Lists;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.common.SouthboundConfig;
 import com.intel.rsd.resourcemanager.layers.Layer;
 import com.intel.rsd.resourcemanager.layers.Response;
@@ -66,7 +65,7 @@ public class RequiredLayer extends Layer {
 
     @Override
     protected Response invokeImpl(ServiceId serviceId, String path, HttpMethod method, HttpHeaders headers, JsonNode body,
-                                  Map<QueryParameterType, String> requestParams) {
+                                  Map<String, String> requestParams) {
         val serviceHost = finder.findServiceHost(serviceId);
         if (serviceHost == null) {
             return serviceNotAvailableResponse();

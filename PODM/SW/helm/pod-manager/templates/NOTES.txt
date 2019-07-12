@@ -1,4 +1,11 @@
 Once every component is deployed, you can visit Pod Manager service root by running this commands:
-NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" service {{ .Release.Name }}-podm-gateway)
+
+{{ if .Values.global.northbound_security.enabled }}
 NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" service {{ .Release.Name }}-podm-gateway)
+curl https://${NODE_IP}:${NODE_PORT}/redfish/v1
+{{ else }}
+NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[1].nodePort}" service {{ .Release.Name }}-podm-gateway)
 curl http://${NODE_IP}:${NODE_PORT}/redfish/v1
+{{ end }}

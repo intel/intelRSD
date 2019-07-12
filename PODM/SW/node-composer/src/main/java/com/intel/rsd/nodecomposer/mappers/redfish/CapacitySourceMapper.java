@@ -19,17 +19,16 @@ package com.intel.rsd.nodecomposer.mappers.redfish;
 import com.intel.rsd.nodecomposer.externalservices.resources.redfish.CapacitySourcesResource;
 import com.intel.rsd.nodecomposer.mappers.EntityMapper;
 import com.intel.rsd.nodecomposer.persistence.redfish.CapacitySource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
 
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 
 @Component
 @Scope(SCOPE_PROTOTYPE)
 public class CapacitySourceMapper extends EntityMapper<CapacitySourcesResource, CapacitySource> {
-    @Inject
+    @Autowired
     public CapacitySourceMapper() {
         super(CapacitySourcesResource.class, CapacitySource.class);
     }

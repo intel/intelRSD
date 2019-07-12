@@ -17,11 +17,8 @@
 apply plugin: 'jacoco'
 
 dependencies {
-    compileOnly project(":common")
-    compileOnly("org.slf4j:slf4j-api")
-    compile("org.springframework:spring-web")
-    compile("com.fasterxml.jackson.core:jackson-databind")
-    compileOnly("com.intel.rsd:podm-common:${podmCommonVersion}")
+    implementation project(":common")
+    implementation("com.intel.rsd:podm-common:${podmCommonVersion}")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 }

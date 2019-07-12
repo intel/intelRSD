@@ -52,6 +52,6 @@ class ScenarioListAction(Action):
         pass
 
     def process_action(self, configuration):
-        print "Using CTS in version %s\n" % (ColorPrinter.format_text(BuildInformation.BUILD_VERSION, bold=True))
+        print "Using CTS in version %s\n" % (ColorPrinter.format_text(BuildInformation.get_version(), bold=True))
 
         JsonLoader().print_available_actions()

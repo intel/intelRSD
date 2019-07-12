@@ -17,7 +17,6 @@
 package com.intel.rsd.resourcemanager.layers.requestenhancer;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.Layer;
 import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.layers.ServiceId;
@@ -49,7 +48,7 @@ public class RequestEnhancer extends Layer {
 
     @Override
     protected Response invokeImpl(ServiceId serviceId, String path, HttpMethod method, HttpHeaders headers, JsonNode body,
-                                  Map<QueryParameterType, String> requestParams) {
+                                  Map<String, String> requestParams) {
 
         val enhancedHeaders = enhanceHeaders(path, headers);
         return passToNextLayer(serviceId, path, method, enhancedHeaders, body, requestParams);

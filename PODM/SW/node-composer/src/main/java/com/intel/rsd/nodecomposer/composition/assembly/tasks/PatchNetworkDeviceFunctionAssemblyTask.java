@@ -18,9 +18,9 @@ package com.intel.rsd.nodecomposer.composition.assembly.tasks;
 
 import com.hazelcast.spring.context.SpringAware;
 import com.intel.rsd.nodecomposer.business.redfish.services.actions.NetworkDeviceFunctionInvoker;
-import com.intel.rsd.nodecomposer.discovery.external.partial.EndpointObtainer;
 import com.intel.rsd.nodecomposer.externalservices.WebClientRequestException;
 import com.intel.rsd.nodecomposer.persistence.dao.ComposedNodeDao;
+import com.intel.rsd.nodecomposer.persistence.dao.EndpointDao;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComputerSystem;
 import com.intel.rsd.nodecomposer.persistence.redfish.Endpoint;
@@ -35,17 +35,15 @@ import com.intel.rsd.nodecomposer.types.actions.NetworkDeviceFunctionUpdateDefin
 import com.intel.rsd.nodecomposer.types.actions.NetworkDeviceFunctionUpdateDefinition.IscsiBootDefinition;
 import com.intel.rsd.nodecomposer.utils.measures.TimeMeasured;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
 import java.io.Serializable;
-import java.util.Optional;
 
 import static com.intel.rsd.nodecomposer.types.AuthenticationMethod.MUTUAL_CHAP;
-import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
@@ -54,7 +52,6 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 @Component
 @Scope(SCOPE_PROTOTYPE)
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
-@Slf4j
 public class PatchNetworkDeviceFunctionAssemblyTask extends NodeTask implements Serializable {
     private static final long serialVersionUID = -8771723636797398276L;
 
@@ -63,7 +60,7 @@ public class PatchNetworkDeviceFunctionAssemblyTask extends NodeTask implements 
     @Autowired
     private transient NetworkDeviceFunctionInvoker networkDeviceFunctionInvoker;
     @Autowired
-    private transient EndpointObtainer endpointObtainer;
+    private transient EndpointDao endpointDao;
 
     @Setter
     private Chap chap;
@@ -74,25 +71,21 @@ public class PatchNetworkDeviceFunctionAssemblyTask extends NodeTask implements 
     public void run() {
         ComposedNode composedNode = composedNodeDao.find(composedNodeODataId);
         ComputerSystem computerSystem = getComputerSystemFromNode(composedNode);
-        Optional<ConnectedEntity> bootableVolumeCandidate = tryFindConnectedEntityWithBootableVolume(composedNode);
+        ConnectedEntity connectedEntity = findConnectedEntityWithBootableVolume(composedNode);
+        Endpoint targetEndpoint = findTargetEndpoint(connectedEntity);
+        IpTransportDetails iscsiTransport = findIscsiTransportWithExistingIp(targetEndpoint);
 
-        if (bootableVolumeCandidate.isPresent()) {
-            ConnectedEntity connectedEntity = bootableVolumeCandidate.get();
-            Endpoint targetEndpoint = findTargetEndpoint(connectedEntity);
-            IpTransportDetails iscsiTransport = findIscsiTransportWithExistingIp(targetEndpoint);
+        IscsiBootDefinition bootDefinition = createBootDefinition();
+        bootDefinition.setPrimaryTargetName(getOfPrimaryTargetName(targetEndpoint));
+        bootDefinition.setInitiatorName(getInitiatorName(computerSystem, targetEndpoint.getFabric()));
+        bootDefinition.setPrimaryTargetIpAddress(getPrimaryTargetIpAddress(iscsiTransport));
+        bootDefinition.setPrimaryTargetTcpPort(Ref.of(iscsiTransport.getPort()));
+        bootDefinition.setPrimaryLun(getLunFromConnectedEntity(connectedEntity));
 
-            IscsiBootDefinition bootDefinition = createBootDefinition();
-            bootDefinition.setPrimaryTargetName(getOfPrimaryTargetName(targetEndpoint));
-            bootDefinition.setInitiatorName(getInitiatorName(computerSystem, targetEndpoint.getFabric()));
-            bootDefinition.setPrimaryTargetIpAddress(getPrimaryTargetIpAddress(iscsiTransport));
-            bootDefinition.setPrimaryTargetTcpPort(Ref.of(iscsiTransport.getPort()));
-            bootDefinition.setPrimaryLun(getLunFromConnectedEntity(connectedEntity));
-
-            updateDeviceFunction(computerSystem.getNetworkDeviceFunction(), bootDefinition);
-        } else {
-            log.warn(format("Compose node %s is not connected with bootable volume, network device function will not be patched.",
-                composedNode.getUri()));
-        }
+        val networkDeviceFunction = computerSystem
+            .getNetworkDeviceFunction()
+            .orElseThrow(() -> new IllegalStateException("Computer System does not have Network Device Function"));
+        updateDeviceFunction(networkDeviceFunction, bootDefinition);
     }
 
     private Ref<String> getPrimaryTargetIpAddress(IpTransportDetails iscsiTransport) {
@@ -105,7 +98,7 @@ public class PatchNetworkDeviceFunctionAssemblyTask extends NodeTask implements 
     }
 
     private Ref<String> getInitiatorName(ComputerSystem computerSystem, Fabric fabric) {
-        Endpoint initiatorEndpoint = endpointObtainer.getInitiatorEndpoint(computerSystem, fabric);
+        Endpoint initiatorEndpoint = endpointDao.findInitiatorEndpointBySystemAndFabric(computerSystem.getUri(), fabric.getUri());
         return Ref.of(findInitiatorIqnIdentifier(initiatorEndpoint).getDurableName());
     }
 
@@ -158,8 +151,9 @@ public class PatchNetworkDeviceFunctionAssemblyTask extends NodeTask implements 
             .orElseThrow(() -> new RuntimeException("Connection between bootable volume and target endpoint doesn't exist"));
     }
 
-    private Optional<ConnectedEntity> tryFindConnectedEntityWithBootableVolume(ComposedNode composedNode) {
-        return composedNode.findAnyConnectedEntityWithBootableVolume();
+    private ConnectedEntity findConnectedEntityWithBootableVolume(ComposedNode composedNode) {
+        return composedNode.findAnyConnectedEntityWithBootableVolume()
+            .orElseThrow(() -> new RuntimeException("Composed node is not connected with any bootable volume"));
     }
 
     private NetworkDeviceFunctionUpdateDefinition prepareNetworkDeviceFunctionDefinition(IscsiBootDefinition iscsiBootDefinition) {

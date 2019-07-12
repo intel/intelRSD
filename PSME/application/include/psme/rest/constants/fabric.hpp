@@ -91,8 +91,6 @@ extern const char ENDPOINT_PROTOCOL[];
 extern const char PCI_ID[];
 extern const char CONNECTED_ENTITIES[];
 extern const char ENTITY_ROLE[];
-extern const char PCI_FUNCTION_NUMBER[];
-extern const char PCI_CLASS_CODE[];
 extern const char ENTITY_PCI_ID[];
 extern const char ENTITY_LINK[];
 extern const char HOST_RESERVATION_MEMORY_BYTES[];

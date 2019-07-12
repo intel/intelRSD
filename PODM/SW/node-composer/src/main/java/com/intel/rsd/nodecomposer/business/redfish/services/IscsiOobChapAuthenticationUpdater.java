@@ -21,9 +21,9 @@ import com.intel.rsd.nodecomposer.business.redfish.services.actions.EndpointUpda
 import com.intel.rsd.nodecomposer.composition.assembly.ChapConfigurator;
 import com.intel.rsd.nodecomposer.persistence.dao.EndpointDao;
 import com.intel.rsd.nodecomposer.persistence.redfish.Endpoint;
-import com.intel.rsd.nodecomposer.persistence.redfish.NetworkDeviceFunction;
 import com.intel.rsd.nodecomposer.types.actions.EndpointUpdateDefinition;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -31,7 +31,6 @@ import org.springframework.stereotype.Component;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 
 import static com.intel.rsd.nodecomposer.types.Protocol.ISCSI;
 import static java.lang.String.format;
@@ -62,21 +61,21 @@ public class IscsiOobChapAuthenticationUpdater {
 
         List<Endpoint> endpointsWithAssociatedComputerSystem = endpointDao.findEndpointsWithAssociatedComputerSystem(ISCSI);
         endpointsWithAssociatedComputerSystem.stream()
-            .filter(incorrectCorrespondingUsernames())
+            .filter(this::incorrectCorrespondingUsernames)
             .forEach(this::fixAuthentication);
     }
 
-    private Predicate<? super Endpoint> incorrectCorrespondingUsernames() {
-        return endpoint -> {
-            NetworkDeviceFunction networkDeviceFunction = endpoint.getComputerSystem().getNetworkDeviceFunctionOrNull();
+    private boolean incorrectCorrespondingUsernames(Endpoint endpoint) {
+        val networkDeviceFunction = endpoint.getComputerSystem().getNetworkDeviceFunction();
 
-            if (networkDeviceFunction == null) {
-                return false;
-            }
+        if (networkDeviceFunction.isPresent()) {
+            final String chapUsername = networkDeviceFunction.get().getIscsiBoot().getChapUsername();
+            final String endpointUsername = endpoint.getAuthentication() != null ? endpoint.getAuthentication().getUsername() : null;
 
-            String endpointUsername = endpoint.getAuthentication() != null ? endpoint.getAuthentication().getUsername() : null;
-            return !Objects.equals(networkDeviceFunction.getIscsiBoot().getChapUsername(), endpointUsername);
-        };
+            return !Objects.equals(chapUsername, endpointUsername);
+        }
+
+        return false;
     }
 
     private void fixAuthentication(Endpoint endpoint) {
@@ -92,6 +91,6 @@ public class IscsiOobChapAuthenticationUpdater {
             log.debug(format("Reconfiguring Endpoint (uri: %s) failed", endpoint.getUri()), e);
         }
 
-        networkDeviceFunctionAuthenticationUpdater.updateAuthenticationIfNetworkDeviceFunctionPresentInEndpoint(endpoint, username, password);
+        networkDeviceFunctionAuthenticationUpdater.updateAuthenticationIfNetworkDeviceFunctionIsPresentInEndpoint(endpoint, username, password);
     }
 }

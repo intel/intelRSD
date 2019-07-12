@@ -17,42 +17,44 @@
 package com.intel.rsd.nodecomposer.discovery.handlers;
 
 import com.intel.rsd.nodecomposer.discovery.external.finalizers.ComposedNodeDisableService;
+import com.intel.rsd.nodecomposer.persistence.dao.GenericDao;
 import com.intel.rsd.nodecomposer.persistence.handlers.OnDeleteEndpointHandler;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
 import com.intel.rsd.nodecomposer.persistence.redfish.Endpoint;
-import com.intel.rsd.nodecomposer.types.Protocol;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
-import java.util.Arrays;
-import java.util.List;
 
-import static com.intel.rsd.nodecomposer.types.Protocol.FPGA_OVER_FABRICS;
 import static com.intel.rsd.nodecomposer.types.Protocol.NVME;
 import static com.intel.rsd.nodecomposer.types.Protocol.NVME_OVER_FABRICS;
-import static com.intel.rsd.nodecomposer.types.Protocol.PCIE;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 
 @Component
 @Scope(SCOPE_PROTOTYPE)
 public class OnDeleteEndpointHandlerImpl implements OnDeleteEndpointHandler {
-    private static final List<Protocol> ATTACHABLE_ASSET_PROTOCOLS = Arrays.asList(NVME, NVME_OVER_FABRICS, PCIE, FPGA_OVER_FABRICS);
     private final ComposedNodeDisableService composedNodeDisableService;
+    private final GenericDao genericDao;
 
     @Autowired
-    public OnDeleteEndpointHandlerImpl(ComposedNodeDisableService composedNodeDisableService) {
+    public OnDeleteEndpointHandlerImpl(ComposedNodeDisableService composedNodeDisableService, GenericDao genericDao) {
         this.composedNodeDisableService = composedNodeDisableService;
+        this.genericDao = genericDao;
     }
 
     @Override
     @Transactional(MANDATORY)
     public void preRemove(Endpoint endpoint) {
+        genericDao.removeAndClear(endpoint.getConnectedEntities());
         ComposedNode composedNode = endpoint.getComposedNode();
-        if (composedNode != null && !ATTACHABLE_ASSET_PROTOCOLS.contains(endpoint.getProtocol())) {
+        if (composedNode != null && isNotOfTypeNvme(endpoint)) {
             composedNodeDisableService.disableComposedNode(composedNode);
         }
+    }
+
+    private boolean isNotOfTypeNvme(Endpoint endpoint) {
+        return !NVME.equals(endpoint.getProtocol()) && !NVME_OVER_FABRICS.equals(endpoint.getProtocol());
     }
 }

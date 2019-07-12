@@ -28,7 +28,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.intel.rsd.nodecomposer.externalservices.WebClientExceptionUtils.isConnectionExceptionTheRootCause;
-import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
@@ -81,6 +80,6 @@ public class ResourceLinkExtractor {
             throw e;
         }
 
-        log.error(format("Problem while reading: %s", e.getResourceUri()), e);
+        log.error("Problem while reading: {}, {}: {}", e.getResourceUri(), e.getMessage(), e.getCause().getMessage());
     }
 }

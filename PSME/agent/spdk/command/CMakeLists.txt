@@ -32,6 +32,8 @@ add_library(spdk-commands STATIC
     src/get_zone_info.cpp
     src/get_metric_definitions_collection.cpp
     src/get_tasks_collection.cpp
+    src/get_task_info.cpp
+    src/get_task_result_info.cpp
     src/get_metrics.cpp
 
     src/set_component_attributes.cpp

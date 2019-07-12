@@ -26,14 +26,11 @@ using namespace agent::nvme::loader;
 using namespace agent_framework::module;
 using namespace agent_framework::model;
 using namespace agent_framework;
-using namespace std;
 
 namespace agent {
 namespace nvme {
 
-constexpr const char PARTITION_AFFIX = 'p';
-
-const map<string, string> NvmeKeyGenerator::m_keys_base_map{
+const std::map<std::string, std::string> NvmeKeyGenerator::m_keys_base_map{
     {Manager::get_component().to_string(),          "_NvmeManager_"},
     {Chassis::get_component().to_string(),          "_NvmeChassis_"},
     {Drive::get_component().to_string(),            "_NvmeDrive_"},
@@ -46,35 +43,35 @@ const map<string, string> NvmeKeyGenerator::m_keys_base_map{
     {StoragePool::get_component().to_string(),      "_NvmeStoragePool_"}
 };
 
-string NvmeKeyGenerator::m_agent_id{};
+std::string NvmeKeyGenerator::m_agent_id{};
 
 
-string NvmeKeyGenerator::get_unique_key(const Manager& manager) {
+std::string NvmeKeyGenerator::get_unique_key(const Manager& manager) {
     return manager.get_ipv4_address();
 }
 
 
-string NvmeKeyGenerator::get_unique_key(const Chassis&) {
+std::string NvmeKeyGenerator::get_unique_key(const Chassis&) {
     return NvmeConfig::get_instance()->get_parent_id();
 }
 
 
-string NvmeKeyGenerator::get_unique_key(const Fabric&) {
+std::string NvmeKeyGenerator::get_unique_key(const Fabric&) {
     return NvmeConfig::get_instance()->get_parent_id();
 }
 
 
-string NvmeKeyGenerator::get_unique_key(const System&) {
+std::string NvmeKeyGenerator::get_unique_key(const System&) {
     return NvmeConfig::get_instance()->get_parent_id();
 }
 
 
-string NvmeKeyGenerator::get_unique_key(const StorageService&) {
+std::string NvmeKeyGenerator::get_unique_key(const StorageService&) {
     return NvmeConfig::get_instance()->get_parent_id();
 }
 
 
-string NvmeKeyGenerator::get_unique_key(const NetworkInterface& interface) {
+std::string NvmeKeyGenerator::get_unique_key(const NetworkInterface& interface) {
     const auto& mac = interface.get_mac_address();
     if (mac.has_value()) {
         return mac.value();
@@ -85,9 +82,9 @@ string NvmeKeyGenerator::get_unique_key(const NetworkInterface& interface) {
 }
 
 
-string NvmeKeyGenerator::get_unique_key(const Drive& drive) {
-    string model{};
-    string serial{};
+std::string NvmeKeyGenerator::get_unique_key(const Drive& drive) {
+    std::string model{};
+    std::string serial{};
 
     if (drive.get_fru_info().get_model_number().has_value()) {
         model = drive.get_fru_info().get_model_number();
@@ -106,77 +103,57 @@ string NvmeKeyGenerator::get_unique_key(const Drive& drive) {
 }
 
 
-string NvmeKeyGenerator::get_unique_key(const Volume& volume) {
-    string uuid{};
-    string volume_name{};
-
-    if (!volume.get_name().has_value()) {
-        throw KeyValueMissingError("Volume '" + volume.get_uuid() + "' has no name.");
+std::string NvmeKeyGenerator::get_unique_key(const Volume& volume) {
+    std::string uuid{};
+    try {
+        uuid = attribute::Identifier::get_uuid(volume);
+    }
+    catch (const std::logic_error&) {
+        throw KeyValueMissingError("Volume '" + volume.get_uuid() + "' has no 'by-partuuid'.");
     }
 
-    const auto& capacity_sources = volume.get_capacity_sources();
-    if (capacity_sources.empty()) {
-        throw KeyValueMissingError("Volume '" + volume.get_uuid() + "' has no underlying capacity sources.");
+    if (uuid.empty()) {
+        throw KeyValueMissingError("Volume '" + volume.get_uuid() + "' has empty 'by-partuuid'.");
     }
-
-    const auto& providing_pools = capacity_sources.front().get_providing_pools();
-    if (providing_pools.empty()) {
-        throw KeyValueMissingError("Volume '" + volume.get_uuid() +
-				   "' has no underlying storage pools in the capacity sources.");
-    }
-
-    uuid = providing_pools.front();
-
-    volume_name = volume.get_name();
-    size_t pos = volume_name.find(PARTITION_AFFIX);
-
-    if (pos == string::npos) {
-        throw KeyValueMissingError("Volume '" + volume.get_uuid() + "' has no partition indicator in name.");
-    }
-    return uuid + volume_name.substr(pos+1);
-}
-
-
-string NvmeKeyGenerator::get_unique_key(const StoragePool& storage_pool) {
-
-    if (storage_pool.get_capacity_sources().empty()) {
-        throw KeyValueMissingError("StoragePool '" + storage_pool.get_uuid() +
-				   "' has no underlying capacity sources.");
-    }
-
-    const auto& providing_drives = storage_pool.get_capacity_sources().front().get_providing_drives();
-    if (providing_drives.empty()) {
-        throw KeyValueMissingError("StoragePool '" + storage_pool.get_uuid() +
-				   "' has no underlying drives in the capacity sources.");
-    }
-
-    string uuid = providing_drives.front();
 
     return uuid;
 }
 
 
-string NvmeKeyGenerator::get_unique_key(const Endpoint& endpoint) {
-    string ret{};
+std::string NvmeKeyGenerator::get_unique_key(const StoragePool& storage_pool) {
+
+    if (storage_pool.get_capacity_sources().empty()) {
+        throw KeyValueMissingError("StoragePool '" + storage_pool.get_uuid() +
+                                   "' has no underlying capacity sources.");
+    }
+
+    const auto& providing_drives = storage_pool.get_capacity_sources().front().get_providing_drives();
+    if (providing_drives.empty()) {
+        throw KeyValueMissingError("StoragePool '" + storage_pool.get_uuid() +
+                                   "' has no underlying drives in the capacity sources.");
+    }
+
+    auto uuid = providing_drives.front();
+    return uuid;
+}
+
+
+std::string NvmeKeyGenerator::get_unique_key(const Endpoint& endpoint) {
+    std::string key{};
     try {
-        ret = attribute::Identifier::get_nqn(endpoint);
+        key = attribute::Identifier::get_nqn(endpoint);
     }
     catch (const std::logic_error&) {
+        throw KeyValueMissingError("Endpoint '" + endpoint.get_uuid() + "' has no NQN.");
     }
-    for (const auto& ce : endpoint.get_connected_entities()) {
-        const auto& role = ce.get_entity_role();
-        if (role.has_value()) {
-            ret += ":" + role.value();
-        }
-    }
-    return ret;
+
+    return key;
 }
 
 
 template<>
 std::string NvmeKeyGenerator::generate_key(const Metric& metric, const Resource& resource) {
     const auto& resource_key = resource.get_unique_key();
-
     return resource_key + metric.get_component().to_string() + metric.get_metric_definition_uuid() + metric.get_name();
 }
 

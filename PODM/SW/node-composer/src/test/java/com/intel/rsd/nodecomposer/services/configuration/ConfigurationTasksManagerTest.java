@@ -16,7 +16,7 @@
 
 package com.intel.rsd.nodecomposer.services.configuration;
 
-import com.intel.rsd.nodecomposer.services.configuration.client.RestActionInvoker;
+import com.intel.rsd.nodecomposer.services.configuration.client.DiscoveryServiceWebClient;
 import com.intel.rsd.nodecomposer.types.discovery.DiscoveryServiceEndpoint;
 import com.intel.rsd.nodecomposer.utils.beans.NodeComposerBeanFactory;
 import lombok.val;
@@ -108,7 +108,7 @@ public class ConfigurationTasksManagerTest {
         when(mockedTaskScheduler.scheduleWithFixedDelay(any(DiscoveryServiceConfigurationTask.class), any(Date.class), anyLong()))
             .thenReturn(mock(ScheduledFuture.class));
         DiscoveryServiceConfigurationTask task = new DiscoveryServiceConfigurationTask(mock(DiscoveryServiceConfigurer.class),
-            mock(RestActionInvoker.class));
+            mock(DiscoveryServiceWebClient.class));
         val mockedBeanFactory = mock(NodeComposerBeanFactory.class);
         when(mockedBeanFactory.create(DiscoveryServiceConfigurationTask.class)).thenReturn(task);
 

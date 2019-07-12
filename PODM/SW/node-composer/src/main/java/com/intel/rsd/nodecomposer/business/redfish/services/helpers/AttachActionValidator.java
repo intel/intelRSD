@@ -64,6 +64,13 @@ public class AttachActionValidator<T extends DiscoverableEntity & AttachableAsse
         }
     }
 
+    public void validateAssetPresence(T asset, ODataId resourceContext) throws ResourceStateMismatchException {
+        if (!asset.isAchievable()) {
+            throw new ResourceStateMismatchException(format("Asset with id %s should be enabled and healthy in order to invoke actions on it",
+                resourceContext));
+        }
+    }
+
     public void checkAssetSpecificViolations(Violations assetSpecificViolations) throws RequestValidationException {
         if (assetSpecificViolations.hasViolations()) {
             throw new RequestValidationException(assetSpecificViolations);

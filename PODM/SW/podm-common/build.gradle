@@ -22,11 +22,11 @@ buildscript {
         dependencyManagementPluginVersion = '1.0.4.RELEASE'
         gradleVersionsPluginVersion = '0.17.0'
 
-        springPlatformBomVersion = 'Cairo-RC1'
-
         commonsIoVersion = '2.6'
         guavaVersion = '24.1-jre'
         jacocoVersion = '0.8.2'
+
+        testNGVersion = '6.14.3'
     }
     repositories {
         mavenCentral()
@@ -80,7 +80,7 @@ build.dependsOn jacocoTestReport
 
 dependencyManagement {
     imports {
-        mavenBom("io.spring.platform:platform-bom:${springPlatformBomVersion}")
+        mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     }
 }
 
@@ -96,7 +96,7 @@ dependencies {
 
     testCompile("org.springframework.boot:spring-boot-starter-web")
 
-    testCompile("org.testng:testng")
+    testImplementation("org.testng:testng:${testNGVersion}")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
 }

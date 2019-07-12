@@ -40,7 +40,7 @@ class LinksFactory:
         """
         :type api_endpoint: str
         """
-        self.api_endpoint = api_endpoint[:-1] if api_endpoint.endswith("/") else api_endpoint
+        self.api_endpoint = api_endpoint
         self.scheme = LinksConstants.HTTPS if ssl else LinksConstants.HTTP
 
     def get_resource_link(self, url, api_endpoint_override=None):
@@ -55,6 +55,5 @@ class LinksFactory:
                            parts.path,
                            parts.query,
                            parts.fragment))
-        trimmed_path = path[:-1] if path.endswith('/') else path
 
-        return Link(trimmed_path, netloc)
+        return Link(path, netloc)

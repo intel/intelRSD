@@ -26,7 +26,7 @@
 	</edmx:Reference>
 	<edmx:DataServices>
 		<Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="StorageGroup">
-
+			<Annotation Term="Redfish.OwningEntity" String="SNIA"/>
 			<EntityType Name="StorageGroup" BaseType="Resource.v1_0_0.Resource" Abstract="true">
 				<Annotation Term="OData.Description" String="Collection of resources that are managed and exposed to hosts as a group."/>
 				<Annotation
@@ -47,9 +47,25 @@
 				<Annotation Term="OData.LongDescription" String="Hide the storage of this group from the initiator endpoints named in the ClientEndpointGroups. The property VolumesAreExposed shall be set to false when this action is completed."/>
 				<Parameter Name="StorageGroup" Type="StorageGroup.v1_0_0.Actions"/>
 			</Action>
+
+			<ComplexType Name="MappedVolume">
+				<Annotation Term="OData.Description" String="Relate a SCSI Logical Unit Number to a Volume."/>
+				<Annotation Term="OData.LongDescription" String="Relate a SCSI Logical Unit Number to a Volume."/>
+				<Property Name="LogicalUnitNumber" Type="Edm.String">
+					<Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+					<Annotation Term="OData.Description" String="A SCSI Logical Unit Number for a Volume."/>
+					<Annotation Term="OData.LongDescription" String="If present, the value is a SCSI Logical Unit Number for the Volume."/>
+				</Property>
+				<NavigationProperty Name="Volume" Type="Volume.Volume">
+					<Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+					<Annotation Term="OData.Description" String="A mapped Volume."/>
+					<Annotation Term="OData.LongDescription" String="The value shall reference a mapped Volume."/>
+				</NavigationProperty>
+			</ComplexType>
 		</Schema>
 
 		<Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="StorageGroup.v1_0_0">
+			<Annotation Term="Redfish.OwningEntity" String="SNIA"/>
 			<EntityType Name="StorageGroup" BaseType="StorageGroup.StorageGroup">
 				<Annotation Term="OData.Description" String="Collection of resources that are managed and exposed to hosts as a group."/>
 				<Annotation Term="OData.LongDescription" String="A storage group collects a set of related storage entities (volumes, file systems...) The collection should be useful for managing the storage of a set of related client applications."/>
@@ -79,10 +95,10 @@
 					<Annotation Term="OData.Description" String="Contains links to other resources that are related to this resource."/>
 					<Annotation Term="OData.LongDescription" String="This structure shall contain references to resources that are not contained within this resource."/>
 				</Property>
-				<Property Name="ReplicaInfos" Type="Collection(StorageReplicaInfo.ReplicaInfo)">
+				<Property Name="ReplicaInfo" Type="StorageReplicaInfo.ReplicaInfo">
 					<Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
-					<Annotation Term="OData.Description" String="Describes this storage group in its role as a source and/or target for replication."/>
-					<Annotation Term="OData.LongDescription" String="This property shall describe the replication relationship between this storage group and a corresponding source and/or target storage group."/>
+					<Annotation Term="OData.Description" String="Describes this storage group in its role as a target for replication."/>
+					<Annotation Term="OData.LongDescription" String="This property shall describe the replication relationship between this storage group and a corresponding source storage group."/>
 				</Property>
 				<NavigationProperty Name="ClientEndpointGroups" Type="Collection(EndpointGroup.EndpointGroup)" ContainsTarget="true">
 					<Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
@@ -101,6 +117,7 @@
 					<Annotation Term="OData.AutoExpandReferences"/>
 				</NavigationProperty>
 				<NavigationProperty Name="Volumes" Type="Collection(Volume.Volume)">
+					<Annotation Term="Redfish.Deprecated" String="These references are replaced by the MappedVolumes array in StorageGroup."/>
 					<Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
 					<Annotation Term="OData.Description" String="Volumes in this storage group."/>
 					<Annotation Term="OData.LongDescription" String="An array of references to volumes managed by this storage group."/>
@@ -140,9 +157,95 @@
 				<Annotation Term="OData.AdditionalProperties" Bool="true"/>
 			</ComplexType>
 		</Schema>
+
 		<Schema Namespace="StorageGroup.v1_0_1" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+			<Annotation Term="Redfish.OwningEntity" String="SNIA"/>
 			<Annotation Term="OData.Description" String="The Expose and Hide Volume actions are redundant with REST PATCH/PUT operations.  Also, the extra level of a EndpointGroupCollection is not needed. Change references to unversioned."/>
+			<EntityType Name="StorageGroup" BaseType="StorageGroup.v1_0_0.StorageGroup"/>
 		</Schema>
+
+		<Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="StorageGroup.v1_0_2">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="StorageGroup" BaseType="StorageGroup.v1_0_1.StorageGroup"/>
+    </Schema>
+
+		<Schema Namespace="StorageGroup.v1_1_0" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+			<Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+			<Annotation Term="OData.Description" String="This update replaces Volumes with MappedVolumes to support logical unit numbers. It also replaces collection StorageReplicaInfos with scalar StorageReplicaInfo."/>
+			<EntityType Name="StorageGroup" BaseType="StorageGroup.v1_0_2.StorageGroup">
+				<Property Name="MappedVolumes" Type="Collection(StorageGroup.MappedVolume)">
+					<Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+					<Annotation Term="OData.Description" String="Mapped Volumes in this storage group."/>
+					<Annotation Term="OData.LongDescription" String="An array of mapped volumes managed by this storage group."/>
+				</Property>
+			</EntityType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="StorageGroup.v1_1_1">
+      <Annotation Term="OData.Description" String="This version adds ReplicaTargets collection."/>
+      <EntityType Name="StorageGroup" BaseType="StorageGroup.v1_1_0.StorageGroup">
+        <NavigationProperty Name="ReplicaTargets" Type="Collection(Resource.Item)">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Read"/>
+          <Annotation Term="OData.Description" String="The resources that are target replicas of this source."/>
+          <Annotation Term="OData.LongDescription" String="The value shall reference the target replicas that are sourced by this replica."/>
+          <Annotation Term="OData.AutoExpandReferences"/>
+        </NavigationProperty>
+      </EntityType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="StorageGroup.v1_2_0">
+      <Annotation Term="OData.Description" String="This version adds CHAP information"/>
+      <EntityType Name="StorageGroup" BaseType="StorageGroup.v1_1_1.StorageGroup">
+        <Property Name="AuthenticationMethod" Type="StorageGroup.v1_2_0.AuthenticationMethod">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The Authentication method used for the Endpoints involved in this StorageGroup."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property must be what kind of authentication that the endpoints in this StorageGroup understands."/>
+        </Property>
+        <Property Name="ChapInfo" Type="Collection(StorageGroup.v1_2_0.CHAPInformation)">
+          <Annotation Term="OData.Description" String="The credential information used to authenticate the endpoints in this StorageGroup."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property must reflect the authentication used by this specific endpoint. For example, if this endpoint represents an initiator, and AuthenticationMethod is CHAP or MutualCHAP, the Credentials fields CHAPUsername and CHAPSecret must be used. If this endpoint represents a target endpoint and AuthenticationMethod is MutualCHAP, then MutualCHAPUsername and MutualCHAPSecret must be used."/>
+        </Property>
+      </EntityType>
+      <EnumType Name="AuthenticationMethod">
+        <Member Name="None">
+          <Annotation Term="OData.Description" String="No authentication is used." />
+        </Member>
+        <Member Name="CHAP">
+          <Annotation Term="OData.Description" String="iSCSI Challenge Handshake Authentication Protocol (CHAP) authentication is used." />
+        </Member>
+        <Member Name="MutualCHAP">
+          <Annotation Term="OData.Description" String="iSCSI Mutual Challenge Handshake Authentication Protocol (CHAP) authentication is used." />
+        </Member>
+        <Member Name="DHCHAP">
+          <Annotation Term="OData.Description" String="Diffie-Hellman Challenge Handshake Authentication Protocol (DHCHAP) is an authentication protocol used in Fibre Channel. DHCHAP implies that only properties 'TargetCHAPUser' and 'TargetPassword' need to be present." />
+        </Member>
+      </EnumType>
+      <ComplexType Name="CHAPInformation">
+        <Annotation Term="OData.Description" String="User name and password for CHAP authentication"/>
+        <Annotation Term="OData.LongDescription" String="User name and password values for target and initiators Endpoints when CHAP authentication is used."/>
+        <Property Name="InitiatorCHAPUser" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The username for CHAP authentication."/>
+          <Annotation Term="OData.LongDescription" String="If present, this property is the initiator CHAP username for authentication. For example, with an iSCSI scenario, use the initiator iQN."/>
+        </Property>
+        <Property Name="InitiatorCHAPPassword" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Write"/>
+          <Annotation Term="OData.Description" String="The shared secret for CHAP authentication."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the shared secret for CHAP authentication."/>
+        </Property>
+        <Property Name="TargetCHAPUser" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
+          <Annotation Term="OData.Description" String="The CHAP Username for 2-way CHAP authentication."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the CHAP Username for 2-way CHAP authentication. For example, with an iSCSI scenario, use the target iQN. In a FC with DHCHAP, this value will be a FC WWN. "/>
+        </Property>
+        <Property Name="TargetPassword" Type="Edm.String">
+          <Annotation Term="OData.Permissions" EnumMember="OData.Permission/Write"/>
+          <Annotation Term="OData.Description" String="The CHAP Secret for 2-way CHAP authentication."/>
+          <Annotation Term="OData.LongDescription" String="The value of this property shall be the CHAP Secret for 2-way CHAP authentication."/>
+        </Property>
+      </ComplexType>
+    </Schema>
 
 	</edmx:DataServices>
 </edmx:Edmx>

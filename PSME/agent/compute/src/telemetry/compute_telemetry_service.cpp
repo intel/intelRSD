@@ -161,7 +161,7 @@ MetricDefinition CPU_AVG_FREQ =
             .build();
 
 MetricDefinition CPU_HEALTH =
-    MetricDefinitionBuilder("/Health")
+    MetricDefinitionBuilder("/Oem/Intel_RackScale/Health")
         .set_name("processorHealth")
         .set_metric_type(enums::MetricType::Discrete)
         .set_discrete_metric_type(enums::DiscreteMetricType::Multiple)

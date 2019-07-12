@@ -38,6 +38,7 @@
 
 
 using namespace psme::rest::constants::Common;
+using namespace psme::rest::constants::PathParam;
 using namespace agent_framework::module;
 using namespace agent_framework::model;
 using namespace agent_framework::model::enums;
@@ -205,9 +206,6 @@ void build_metric_path(endpoint::PathBuilder& path, const std::string& uuid) {
             .append(index)
             .append(constants::ChassisSensor::READING_CELSIUS);
     }
-    else if (metric.get_component_type() == Component::Processor) {
-        path.append(constants::PathParam::OEM_INTEL_RACKSCALE).append(constants::Common::METRICS).append_jsonptr(metric.get_name());
-    }
     else {
         path.append(constants::Common::METRICS).append_jsonptr(metric.get_name());
     }
@@ -370,6 +368,12 @@ void get_component_url_recursive(endpoint::PathBuilder& path, enums::Component t
         case Component::StoragePool:
             build_child_path<agent_framework::model::StoragePool>(path, uuid, constants::StorageService::STORAGE_POOLS);
             break;
+        case Component::LogService:
+            build_child_path<agent_framework::model::LogService>(path, uuid, constants::Common::LOG_SERVICES);
+            break;
+        case Component::LogEntry:
+            build_child_path<agent_framework::model::LogEntry>(path, uuid, constants::LogService::ENTRIES);
+            break;
         case Component::AuthorizationCertificate:
         case Component::Vlan:
         case Component::NeighborSwitch:
@@ -496,6 +500,27 @@ void populate_metrics(json::Json& component_json, const std::vector<agent_framew
             log_error("rest", "Populate metric " << metric.get_name() << " failed: " << e.what());
         }
     }
+}
+
+psme::rest::server::Parameters get_network_device_request_parameters(const psme::rest::server::Parameters parameters) {
+    psme::rest::server::Parameters request_parameters;
+    if (!parameters.get(constants::PathParam::SYSTEM_ID).empty()) {
+        request_parameters.set(constants::PathParam::SYSTEM_ID, parameters.get(constants::PathParam::SYSTEM_ID));
+        request_parameters.set(constants::PathParam::NETWORK_INTERFACE_ID, parameters.get(constants::PathParam::NETWORK_INTERFACE_ID));
+    }
+    else { // chassis system
+        auto chassis = psme::rest::model::find<agent_framework::model::Chassis>(parameters).get();
+        auto& system_manager = agent_framework::module::get_manager<agent_framework::model::System>();
+        auto system_uuids = system_manager.get_keys();
+        for (const auto& system_uuid : system_uuids) {
+            auto system = system_manager.get_entry(system_uuid);
+            if (system.get_chassis() == chassis.get_uuid()) {
+                request_parameters.set(constants::PathParam::SYSTEM_ID, std::to_string(system_manager.uuid_to_rest_id(system_uuid)));
+                request_parameters.set(constants::PathParam::NETWORK_INTERFACE_ID, parameters.get(constants::PathParam::NETWORK_ADAPTER_ID));
+            }
+        }
+    }
+    return request_parameters;
 }
 
 }

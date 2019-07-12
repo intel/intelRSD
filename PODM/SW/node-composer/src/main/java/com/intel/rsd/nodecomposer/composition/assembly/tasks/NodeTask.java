@@ -29,8 +29,10 @@ import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.substringBefore;
 
+/**
+ * Child classes are obligated to rethrow RuntimeException on exception to ensure transaction will be rolled back
+ */
 @TimeMeasuredClassIdentityProvider(NodeTaskClassIdentityProvider.class)
-// Child classes are obligated to rethrow RuntimeException on exception to ensure transaction will be rolled back
 public abstract class NodeTask implements ThrowingRunnable<RuntimeException>, Serializable {
     private static final long serialVersionUID = 2348082215373182739L;
 

@@ -1,5 +1,4 @@
 # NVM Express (NVMe)* Initiator Wheel
-
 ## Table of Contents
 * [Overview](#overview)
 * [Installation of the NVMe Initiator Wheel](#installation-of-the-nvme-initiator-wheel)
@@ -14,21 +13,22 @@
         * [Change the Default Port](#change-the-default-port)
         * [Change the Default Mode](#change-the-default-mode)
 
-**Note**: The NVMe Initiator Wheel script, `nvme-wheel`, was developed and tested on Ubuntu\* version 16.04 with Python\* version 2.7.14.
+>**Note**: The NVMe Initiator Wheel script, `nvme-wheel`, was developed and tested on Ubuntu\* v16.04 with Python\* v2.7.14.
 
-## Overview
+## **Overview**
 An initiator host polls the Discovery Service to ensure that its connections to remote volumes are up-to-date. And the NVMe Intiator Wheel script, `nvme-wheel`, is a tool that performs these actions.
 
 This ReadMe describes the operation of the NVMe Intiator Wheel, which is installed on an initiator host. The tool can be a cron job script that wraps up the `nvme-cli` utility.
 
-## Installation of the NVMe Initiator Wheel
+## **Installation of the NVMe Initiator Wheel**
 
-**Note**: Installation of `nvme-wheel` requires `nvme-cli` (Initiator script support only a `nvme-cli` version: `1.3` -- `1.6`). Instructions for how to download and install `nvme-cli` are available at: https://github.com/linux-nvme/nvme-cli. For more information refer to http://nvmexpress.org.
+>**Note**: Installation of `nvme-wheel` requires `nvme-cli`. Instructions for how to download and install `nvme-cli` are available at: <https://github.com/linux-nvme/nvme-cli>. For more information refer to <http://nvmexpress.org>.
+**The Inititor script supports only  `nvme-cli`  v1.3 through v1.7.**
 
 ### Dependencies
 Installation of `nvme-wheel` requires a wheel module linked with Python2\*.
 
-**Note**: Wheel is a packaging format for Python and meant to replace the Egg format. To learn more about Wheel, go to https://pythonwheels.com/.
+>**Note**: Wheel is a packaging format for Python and meant to replace the Egg format. To learn more about Wheel, go to <https://pythonwheels.com/>.
 
 1. To install Python\* and Pip Installs Packages (PIP):
 ```bash
@@ -46,11 +46,11 @@ pip install wheel
 ```
 
 3. To install additional requirements:
-```bash
+```bash 
 pip install -r requirements.txt
 ```
 
-3. To install the `nvme-wheel`:
+4. To install the `nvme-wheel`:
 ```bash
 [sudo] bash INSTALL.sh
 ```
@@ -61,9 +61,9 @@ or
 [sudo] -H pip install NVME_Wheel*
 ```
 
-**Note**: "Wheel" is a module that allows users to install .whl packages. And `nvme-wheel` is the name of the script that we run in the terminal window.
+>**Note**: "Wheel" is a module that allows users to install .whl packages. And `nvme-wheel` is the name of the script that we run in the terminal window.
 
-## Running `nvme-wheel`
+## **Running `nvme-wheel`**
 To show available commands, type:
 
 ```bash
@@ -163,3 +163,6 @@ Export:
 NVME_MODE=DEBUG
 ```
 To set the `PRODUCTION` mode, unset `NVME_MODE`.
+ 
+For more information on the `nvme-cli` utility, refer to section 2.13.3, Provisioning Initiator Hosts, of the *Intel® RSD PSME User Guide v2.4* available at [intel.com](<https://www.intel.com/content/www/us/en/architecture-and-technology/rack-scale-design/rack-scale-design-resources.html>).
+

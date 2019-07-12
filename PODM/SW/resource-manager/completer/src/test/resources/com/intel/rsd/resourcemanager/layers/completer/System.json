@@ -108,9 +108,6 @@
       ]
     },
     "Oem": {
-      "#Intel.Oem.StartDeepDiscovery": {
-        "target": "/redfish/v1/Systems/e36f8ea4-7ad2-11e8-a7c2-b3837769af31/Actions/Oem/Intel.Oem.StartDeepDiscovery"
-      },
       "#Intel.Oem.ChangeTPMState": {
         "target": "/redfish/v1/Systems/e36f8ea4-7ad2-11e8-a7c2-b3837769af31/Actions/Oem/Intel.Oem.ChangeTPMState",
         "InterfaceType@Redfish.AllowableValues": [ ]
@@ -121,7 +118,6 @@
     "Intel_RackScale": {
       "@odata.type": "#Intel.Oem.ComputerSystem",
       "PciDevices": [ ],
-      "DiscoveryState": "Basic",
       "ProcessorSockets": 8,
       "MemorySockets": 8,
       "PCIeConnectionId": [

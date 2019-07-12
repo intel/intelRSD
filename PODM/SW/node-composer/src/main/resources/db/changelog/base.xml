@@ -1,4 +1,20 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (c) 2019 Intel Corporation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
     <changeSet author="podm (generated)" id="1554203203264-1">
         <createTable tableName="associated_drive_uri">
@@ -442,11 +458,20 @@
         </createTable>
     </changeSet>
     <changeSet author="podm (generated)" id="1554203203264-39">
+        <createTable tableName="network_adapter">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="chassis_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1559824247760-40">
         <createTable tableName="network_device_function">
             <column name="chap_username" type="TEXT"/>
             <column name="id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
+            <column name="network_adapter_id" type="BIGINT"/>
             <column name="network_interface_id" type="BIGINT"/>
         </createTable>
     </changeSet>
@@ -756,6 +781,9 @@
     <changeSet author="podm (generated)" id="1554203203264-88">
         <addPrimaryKey columnNames="id" constraintName="memory_pkey" tableName="memory"/>
     </changeSet>
+    <changeSet author="podm (generated)" id="1559824247760-90">
+        <addPrimaryKey columnNames="id" constraintName="network_adapter_pkey" tableName="network_adapter"/>
+    </changeSet>
     <changeSet author="podm (generated)" id="1554203203264-89">
         <addPrimaryKey columnNames="id" constraintName="network_device_function_pkey" tableName="network_device_function"/>
     </changeSet>
@@ -924,6 +952,9 @@
     <changeSet author="podm (generated)" id="1554203203264-144">
         <addForeignKeyConstraint baseColumnNames="composed_node_id" baseTableName="storage_pool_composed_node" constraintName="fk_abqgvnb4vwa2l7aimajrca4ai" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="composed_node"/>
     </changeSet>
+    <changeSet author="podm (generated)" id="1559824247760-147">
+        <addForeignKeyConstraint baseColumnNames="id" baseTableName="network_adapter" constraintName="fk_ael091qr0akma3s7ceulcru6h" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
     <changeSet author="podm (generated)" id="1554203203264-145">
         <addForeignKeyConstraint baseColumnNames="volume_id" baseTableName="capacity_source" constraintName="fk_aid7k5fb4mit5x55r5y3imblg" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="volume"/>
     </changeSet>
@@ -974,6 +1005,9 @@
     </changeSet>
     <changeSet author="podm (generated)" id="1554203203264-161">
         <addForeignKeyConstraint baseColumnNames="id" baseTableName="port" constraintName="fk_dvgc32pm231nt5p6hnjjpbo9s" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="discoverable_entity"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1559824247760-165">
+        <addForeignKeyConstraint baseColumnNames="chassis_id" baseTableName="network_adapter" constraintName="fk_e2yq31uq7849j3erdytoyoynu" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="chassis"/>
     </changeSet>
     <changeSet author="podm (generated)" id="1554203203264-162">
         <addForeignKeyConstraint baseColumnNames="chassis_id" baseTableName="chassis_pcie_device" constraintName="fk_e71b8tftjlqno48so21oibbwt" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="chassis"/>
@@ -1085,6 +1119,9 @@
     </changeSet>
     <changeSet author="podm (generated)" id="1554203203264-198">
         <addForeignKeyConstraint baseColumnNames="chassis_id" baseTableName="ethernet_switch" constraintName="fk_n5jyrct0lcdxo4irimihnymjv" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="chassis"/>
+    </changeSet>
+    <changeSet author="podm (generated)" id="1559824247760-203">
+        <addForeignKeyConstraint baseColumnNames="network_adapter_id" baseTableName="network_device_function" constraintName="fk_o1ur5jntl84knvcudja7v3w99" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="network_adapter"/>
     </changeSet>
     <changeSet author="podm (generated)" id="1554203203264-199">
         <addForeignKeyConstraint baseColumnNames="volume_id" baseTableName="drive" constraintName="fk_o8ffpxxn9aqpniay6ji6rn3yx" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="volume"/>

@@ -71,20 +71,14 @@ class Fpga {
 public:
     static constexpr char TYPE[] = "type";
     static constexpr char MODEL[] = "model";
-    static constexpr char MANUFACTURER[] = "manufacturer";
-    static constexpr char BIT_STREAM_VERSION[] = "bitStreamVersion";
-    static constexpr char HSSI_CONFIGURATION[] = "hssiConfiguration";
-    static constexpr char HSSI_SIDEBAND[] = "hssiSideband";
     static constexpr char HOST_INTERFACE[] = "hostInterface";
     static constexpr char EXTERNAL_INTERFACES[] = "externalInterfaces";
-    static constexpr char SIDEBAND_INTERFACE[] = "sidebandInterface";
     static constexpr char PCIE_VIRTUAL_FUNCTIONS[] = "pcieVirtualFunctions";
-    static constexpr char RECONFIGURATION_SLOTS[] = "reconfigurationSlots";
-    static constexpr char RECONFIGURATION_SLOTS_DETAILS[] = "reconfigurationSlotsDetails";
     static constexpr char PROGRAMMABLE_FROM_HOST[] = "programmableFromHost";
-    static constexpr char FW_ID[] = "fwId";
-    static constexpr char FW_MANUFACTURER[] = "fwManufacturer";
-    static constexpr char FW_VERSION[] = "fwVersion";
+    static constexpr char RECONFIGURATION_SLOTS[] = "reconfigurationSlots";
+    static constexpr char FIRMWARE_ID[] = "firmwareId";
+    static constexpr char FIRMWARE_MANUFACTURER[] = "firmwareManufacturer";
+    static constexpr char FIRMWARE_VERSION[] = "firmwareVersion";
     static constexpr char ERASED[] = "erased";
     static constexpr char SECURELY_ERASE[] = "securelyErase";
 };
@@ -173,6 +167,7 @@ public:
     static constexpr const char THERMAL_DESIGN_POWER_WATT[] = "thermalDesignPowerWatt";
     static constexpr const char FPGA[] = "fpga";
     static constexpr const char OEM[] = "oem";
+    static constexpr const char COLLECTIONS[] = "collections";
 };
 
 /*!

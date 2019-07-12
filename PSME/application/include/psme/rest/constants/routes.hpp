@@ -80,6 +80,10 @@ public:
     static const std::string MANAGER_NETWORK_INTERFACE_PATH;
     static const std::string MANAGER_VLAN_NETWORK_INTERFACE_COLLECTION_PATH;
     static const std::string MANAGER_VLAN_NETWORK_INTERFACE_PATH;
+    static const std::string MANAGER_LOG_SERVICES_COLLECTION_PATH;
+    static const std::string MANAGER_LOG_SERVICE_PATH;
+    static const std::string MANAGER_LOG_ENTRY_COLLECTION_PATH;
+    static const std::string MANAGER_LOG_ENTRY_PATH;
     static const std::string NETWORK_PROTOCOL_PATH;
 
     static const std::string SYSTEMS_COLLECTION_PATH;
@@ -101,10 +105,10 @@ public:
     static const std::string PROCESSORS_METRICS_PATH;
     static const std::string PROCESSORS_SECURE_ERASE_PATH;
     static const std::string VOLUMES_COLLECTION_PATH;
-    static const std::string NETWORK_INTERFACES_COLLECTION_PATH;
-    static const std::string NETWORK_INTERFACE_PATH;
-    static const std::string NETWORK_DEVICE_FUNCTIONS_COLLECTION_PATH;
-    static const std::string NETWORK_DEVICE_FUNCTION_PATH;
+    static const std::string CHASSIS_NETWORK_DEVICE_FUNCTIONS_COLLECTION_PATH;
+    static const std::string CHASSIS_NETWORK_DEVICE_FUNCTION_PATH;
+    static const std::string NETWORK_ADAPTERS_COLLECTION_PATH;
+    static const std::string NETWORK_ADAPTER_PATH;
 
     static const std::string ETHERNET_SWITCHES_COLLECTION_PATH;
     static const std::string ETHERNET_SWITCH_PATH;

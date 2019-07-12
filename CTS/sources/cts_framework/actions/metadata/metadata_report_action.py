@@ -47,8 +47,8 @@ from cts_framework.tests_managing.tests_manager import TestsManager
 
 
 class MetadataReportAction(Action):
-    RSD_CHOICES = ('2_4',)
-    REDFISH_CHOICES = ('2018_1', '2018_2', '2018_3')
+    RSD_CHOICES = ('2_5',)
+    REDFISH_CHOICES = ('2018_1', '2018_2', '2018_3', '2019_1')
 
     REPORT_FOLDER = "cts_interoperability_report"
     NEEDED_FILES = ("intel-logo-white.png",)
@@ -66,7 +66,7 @@ class MetadataReportAction(Action):
     def fill_parser_arguments(self):
         self.parser.add_argument('-p', '--preview', default=False, action='store_true',
                                  help='Show report preview in console')
-        self.parser.add_argument('--RackScaleMetadata', default='2_4', type=str,
+        self.parser.add_argument('--RackScaleMetadata', default='2_5', type=str,
                                  choices=MetadataReportAction.RSD_CHOICES)
         self.parser.add_argument('--RedfishMetadata', default=MetadataReportAction.REDFISH_CHOICES[-1], type=str,
                                  choices=MetadataReportAction.REDFISH_CHOICES)
@@ -108,7 +108,7 @@ class MetadataReportAction(Action):
         return True
 
     def process_action(self, configuration):
-        print "Using CTS in version %s" % (ColorPrinter.format_text(BuildInformation.BUILD_VERSION, bold=True))
+        print "Using CTS in version %s" % (ColorPrinter.format_text(BuildInformation.get_version(), bold=True))
         print "\nComparing...\n\n"
 
         if not self.__create_dirs():

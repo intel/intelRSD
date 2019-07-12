@@ -34,7 +34,7 @@
   <edmx:DataServices>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="DataProtectionLineOfService">
-
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="DataProtectionLineOfService" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="Describes a data protection service option."/>
         <Annotation Term="OData.LongDescription" String="This service option describes a replica that protects data from loss. The requirements must be met collectively by the communication path and the replica."/>
@@ -42,7 +42,7 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="DataProtectionLineOfService.v1_0_0">
-
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="DataProtectionLineOfService" BaseType="DataProtectionLineOfService.DataProtectionLineOfService">
         <Annotation Term="OData.Description" String="Describes a data protection service option."/>
         <Annotation Term="OData.LongDescription" String="This service option describes a replica that protects data from loss. The requirements must be met collectively by the communication path and the replica."/>
@@ -103,8 +103,16 @@
 
     </Schema>
 
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="DataProtectionLineOfService.v1_0_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="DataProtectionLineOfService" BaseType="DataProtectionLineOfService.v1_0_0.DataProtectionLineOfService"/>
+    </Schema>
+
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="DataProtectionLineOfService.v1_1_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.Description" String="Adds ReplicaRequest ComplexType and CreateReplicas Action.  Change references to unversioned."/>
+	  <EntityType Name="DataProtectionLineOfService" BaseType="DataProtectionLineOfService.v1_0_1.DataProtectionLineOfService"/>
       <ComplexType Name="ReplicaRequest">
         <NavigationProperty Name="ReplicaSource" Type="Resource.Item">
           <Annotation Term="OData.Description" String="A resource to be replicated."/>
@@ -131,11 +139,17 @@
         </Parameter>
 
         <ReturnType Type="Collection(StorageReplicaInfo.ReplicaInfo)">
-          <!-- <Annotation Term="OData.Description" String="The instance that represent the new replication relationships."/> <Annotation Term="OData.LongDescription" String="Each entry value shall represent the corresponding new replication relationship."/>
+          <!-- <Annotation Term="OData.Description" String="Each instance represents a new replication relationship."/> <Annotation Term="OData.LongDescription" String="Each entry value shall represent the corresponding new replication relationship."/>
           -->
         </ReturnType>
 
       </Action>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="DataProtectionLineOfService.v1_1_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="DataProtectionLineOfService" BaseType="DataProtectionLineOfService.v1_1_0.DataProtectionLineOfService"/>
     </Schema>
 
   </edmx:DataServices>

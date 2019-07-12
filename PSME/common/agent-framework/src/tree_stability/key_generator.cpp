@@ -83,12 +83,22 @@ KeyGenerator::KeyType KeyGenerator::generate_key(const model::Drive& drive) {
 
 
 KeyGenerator::KeyType KeyGenerator::generate_key(const model::NetworkInterface& interface) {
-    const auto mac = interface.get_mac_address();
-    if (!mac.has_value()) {
-        throw KeyValueMissingError("Ethernet interface's MAC address is missing.");
-    }
 
-    return generate_key_base(interface.get_component()) + mac.value();
+    const auto mac = interface.get_mac_address();
+    const bool has_transport_details = !interface.get_ipv4_addresses().empty() &&
+                                       !interface.get_supported_transport_protocols().empty();
+    if (mac.has_value()) {
+        return generate_key_base(interface.get_component()) + mac.value();
+    }
+    else if (has_transport_details) {
+        return generate_key_base(interface.get_component()) +
+               interface.get_ipv4_addresses().front().get_address() +
+               interface.get_supported_transport_protocols().front().to_string();
+    }
+    else {
+        throw KeyValueMissingError(
+            "Ethernet interface's MAC address or IPv4 address and supported transport protocols are missing.");
+    }
 }
 
 

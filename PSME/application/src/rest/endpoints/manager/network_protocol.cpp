@@ -139,7 +139,7 @@ void endpoint::NetworkProtocol::get(const server::Request& req, server::Response
 
     auto manager = psme::rest::model::find<agent_framework::model::Manager>(req.params).get();
 
-    for (const auto& service: manager.get_network_services()){
+    for (const auto& service: manager.get_network_services()) {
         r[service_name_to_rest_literal[service.get_name()]][constants::NetworkProtocol::PROTOCOL_ENABLED] = service.get_enabled();
         r[service_name_to_rest_literal[service.get_name()]][constants::NetworkProtocol::PORT] = service.get_port();
     }

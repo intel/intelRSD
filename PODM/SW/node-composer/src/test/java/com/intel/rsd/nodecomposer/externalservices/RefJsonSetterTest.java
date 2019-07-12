@@ -33,7 +33,7 @@ import static java.util.Arrays.stream;
 
 public class RefJsonSetterTest {
     private static final String PODM_EXTERNAL_SERVICES_PACKAGE = "com.intel.rsd.nodecomposer.externalservices.*";
-    private static final String PODM_NORTHBOUND_REQUESTS_PACKAGE = "com.intel.rsd.nodecomposer.rest.redfish.json.templates.actions";
+    private static final String PODM_NORTHBOUND_REQUESTS_PACKAGE = "com.intel.rsd.nodecomposer.rest.redfish.json.actions";
 
     @Test
     public void refPropertiesShouldBeAnnotatedWithJsonSetter() {

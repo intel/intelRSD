@@ -18,17 +18,14 @@ package com.intel.rsd.nodecomposer.composition.allocation.validation;
 
 import com.intel.rsd.nodecomposer.business.Violations;
 import com.intel.rsd.nodecomposer.types.Protocol;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;
 
 import static com.intel.rsd.nodecomposer.types.Protocol.ISCSI;
 import static com.intel.rsd.nodecomposer.types.Protocol.NVME_OVER_FABRICS;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class RequestedProtocolValidator {
     private static final EnumSet<Protocol> SUPPORTED_PROTOCOLS = EnumSet.of(NVME_OVER_FABRICS, ISCSI);
 

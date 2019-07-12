@@ -25,6 +25,7 @@
 #include "agent-framework/module/utils/is_framework_object.hpp"
 #include "agent-framework/module/model/attributes/model_attributes.hpp"
 #include "agent-framework/module/model/metric.hpp"
+#include "agent-framework/module/model/log_entry.hpp"
 
 
 
@@ -199,6 +200,7 @@ template class Array<FpgaReconfigurationSlot>;
 
 /* Model classes */
 template class Array<Metric>;
+template class Array<LogEntry>;
 
 /* Enums */
 template class Array<enums::GraphicalConsoleSupportedType>;
@@ -210,7 +212,6 @@ template class Array<enums::Media>;
 template class Array<enums::MemoryModuleType>;
 template class Array<enums::DeviceType>;
 template class Array<enums::MemoryMode>;
-template class Array<enums::SecurityStates>;
 template class Array<enums::TransportProtocol>;
 template class Array<enums::ResetType>;
 template class Array<enums::VolumeType>;

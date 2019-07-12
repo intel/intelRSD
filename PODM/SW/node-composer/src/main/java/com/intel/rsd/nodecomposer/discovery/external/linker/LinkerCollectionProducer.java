@@ -29,6 +29,7 @@ import com.intel.rsd.nodecomposer.persistence.redfish.Fabric;
 import com.intel.rsd.nodecomposer.persistence.redfish.IpTransportDetails;
 import com.intel.rsd.nodecomposer.persistence.redfish.Manager;
 import com.intel.rsd.nodecomposer.persistence.redfish.Memory;
+import com.intel.rsd.nodecomposer.persistence.redfish.NetworkAdapter;
 import com.intel.rsd.nodecomposer.persistence.redfish.NetworkDeviceFunction;
 import com.intel.rsd.nodecomposer.persistence.redfish.NetworkInterface;
 import com.intel.rsd.nodecomposer.persistence.redfish.PcieDevice;
@@ -65,6 +66,9 @@ public class LinkerCollectionProducer {
         register(Chassis.class, EthernetSwitch.class, "containsSwitches", Chassis::addEthernetSwitch);
         register(Chassis.class, Drive.class, "drives", Chassis::addDrive);
         register(Chassis.class, Storage.class, "storage", Chassis::addStorage);
+        register(Chassis.class, NetworkAdapter.class, "networkAdapters", Chassis::addNetworkAdapter);
+
+        register(NetworkAdapter.class, NetworkDeviceFunction.class, "networkDeviceFunctionsInNetworkAdapter", NetworkAdapter::addNetworkDeviceFunction);
 
         register(ComputerSystem.class, Memory.class, "memoryModules", ComputerSystem::addMemoryModule);
         register(ComputerSystem.class, Processor.class, "processors", ComputerSystem::addProcessor);

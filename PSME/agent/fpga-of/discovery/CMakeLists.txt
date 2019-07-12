@@ -26,13 +26,14 @@ set(SOURCES
     src/discoverers/fpgaof_chassis_discoverer.cpp
     src/discoverers/fpgaof_manager_discoverer.cpp
     src/discoverers/fpgaof_processor_discoverer.cpp
+    src/discoverers/fpgaof_opaeproxy_interface_discoverer.cpp
 
     src/builders/fpgaof_endpoint_builder.cpp
     src/builders/fpgaof_system_builder.cpp
     src/builders/fpgaof_chassis_builder.cpp
     src/builders/fpgaof_manager_builder.cpp
     src/builders/fpgaof_processor_builder.cpp
-)
+    src/builders/fpgaof_opaeproxy_interface_builder.cpp)
 
 
 add_library(fpgaof-discovery STATIC ${SOURCES})
@@ -50,4 +51,6 @@ target_link_libraries(fpgaof-discovery
     agent-framework-discovery
     agent-framework-database
     utils
+    PRIVATE
+    net
 )

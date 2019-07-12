@@ -286,6 +286,26 @@ std::vector<agent_framework::model::Metric> get_metrics(const T& resource,
     );
 }
 
+/*!
+ * @brief Adds value to json if a value is present
+ * @tparam T Type of value
+ * @param json Reference to json to add value
+ * @param key Key of json object for value
+ * @param value Optional value to add.
+ */
+template <typename T>
+void add_to_json_if_has_value(json::Json& json, const std::string& key, const OptionalField<T>& value) {
+    if (value.has_value()) {
+        json[key] = value;
+    }
+}
+
+/*!
+ * @brief Returns an Parameters object containing data used to search for the model
+ * @param parameters Parameters object containing PathParams from source URI
+ * @return Parameters object containing key:value pairs (key is name of PathParam)
+ */
+psme::rest::server::Parameters get_network_device_request_parameters(const psme::rest::server::Parameters parameters);
 
 /*!
  * @brief Fill JSON with resource name and description (if applicable)
@@ -294,12 +314,8 @@ std::vector<agent_framework::model::Metric> get_metrics(const T& resource,
  */
 template <typename T>
 void fill_name_and_description(const T& resource, json::Json& json) {
-    if (resource.get_name().has_value()) {
-        json[constants::Common::NAME] = resource.get_name();
-    }
-    if (resource.get_description().has_value()) {
-        json[constants::Common::DESCRIPTION] = resource.get_description();
-    }
+    add_to_json_if_has_value(json, constants::Common::NAME, resource.get_name());
+    add_to_json_if_has_value(json, constants::Common::DESCRIPTION, resource.get_description());
 }
 
 }

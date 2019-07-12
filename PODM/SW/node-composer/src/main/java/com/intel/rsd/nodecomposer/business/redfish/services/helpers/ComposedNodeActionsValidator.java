@@ -19,22 +19,15 @@ package com.intel.rsd.nodecomposer.business.redfish.services.helpers;
 import com.intel.rsd.nodecomposer.business.ComposedNodeAssetNotAvailableException;
 import com.intel.rsd.nodecomposer.business.ResourceStateMismatchException;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import javax.transaction.Transactional;
 
 import static com.intel.rsd.nodecomposer.types.ComposedNodeState.ASSEMBLED;
 import static com.intel.rsd.nodecomposer.types.ComposedNodeState.FAILED;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class ComposedNodeActionsValidator {
     private static final int RETRY_AFTER_SECONDS = 30;
 
-    @Transactional(MANDATORY)
     public void validateIfActionCanBePerformedOnNode(ComposedNode composedNode) throws ResourceStateMismatchException, ComposedNodeAssetNotAvailableException {
         if (composedNode.getComputerSystem() == null) {
             throw new ComposedNodeAssetNotAvailableException("There is no Computer System related with requested Node.", RETRY_AFTER_SECONDS);

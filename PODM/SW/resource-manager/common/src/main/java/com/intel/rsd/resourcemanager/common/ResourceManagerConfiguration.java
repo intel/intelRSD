@@ -66,9 +66,4 @@ public class ResourceManagerConfiguration {
             atomicReferenceToManagerCollection
         );
     }
-
-    @Bean
-    public CacheUpdater cacheUpdater(ServiceDetectorApiConsumer serviceDetectorApiConsumer) {
-        return new CacheUpdater(serviceDetectorApiConsumer);
-    }
 }

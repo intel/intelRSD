@@ -142,7 +142,7 @@ class HtmlFormatter(Formatter):
             report.write("{header}{resultRunReport}{footer}".format(
                 header=HtmlFormatter.HEADER.format(parent_level=parent_lvl),
                 resultRunReport=result_report,
-                footer=HtmlFormatter.FOOTER.format(version=BuildInformation.BUILD_VERSION, parent_level=parent_lvl)))
+                footer=HtmlFormatter.FOOTER.format(version=BuildInformation.get_version(), parent_level=parent_lvl)))
 
     def save_script_results(self, script_execution_id, run_id):
         cases_execution_ids = CaseDAO.get_cases_execution_ids_for_script_execution(script_execution_id)
@@ -191,7 +191,7 @@ class HtmlFormatter(Formatter):
                 "{header}{resultRunReport}{footer}".format(header=HtmlFormatter.HEADER.format(parent_level=parent_lvl),
                                                            resultRunReport=result_report,
                                                            footer=HtmlFormatter.FOOTER.format(
-                                                               version=BuildInformation.BUILD_VERSION,
+                                                               version=BuildInformation.get_version(),
                                                                parent_level=parent_lvl)))
 
     def save_case_result(self, case_execution_id, script_execution_id, run_id):
@@ -263,4 +263,4 @@ class HtmlFormatter(Formatter):
             report.write("{header}{resultRunReport}{footer}".format(
                 header=HtmlFormatter.HEADER.format(parent_level=parent_lvl),
                 resultRunReport=result_report,
-                footer=HtmlFormatter.FOOTER.format(version=BuildInformation.BUILD_VERSION, parent_level=parent_lvl)))
+                footer=HtmlFormatter.FOOTER.format(version=BuildInformation.get_version(), parent_level=parent_lvl)))

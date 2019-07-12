@@ -16,7 +16,6 @@
 
 package com.intel.rsd.podm.filters;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 import lombok.extern.slf4j.Slf4j;
@@ -25,15 +24,11 @@ import org.springframework.http.MediaType;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
-import static com.intel.rsd.json.JsonUtils.createStringWith;
-import static com.intel.rsd.redfish.RedfishErrors.createRedfishError;
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.PRE_TYPE;
 import static org.springframework.cloud.netflix.zuul.filters.support.FilterConstants.SEND_ERROR_FILTER_ORDER;
 import static org.springframework.http.HttpHeaders.ACCEPT;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 import static org.springframework.http.MediaType.parseMediaTypes;
 import static org.springframework.http.MediaType.valueOf;
 
@@ -60,7 +55,7 @@ public class ContentTypeFilter extends ZuulFilter {
         HttpServletRequest request = context.getRequest();
         List<MediaType> mediaTypes = getMediaTypes(request.getHeader(ACCEPT));
         if (mediaTypes.stream().noneMatch(this::isCompatibleMediaType)) {
-            createNotAcceptableResponse(context);
+            ErrorResponse.createResponseWithStatus(context, NOT_ACCEPTABLE);
             log.info("Invalid {} request to {}", request.getMethod(), request.getRequestURL().toString());
         }
         return null;
@@ -74,21 +69,5 @@ public class ContentTypeFilter extends ZuulFilter {
         return mediaType.isCompatibleWith(valueOf(APPLICATION_JSON_VALUE));
     }
 
-    private void createNotAcceptableResponse(RequestContext context) {
-        context.setSendZuulResponse(false);
-        context.getResponse().setContentType(APPLICATION_JSON_VALUE);
-        context.setResponseStatusCode(NOT_ACCEPTABLE.value());
-        context.setResponseBody(getBodyInJsonFormat(context));
-    }
 
-    private String getBodyInJsonFormat(RequestContext context) {
-        try {
-            return createStringWith(createRedfishError(NOT_ACCEPTABLE));
-        } catch (JsonProcessingException e) {
-            log.error("Not able to create error message due to error {}", e.getMessage());
-            context.getResponse().setContentType(TEXT_PLAIN_VALUE);
-            context.setResponseStatusCode(INTERNAL_SERVER_ERROR.value());
-            return e.toString();
-        }
-    }
 }

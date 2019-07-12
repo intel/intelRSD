@@ -43,6 +43,7 @@ import java.util.List;
     "#SwitchCollection\\.SwitchCollection",
     "#PortCollection\\.PortCollection",
     "#EndpointCollection\\.EndpointCollection",
+    "#NetworkAdapterCollection\\.NetworkAdapterCollection",
     "#NetworkInterfaceCollection\\.NetworkInterfaceCollection",
     "#NetworkDeviceFunctionCollection\\.NetworkDeviceFunctionCollection",
     "#StoragePoolCollection\\.StoragePoolCollection",

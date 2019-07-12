@@ -53,11 +53,6 @@ void ProcessorBuilder::build_default() {
         enums::CollectionName::PcieFunctions,
         enums::CollectionType::PCIeFunctions
     ));
-
-    m_obj.add_collection(attribute::Collection(
-        enums::CollectionName::ReconfigurationSlotsDetails,
-        enums::CollectionType::ReconfigurationSlotsDetails
-    ));
 }
 
 

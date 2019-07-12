@@ -9,11 +9,14 @@
   <edmx:Reference Uri="Org.OData.Measures.V1.xml">
     <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
   </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions_v1.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+  </edmx:Reference>
 
   <edmx:DataServices>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOStatistics">
-
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <ComplexType Name="IOStatistics" Abstract="true">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Annotation Term="OData.Description" String="The properties of this type represent IO statistics."/>
@@ -23,7 +26,7 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOStatistics.v1_0_0">
-
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <ComplexType Name="IOStatistics" BaseType="IOStatistics.IOStatistics">
         <Annotation Term="OData.Description" String="The properties of this type represent IO statistics."/>
         <Annotation Term="OData.LongDescription" String="The properties of this type shall be used to represent the IO statistics of the requested object."/>
@@ -89,7 +92,13 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOStatistics.v1_0_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.LongDescription" String="Move ComplexType to unversioned namespace. Change references to unversioned."/>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOStatistics.v1_0_2">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
     </Schema>
 
   </edmx:DataServices>

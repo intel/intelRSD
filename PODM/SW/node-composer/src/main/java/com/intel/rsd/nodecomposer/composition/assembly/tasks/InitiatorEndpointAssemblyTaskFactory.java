@@ -20,17 +20,11 @@ import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.utils.beans.NodeComposerBeanFactory;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
-
 import static com.intel.rsd.nodecomposer.utils.Contracts.requiresNonNull;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class InitiatorEndpointAssemblyTaskFactory {
     private final NodeComposerBeanFactory beanFactory;
 
@@ -39,7 +33,6 @@ public class InitiatorEndpointAssemblyTaskFactory {
         this.beanFactory = beanFactory;
     }
 
-    @Transactional(MANDATORY)
     public InitiatorEndpointAssemblyTask create(ODataId fabricOdataId) {
         requiresNonNull(fabricOdataId, "fabricOdataId");
         val initiatorEndpointAssemblyTask = beanFactory.create(InitiatorEndpointAssemblyTask.class);

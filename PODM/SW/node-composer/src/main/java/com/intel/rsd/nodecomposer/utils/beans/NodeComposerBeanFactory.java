@@ -69,7 +69,7 @@ public class NodeComposerBeanFactory implements BeanFactoryAware {
             log.error(msg, e);
             throw new IllegalArgumentException(msg, e);
         } finally {
-            log.warn("Creating bean: [" + beanClass + "] took: " + between(start, now()));
+            log.info("Creating bean: [{}] took: {}", beanClass, between(start, now()));
         }
     }
 

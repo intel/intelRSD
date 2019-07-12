@@ -1,0 +1,10 @@
+{
+  "name": "12.6.4.1.1",
+  "resources": {
+    "volumes_members": ["Volume.v1_0_0.Volume", "Volumes"]
+  },
+  "actions": [
+    ["all_not_bool_test", ["volumes_members", "Volumes", false, ["Oem/Intel_RackScale/EraseOnDetach",
+      "Oem/Intel_RackScale/Erased"]]]
+  ]
+}

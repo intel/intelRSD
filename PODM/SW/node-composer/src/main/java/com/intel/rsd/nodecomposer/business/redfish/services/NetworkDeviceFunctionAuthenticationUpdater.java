@@ -28,6 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 import static com.intel.rsd.nodecomposer.types.EntityRole.INITIATOR;
 import static com.intel.rsd.nodecomposer.types.Ref.of;
 import static com.intel.rsd.nodecomposer.utils.Collector.toSingleOrNull;
@@ -48,9 +50,8 @@ public class NetworkDeviceFunctionAuthenticationUpdater {
         this.genericDao = genericDao;
     }
 
-    void updateAuthenticationIfNetworkDeviceFunctionPresentInEndpoint(Endpoint endpoint, String username, String password) {
-        NetworkDeviceFunction networkDeviceFunction = retrieveNetworkDeviceFunction(endpoint);
-        if (networkDeviceFunction != null) {
+    void updateAuthenticationIfNetworkDeviceFunctionIsPresentInEndpoint(Endpoint endpoint, String username, String password) {
+        retrieveNetworkDeviceFunction(endpoint).ifPresent(networkDeviceFunction -> {
             ODataId networkDeviceFunctionOdataId = networkDeviceFunction.getUri();
             try {
                 NetworkDeviceFunction deviceFunction = genericDao.find(NetworkDeviceFunction.class, networkDeviceFunctionOdataId);
@@ -61,7 +62,7 @@ public class NetworkDeviceFunctionAuthenticationUpdater {
             } catch (WebClientRequestException e) {
                 log.error(format("Reconfiguring NetworkDeviceFunction (uri: %s) failed", networkDeviceFunctionOdataId), e);
             }
-        }
+        });
     }
 
     private NetworkDeviceFunctionUpdateDefinition prepareUpdateDefinition(boolean isInitiator, String username, String password) {
@@ -79,13 +80,14 @@ public class NetworkDeviceFunctionAuthenticationUpdater {
         return updateDefinition;
     }
 
-    private NetworkDeviceFunction retrieveNetworkDeviceFunction(Endpoint endpoint) {
+    private Optional<NetworkDeviceFunction> retrieveNetworkDeviceFunction(Endpoint endpoint) {
         Endpoint initiator = retrieveEndpointInitiator(endpoint);
+
         if (initiator == null || initiator.getComputerSystem() == null) {
-            return null;
+            return Optional.empty();
         }
 
-        return initiator.getComputerSystem().getNetworkDeviceFunctionOrNull();
+        return initiator.getComputerSystem().getNetworkDeviceFunction();
     }
 
     private Endpoint retrieveEndpointInitiator(Endpoint endpoint) {

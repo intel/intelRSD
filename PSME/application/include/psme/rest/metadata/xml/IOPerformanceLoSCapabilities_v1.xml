@@ -5,6 +5,9 @@
   <edmx:Reference Uri="Org.OData.Core.V1.xml">
     <edmx:Include Namespace="Org.OData.Core.V1" Alias="OData"/>
   </edmx:Reference>
+  <edmx:Reference Uri="Org.OData.Capabilities.V1.xml">
+    <edmx:Include Namespace="Org.OData.Capabilities.V1" Alias="Capabilities"/>
+  </edmx:Reference>
   <edmx:Reference Uri="Org.OData.Measures.V1.xml">
     <edmx:Include Namespace="Org.OData.Measures.V1" Alias="Measures"/>
   </edmx:Reference>
@@ -24,11 +27,32 @@
   <edmx:DataServices>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOPerformanceLoSCapabilities">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="IOPerformanceLoSCapabilities" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="Describe data protection capabilities"/>
         <Annotation
           Term="OData.LongDescription"
           String="The capabilities to protect data from loss by the use of a replica. The requirements must be met collectively by the communication path and the replica. There will be one instance associated to a class of service for each replica. Each replica has its own class of service that describes its characteristics."/>
+        <Annotation Term="Capabilities.InsertRestrictions">
+          <Record>
+            <PropertyValue Property="Insertable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Capabilities.UpdateRestrictions">
+          <Record>
+            <PropertyValue Property="Updatable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Capabilities.DeleteRestrictions">
+          <Record>
+            <PropertyValue Property="Deletable" Bool="false"/>
+          </Record>
+        </Annotation>
+        <Annotation Term="Redfish.Uris">
+          <Collection>
+            <String>/redfish/v1/StorageServices/{StorageServiceId}/IOPerformanceLoSCapabilities</String>
+          </Collection>
+        </Annotation>
       </EntityType>
 
       <ComplexType Name="IOWorkload" Abstract="true">
@@ -45,6 +69,7 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOPerformanceLoSCapabilities.v1_0_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="IOPerformanceLoSCapabilities" BaseType="IOPerformanceLoSCapabilities.IOPerformanceLoSCapabilities">
         <Annotation Term="OData.Description" String="Describe io performance capabilities."/>
         <Annotation Term="OData.LongDescription" String="Each instance of IOPerformanceLoSCapabilities shall describe the capabilities of the system to support various IO performance service options."/>
@@ -83,7 +108,7 @@
           <Annotation Term="OData.Description" String="A collection of supported workloads."/>
           <Annotation Term="OData.LongDescription" String="The value shall be a collection of supported workloads."/>
         </Property>
-        <NavigationProperty Name="SupportedLinesOfService" Type="Collection(IOPerformanceLineOfService.IOPerformanceLineOfService)">
+        <NavigationProperty Name="SupportedLinesOfService" Type="Collection(IOPerformanceLineOfService.IOPerformanceLineOfService)" ContainsTarget="true">
           <Annotation Term="OData.Permissions" EnumMember="OData.Permission/ReadWrite"/>
           <Annotation Term="OData.Description" String="Collection of known and supported IOPerformanceLinesOfService."/>
           <Annotation Term="OData.LongDescription" String="The value shall be a collection supported IO performance service options."/>
@@ -177,8 +202,15 @@
 
     </Schema>
 
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOPerformanceLoSCapabilities.v1_0_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="IOPerformanceLoSCapabilities" BaseType="IOPerformanceLoSCapabilities.v1_0_0.IOPerformanceLoSCapabilities"/>
+    </Schema>
+
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOPerformanceLoSCapabilities.v1_1_0">
-      <EntityType Name="IOPerformanceLoSCapabilities" BaseType="IOPerformanceLoSCapabilities.v1_0_0.IOPerformanceLoSCapabilities">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <EntityType Name="IOPerformanceLoSCapabilities" BaseType="IOPerformanceLoSCapabilities.v1_0_1.IOPerformanceLoSCapabilities">
         <Property Name="Actions" Type="IOPerformanceLoSCapabilities.v1_1_0.Actions" Nullable="false">
           <Annotation Term="OData.Description" String="The available actions for this resource."/>
           <Annotation Term="OData.LongDescription" String="The Actions property shall contain the available actions for this resource."/>
@@ -200,7 +232,19 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOPerformanceLoSCapabilities.v1_1_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.LongDescription" String="Change IOPerformanceLineOfService to EntityType. Move ComplexType to unversioned namespace. Change references to unversioned."/>
+      <EntityType Name="IOPerformanceLoSCapabilities" BaseType="IOPerformanceLoSCapabilities.v1_1_0.IOPerformanceLoSCapabilities">
+        <Annotation Term="OData.Description" String="Use Redfish Location type, and change IOPerformanceLineOfService to EntityType.  Move enums to unversioned namespace. Change references to unversioned."/>
+      </EntityType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOPerformanceLoSCapabilities.v1_1_2">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="Make SupportedLinesOfService be a containment NavigationProperty. This version was also created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="IOPerformanceLoSCapabilities" BaseType="IOPerformanceLoSCapabilities.v1_1_1.IOPerformanceLoSCapabilities">
+        <Annotation Term="OData.Description" String="Make SupportedLinesOfService be a containment NavigationProperty."/>
+      </EntityType>
     </Schema>
 
   </edmx:DataServices>

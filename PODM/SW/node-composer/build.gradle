@@ -26,7 +26,6 @@ buildscript {
         podmServiceDockerPluginVersion = '1.0-SNAPSHOT'
         gradleVersionsPluginVersion = '0.17.0'
 
-        springPlatformBomVersion = 'Cairo-RC1'
         springCloudVersion = 'Finchley.M8'
 
         hibernateVersion = '5.2.12.Final'
@@ -39,10 +38,12 @@ buildscript {
         modelMapperVersion = '1.1.2'
 
         mockitoVersion = '2.0.2-beta'
-        cornCpsVersion = '1.1.10'
+        reflectionsVersion = '0.9.11'
         modeshapeCommonVer = '5.4.1.Final'
         javaParserCoreVer = '2.5.1'
         jacocoVersion = '0.8.2'
+        commonsNetVersion = '3.6'
+        testNGVersion = '6.14.3'
     }
     repositories {
         mavenLocal()
@@ -100,7 +101,6 @@ build.dependsOn jacocoTestReport
 
 dependencyManagement {
     imports {
-        mavenBom("io.spring.platform:platform-bom:${springPlatformBomVersion}")
         mavenBom("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
     }
 }
@@ -137,12 +137,11 @@ dependencies {
     compile("com.fasterxml.jackson.core:jackson-core")
     compile("com.fasterxml.jackson.core:jackson-databind")
     compile("com.fasterxml.jackson.core:jackson-annotations")
-    compile("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
     compile("com.google.guava:guava:${guavaVersion}")
     compile("org.apache.commons:commons-lang3")
     compile("commons-validator:commons-validator:${commonsValidatorVersion}")
-    compile("commons-net:commons-net")
+    implementation("commons-net:commons-net:${commonsNetVersion}")
     compile("org.apache.commons:commons-collections4:${commonsCollectionsVersion}")
     compile("org.apache.commons:commons-text:${commonsTextVersion}")
     compile("org.modelmapper:modelmapper:${modelMapperVersion}")
@@ -157,9 +156,10 @@ dependencies {
     testCompile("org.springframework.boot:spring-boot-starter-test")
     testCompile("org.springframework.boot:spring-boot-starter-web")
 
-    testCompile("org.testng:testng")
+    testImplementation("org.testng:testng:${testNGVersion}")
     testCompile("org.mockito:mockito-all:${mockitoVersion}")
-    testCompile("net.sf.corn:corn-cps:$cornCpsVersion")
+    testCompile("org.reflections:reflections:${reflectionsVersion}")
+
     testCompile("org.modeshape:modeshape-common:$modeshapeCommonVer")
     testCompile("com.github.javaparser:javaparser-core:$javaParserCoreVer")
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019 Intel Corporation
+ * Copyright (c) 2019 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,73 +16,49 @@
 
 package com.intel.rsd.nodecomposer.business.redfish.services;
 
-import com.hazelcast.spring.context.SpringAware;
 import com.intel.rsd.nodecomposer.business.BusinessApiException;
-import com.intel.rsd.nodecomposer.business.dto.EndpointDto;
-import com.intel.rsd.nodecomposer.business.redfish.services.helpers.InitiatorEndpointCreateRequestBuilder;
+import com.intel.rsd.nodecomposer.business.EntityOperationException;
 import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
-import com.intel.rsd.nodecomposer.persistence.dao.GenericDao;
-import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
-import com.intel.rsd.nodecomposer.persistence.redfish.ComputerSystem;
 import com.intel.rsd.nodecomposer.persistence.redfish.Endpoint;
-import com.intel.rsd.nodecomposer.persistence.redfish.Fabric;
+import com.intel.rsd.nodecomposer.types.Protocol;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
+import java.util.List;
+import java.util.UUID;
+import java.util.function.Consumer;
 
-import static com.intel.rsd.nodecomposer.business.redfish.services.helpers.TargetEndpointCreateRequestBuilder.buildTargetEndpointCreationRequest;
-import static javax.transaction.Transactional.TxType.MANDATORY;
+import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 @Slf4j
-@SpringAware
-@Component
+@Service
 public class EndpointService {
-    private final GenericDao genericDao;
-    private final EndpointCreationService endpointCreationService;
-    private final InitiatorEndpointCreateRequestBuilder initiatorEndpointCreateRequestBuilder;
+
+    private final RemoteEndpointAccessService remoteEndpointAccessService;
+    private final EndpointSynchronizationService endpointSynchronizationService;
 
     @Autowired
-    public EndpointService(GenericDao genericDao, EndpointCreationService endpointCreationService,
-                           InitiatorEndpointCreateRequestBuilder initiatorEndpointCreateRequestBuilder) {
-        this.genericDao = genericDao;
-        this.endpointCreationService = endpointCreationService;
-        this.initiatorEndpointCreateRequestBuilder = initiatorEndpointCreateRequestBuilder;
+    public EndpointService(RemoteEndpointAccessService remoteEndpointAccessService, EndpointSynchronizationService endpointSynchronizationService) {
+        this.remoteEndpointAccessService = remoteEndpointAccessService;
+        this.endpointSynchronizationService = endpointSynchronizationService;
     }
 
-    @Transactional(MANDATORY)
-    public void createInitiatorEndpoint(ComposedNode composedNode, Fabric fabric) {
-        ComputerSystem computerSystem = composedNode.getComputerSystem();
-        EndpointDto initiatorEndpointDto = initiatorEndpointCreateRequestBuilder.buildInitiatorEndpointCreationRequest(fabric.getFabricType(), computerSystem);
-
-        Endpoint endpoint = createEndpoint(composedNode.getUri(), fabric.getUri(), initiatorEndpointDto);
-        computerSystem.addEndpoint(endpoint);
-        updateEntityLink(composedNode, endpoint);
+    public ODataId createTargetEndpoint(ODataId fabricOdataId, Protocol fabricType, ODataId targetOdataId) throws BusinessApiException {
+        return remoteEndpointAccessService.createTargetEndpoint(fabricOdataId, fabricType, targetOdataId);
     }
 
-    @Transactional(MANDATORY)
-    public void createTargetEndpoint(ODataId resourceUri, ComposedNode composedNode, Fabric fabric) {
-        EndpointDto endpointDto = buildTargetEndpointCreationRequest(fabric, resourceUri);
-        Endpoint endpoint = createEndpoint(composedNode.getUri(), fabric.getUri(), endpointDto);
-        composedNode.addEndpoint(endpoint);
+    public ODataId createInitiatorEndpoint(ODataId fabricOdataId, Protocol fabricType,
+                                           UUID targetSystemUuid, List<String> targetSystemConnectionIds) throws BusinessApiException {
+        return remoteEndpointAccessService.createInitiatorEndpoint(fabricOdataId, fabricType, targetSystemUuid, targetSystemConnectionIds);
     }
 
-    private void updateEntityLink(ComposedNode composedNode, Endpoint endpoint) {
-        endpoint.getConnectedEntities()
-            .forEach(connectedEntity -> connectedEntity.setEntityLink(composedNode.getComputerSystem()));
+    @Transactional(propagation = REQUIRES_NEW, rollbackFor = EntityOperationException.class)
+    public void discoverEndpoint(ODataId fabricOdataId, ODataId endpointOdataId, Consumer<? super Endpoint> callback) throws EntityOperationException {
+        val createdEndpoint = endpointSynchronizationService.discoverEndpoint(fabricOdataId, endpointOdataId);
+        callback.accept(createdEndpoint);
     }
 
-    private Endpoint createEndpoint(ODataId composedNodeODataId, ODataId fabricUri, EndpointDto endpointDto) {
-        try {
-            ODataId endpointODataId = endpointCreationService.createAndDiscoverEndpoint(fabricUri, endpointDto);
-            Endpoint endpoint = genericDao.find(Endpoint.class, endpointODataId);
-            endpoint.setAllocated(true);
-
-            return endpoint;
-        } catch (BusinessApiException e) {
-            log.error("Endpoint creation failed for ComposedNode: {}, details: {}", composedNodeODataId, e.getMessage());
-            throw new RuntimeException(e);
-        }
-    }
 }

@@ -39,8 +39,7 @@ extern "C" {
 namespace agent_framework {
 namespace utils {
 
-const std::string make_iso_8601_timestamp() {
-    time_t raw_time = time(nullptr);
+const std::string make_iso_8601_timestamp(time_t raw_time) {
     // ISO 8601 time string contains 25 characters, + 1 for terminating character
     constexpr const size_t ISO_TIME_STRING_LENGTH = 26;
     char time_string_buffer[ISO_TIME_STRING_LENGTH] = {};

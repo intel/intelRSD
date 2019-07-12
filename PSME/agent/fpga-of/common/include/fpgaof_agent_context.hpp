@@ -45,12 +45,6 @@ public:
      */
     FpgaofAgentContext();
 
-
-    /*!
-     * Interface of the reader that is able to list ethernet interface.
-     */
-    interface_reader::BaseInterfaceReader::SPtr interface_reader{};
-
     /*!
      * Interface to sysfs to read system GUID
      */
