@@ -17,6 +17,8 @@
 #include "tools/discovery_entries_provider.hpp"
 #include "agent-framework/module/common_components.hpp"
 #include <algorithm>
+#include <tuple>
+
 
 
 using namespace ::agent_framework::model;
@@ -24,35 +26,48 @@ using namespace ::agent_framework::module;
 
 namespace {
 
-Uuid get_initiator_zone_uuid(const Uuid& initiator_uuid) {
+Uuid get_host_zone_uuid(const Uuid& host_system_uuid) {
     // Make uppercase and lowercase version of UUID
-    std::string initiator_uuid_lowercase = initiator_uuid;
-    for (auto& character: initiator_uuid_lowercase) {
+    std::string host_system_uuid_lowercase = host_system_uuid;
+    for (auto& character: host_system_uuid_lowercase) {
         character = std::tolower(character, std::locale());
     }
-
-    std::string initiator_uuid_uppercase = initiator_uuid;
-    for (auto& character: initiator_uuid_uppercase) {
+    std::string host_system_uuid_uppercase = host_system_uuid;
+    for (auto& character: host_system_uuid_uppercase) {
         character = std::toupper(character, std::locale());
     }
 
-    // Get zone UUIDs for uppercase and lowercase initiator UUID
-    const auto& initiator_lowercase_zone_uuids{get_m2m_manager<Zone, Endpoint>().get_parents(initiator_uuid_lowercase)};
-    const auto& initiator_uppercase_zone_uuids{get_m2m_manager<Zone, Endpoint>().get_parents(initiator_uuid_uppercase)};
+    // Get initiator endpoint UUIDs for uppercase and lowercase host system UUID
+    auto initiator_endpoint_uuids_uppercase = get_manager<Endpoint>().get_keys(
+        [&host_system_uuid_uppercase](const Endpoint& e) {
+            return attribute::Identifier::get_uuid(e) == host_system_uuid_uppercase;
+        });
+    auto initiator_endpoint_uuids_lowercase = get_manager<Endpoint>().get_keys(
+        [&host_system_uuid_lowercase](const Endpoint& e) {
+            return attribute::Identifier::get_uuid(e) == host_system_uuid_lowercase;
+        });
 
-    // Put zone UUIDs from both versions in one set to remove duplicates
-    std::set<Uuid> initiator_zone_uuids;
-    initiator_zone_uuids.insert(initiator_lowercase_zone_uuids.begin(), initiator_lowercase_zone_uuids.end());
-    initiator_zone_uuids.insert(initiator_uppercase_zone_uuids.begin(), initiator_uppercase_zone_uuids.end());
+    std::set<Uuid> initiator_endpoint_uuids;
+    initiator_endpoint_uuids.insert(initiator_endpoint_uuids_uppercase.begin(),
+                                    initiator_endpoint_uuids_uppercase.end());
+    initiator_endpoint_uuids.insert(initiator_endpoint_uuids_lowercase.begin(),
+                                    initiator_endpoint_uuids_lowercase.end());
 
-    // Get initiator zone UUID
     Uuid initiator_zone_uuid{};
-    const auto count = initiator_zone_uuids.size();
-    if (1 == count) {
-        initiator_zone_uuid = *initiator_zone_uuids.begin();
+
+    if (initiator_endpoint_uuids.size() == 1) {
+        auto initiator_zone_uuids{get_m2m_manager<Zone, Endpoint>().get_parents(*initiator_endpoint_uuids.begin())};
+        if (initiator_zone_uuids.size() == 1) {
+            initiator_zone_uuid = *initiator_zone_uuids.begin();
+        }
+        else if (initiator_zone_uuids.size() > 1) {
+            log_error("fpga-discovery", "Initiator endpoint with system UUID " << host_system_uuid
+                                                                               << " is associated with more than one zone");
+        }
     }
-    else if (count > 1) {
-        log_error("fpga-discovery", "Initiator " << initiator_uuid << " is associated with more than one zone");
+    else if (initiator_endpoint_uuids.size() > 1) {
+        log_error("fpga-discovery",
+                  "Host with system UUID " << host_system_uuid << " is associated with more than one endpoint");
     }
     return initiator_zone_uuid;
 }
@@ -62,18 +77,16 @@ Uuid get_initiator_zone_uuid(const Uuid& initiator_uuid) {
 namespace agent {
 namespace fpga_discovery {
 
-
-
 DiscoveryEntriesProvider::DiscoveryEntries
-DiscoveryEntriesProvider::get_discovery_entries(const Uuid& initiator_uuid) {
+DiscoveryEntriesProvider::get_discovery_entries(const Uuid& host_system_uuid) {
     DiscoveryEntries entries{};
 
-    log_info("fpga-discovery", "getting entries for initiator with uuid: " << initiator_uuid);
-    if (initiator_uuid.empty()) {
+    log_info("fpga-discovery", "getting entries for host (initiator) with system uuid: " << host_system_uuid);
+    if (host_system_uuid.empty()) {
         return entries;
     }
 
-    const auto zone_uuid = get_initiator_zone_uuid(initiator_uuid);
+    const auto zone_uuid = get_host_zone_uuid(host_system_uuid);
     log_info("fpga-discovery", "initiator zone uuid: " << zone_uuid);
     if (zone_uuid.empty()) {
         return entries;
@@ -83,11 +96,13 @@ DiscoveryEntriesProvider::get_discovery_entries(const Uuid& initiator_uuid) {
     // remove initiator uuid from zone children to leave just target endpoints
     // a zone should contain only one initiator endpoint
     initiator_targets_uuids.erase(
-            std::remove(std::begin(initiator_targets_uuids), std::end(initiator_targets_uuids), initiator_uuid),
-            std::end(initiator_targets_uuids));
-    const auto& initiator_targets = get_manager<Endpoint>().get_entries([&initiator_targets_uuids](const Endpoint & e) {
+        std::remove_if(std::begin(initiator_targets_uuids), std::end(initiator_targets_uuids), [](const Uuid& uuid) {
+            return Endpoint::is_initiator(uuid);
+        }),
+        std::end(initiator_targets_uuids));
+    const auto& initiator_targets = get_manager<Endpoint>().get_entries([&initiator_targets_uuids](const Endpoint& e) {
         return std::find(std::begin(initiator_targets_uuids), std::end(initiator_targets_uuids), e.get_uuid())
-                != std::end(initiator_targets_uuids);
+               != std::end(initiator_targets_uuids);
     });
     for (const auto& target : initiator_targets) {
         log_info("fpga-discovery", "target uuid: " << target.get_uuid());
@@ -96,8 +111,9 @@ DiscoveryEntriesProvider::get_discovery_entries(const Uuid& initiator_uuid) {
                 DiscoveryEntry entry{};
                 entry.ip = transport.get_ipv4_address().get_address();
                 entry.port = static_cast<uint16_t>(transport.get_port());
-                entry.transport = (transport.get_transport_protocol() == enums::TransportProtocol::RoCEv2 ? "RDMA" : "TCP");
-                entries.push_back(std::move(entry));
+                entry.transport = (transport.get_transport_protocol() == enums::TransportProtocol::RoCEv2 ? "RDMA"
+                                                                                                          : "TCP");
+                entries.insert(std::move(entry));
             }
             catch (const std::exception& e) {
                 log_error("fpga-discovery", e.what());
@@ -109,6 +125,11 @@ DiscoveryEntriesProvider::get_discovery_entries(const Uuid& initiator_uuid) {
 }
 
 
+bool operator<(const DiscoveryEntriesProvider::DiscoveryEntry& l_entry,
+               const DiscoveryEntriesProvider::DiscoveryEntry& r_entry) {
+    return std::tie(l_entry.ip, l_entry.port, l_entry.transport) <
+           std::tie(r_entry.ip, r_entry.port, r_entry.transport);
+}
 
 }
 }

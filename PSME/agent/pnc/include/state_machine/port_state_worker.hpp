@@ -23,10 +23,14 @@
 
 #pragma once
 
+
+
 #include "tools/toolset.hpp"
 #include "discovery/discovery_manager.hpp"
 
 #include <memory>
+
+
 
 namespace agent {
 namespace pnc {
@@ -41,13 +45,16 @@ public:
      * @param[in] dm Discovery manager that will be used for all discovery tasks
      * @param[in] t Toolset that will be used for other tasks
      * */
-    PortStateWorker(const discovery::DiscoveryManager& dm, const tools::Toolset& t): m_dm(dm), m_tools(t) {}
+    PortStateWorker(const discovery::DiscoveryManager& dm, const tools::Toolset& t) : m_dm(dm), m_tools(t) {}
+
 
     /*! Enable copy */
     PortStateWorker(const PortStateWorker& rhs) = default;
 
+
     /*! Destructor */
     virtual ~PortStateWorker();
+
 
     /*!
      * @brief Gets id of the bridge for a specific port_uuid
@@ -57,6 +64,7 @@ public:
      * */
     virtual uint8_t get_bridge_id(const std::string& switch_uuid, const std::string& port_uuid) const;
 
+
     /*!
      * @brief Performs inband discovery on a specific bridge
      * @param[in] switch_uuid Uuid of the switch_uuid
@@ -65,7 +73,8 @@ public:
      * @param[in] drive_uuid Uuid of the existing device after oob discovery
      * */
     virtual void ib_discovery(const std::string& switch_uuid, const std::string& port_uuid, uint8_t bridge_id,
-        const std::string& drive_uuid) const;
+                              const std::string& drive_uuid) const;
+
 
     /*!
      * @brief Binds port to the management host
@@ -75,12 +84,14 @@ public:
      * */
     virtual uint8_t bind_to_host(const std::string& switch_uuid, const std::string& port_uuid) const;
 
+
     /*!
      * @brief Unbinds device on a specific logical bridge from the management host
      * @param[in] switch_uuid Uuid of the switch_uuid
      * @param[in] bridge_id Logical bridge id
      * */
     virtual void unbind_from_host(const std::string& switch_uuid, uint8_t bridge_id) const;
+
 
     /*!
      * @brief Performs full discovery on a port
@@ -89,7 +100,8 @@ public:
      * @param[in] bridge_id Logical bridge id
      * */
     virtual void full_discovery(const std::string& switch_uuid, const std::string& port_uuid,
-            uint8_t bridge_id) const;
+                                uint8_t bridge_id) const;
+
 
     /*!
      * @brief Performs oob discovery on a port
@@ -99,12 +111,14 @@ public:
      * */
     virtual std::string oob_discovery(const std::string& switch_uuid, const std::string& port_uuid) const;
 
+
     /*!
      * @brief Removes resources that were visible on a port
      * @param[in] switch_uuid Uuid of the switch_uuid
      * @param[in] port_uuid Uuid of the port
      * */
     virtual void remove(const std::string& switch_uuid, const std::string& port_uuid) const;
+
 
     /*!
      * @brief Finds device by its dsp port uuid
@@ -113,11 +127,13 @@ public:
      * */
     virtual Uuid get_device_uuid_by_dsp_port(const Uuid& port_uuid) const;
 
+
     /*!
      * @brief Locks all entities on the port so they will not be changed by GAMI commands
      * @param[in] port_uuid Uuid of the dsp port
      * */
     virtual void lock_port(const Uuid& port_uuid) const;
+
 
     /*!
      * @brief Unlocks all entities on the port
@@ -125,14 +141,18 @@ public:
      * */
     virtual void unlock_port(const Uuid& port_uuid) const;
 
+
     using ZoneEndpointPair = std::tuple<std::string, std::string>;
     using ZoneEndpointVector = std::vector<ZoneEndpointPair>;
+
+
     /*!
      * @brief Gets list of all bindings on the specified port
      * @param port_uuid Uuid of the dsp port
      * @return Vector of zone/endpoint uuids pairs
      * */
     virtual ZoneEndpointVector get_bindings_on_port(const std::string& port_uuid) const;
+
 
     /*!
      * @brief Gets list of all endpoints on the specified port
@@ -141,6 +161,7 @@ public:
      * */
     virtual std::vector<std::string> get_enabled_endpoints_on_port(const std::string& port_uuid) const;
 
+
     /*!
      * @brief Attaches endpoint to the zone
      * @param switch_uuid Uuid of the switch
@@ -148,7 +169,24 @@ public:
      * @param zone_uuid Uuid of the zone
      */
     virtual void attach_endpoint_to_zone(const std::string& switch_uuid, const std::string& endpoint_uuid,
-        const std::string& zone_uuid) const;
+                                         const std::string& zone_uuid) const;
+
+
+    /*!
+     * @brief Unbinds device on specific port from non-management host
+     * @param switch_uuid Uuid of the switch
+     * @param port_uuid Uuid of the dsp port
+     */
+    virtual void unbind_port(const Uuid& switch_uuid, const Uuid& port_uuid);
+
+
+    /*!
+     * @brief Checks if dsp port is included in any valid zone
+     * @param port_uuid Uuid of the dsp port
+     * @return true if port is included in any valid zone, false otherwise
+     */
+    bool is_port_in_valid_zone(const Uuid& port_uuid);
+
 
 private:
     discovery::DiscoveryManager m_dm;

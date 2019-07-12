@@ -31,7 +31,7 @@ public class DeleteEndpointTask extends DiscoveryServiceTask {
 
     @Override
     public void perform() {
-        restActionInvoker.delete(discoveryServiceUri, endpointToRemove.getUri());
+        discoveryServiceWebClient.delete(discoveryServiceUri, endpointToRemove.getUri());
     }
 
     @Override

@@ -16,7 +16,7 @@
 
 
 if [ -z ${PODM_POSTGRES_USER_PASSWORD} ]; then
-    echo "PODM_POSTGRES_USER_PASSWORD environment variable is required"
+    print "PODM_POSTGRES_USER_PASSWORD environment variable is required"
     exit 1
 fi
 
@@ -98,4 +98,3 @@ function recreate_user_and_grant_privileges() {
   done
 }
 
-"$@"

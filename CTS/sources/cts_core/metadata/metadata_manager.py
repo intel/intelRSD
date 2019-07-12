@@ -100,9 +100,18 @@ class MetadataManager:
         ServiceTypes.SCENARIO_2_4: "2.4/SCENARIO",
         ServiceTypes.RACKSCALE_2_4: "2.4/RACKSCALE",
 
+        ServiceTypes.PODM_2_5: "2.5/PODM",
+        ServiceTypes.PSME_2_5: "2.5/PSME",
+        ServiceTypes.RMM_2_5: "2.5/RMM",
+        ServiceTypes.SS_2_5: "2.5/SS",
+
+        ServiceTypes.SCENARIO_2_5: "2.5/SCENARIO",
+        ServiceTypes.RACKSCALE_2_5: "2.5/RACKSCALE",
+
         ServiceTypes.REDFISH_2018_1: "redfish/2018.1",
         ServiceTypes.REDFISH_2018_2: "redfish/2018.2",
-        ServiceTypes.REDFISH_2018_3: "redfish/2018.3"
+        ServiceTypes.REDFISH_2018_3: "redfish/2018.3",
+        ServiceTypes.REDFISH_2019_1: "redfish/2019.1"
 
     }
 

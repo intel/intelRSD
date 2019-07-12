@@ -101,7 +101,6 @@ public class NodeTasksCoordinator {
      * LockType.WRITE used due to concurrent access to assembly tasks map that modifies it (remove operation)
      */
     @Lock
-    @Transactional(SUPPORTS)
     public void removeAllTasks(ODataId composedNodeODataId) {
         getTasks().remove(composedNodeODataId);
     }

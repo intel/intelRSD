@@ -27,8 +27,9 @@ const string FpgaDiscoveryDatabase::ENDPOINTS = "endpoints";
 const string FpgaDiscoveryDatabase::CHASSIS_ASSET_TAG = "assetTag";
 const string FpgaDiscoveryDatabase::ROLE = "role";
 const string FpgaDiscoveryDatabase::IPV4 = "ipv4";
-const string FpgaDiscoveryDatabase::RDMA_PORT = "rdma_port";
+const string FpgaDiscoveryDatabase::PORT = "port";
 const string FpgaDiscoveryDatabase::UUID = "uuid";
+const string FpgaDiscoveryDatabase::TRANSPORT_PROTOCOL = "transportProtocol";
 
 FpgaDiscoveryDatabase::FpgaDiscoveryDatabase(const Uuid& uuid, const string& name) : m_db{PersistentAttributes::get_instance(), uuid, name} {}
 

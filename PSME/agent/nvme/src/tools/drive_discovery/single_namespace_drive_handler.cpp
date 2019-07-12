@@ -60,27 +60,19 @@ std::string convert_uint8_to_string(const uint8_t* array, size_t size) {
 
 }
 
-
-std::string get_namespace_device_name(const std::string& name, uint32_t namespace_id) {
-    std::stringstream str{};
-    str << name << NAMESPACE_AFFIX << namespace_id;
-    return str.str();
-}
-
-
-std::string partition_id_to_volume_name(const std::string& name, uint32_t namespace_id, unsigned partition_id) {
+std::string partition_id_to_volume_name(const std::string& name, unsigned partition_id) {
     // on the hardware, partition ids start from 0; in the system numbering starts from 1
     // for a drive 'nvme3' and partition id 4, we want to get 'nvme3n1p5'
     std::stringstream str{};
-    str << name << NAMESPACE_AFFIX << namespace_id << PARTITION_AFFIX << (partition_id + 1);
+    str << name << PARTITION_AFFIX << (partition_id + 1);
     return str.str();
 }
 
 
 unsigned
-volume_name_to_partition_id(const std::string& drive_name, uint32_t namespace_id, const std::string& volume_name) {
+volume_name_to_partition_id(const std::string& drive_name, const std::string& volume_name) {
 
-    std::regex expr(drive_name + NAMESPACE_AFFIX + std::to_string(namespace_id) + PARTITION_AFFIX + "([0-9]*)");
+    std::regex expr(drive_name + PARTITION_AFFIX + "([0-9]*)");
     static constexpr unsigned EXPECTED_MATCHES = 2;
     std::smatch match{};
     if (!std::regex_match(volume_name, match, expr) || match.size() != EXPECTED_MATCHES) {
@@ -156,7 +148,6 @@ void SingleNamespaceDriveHandler::load() {
         m_controller_data = m_nvme_interface->get_controller_info(m_name);
         m_namespace_data = m_nvme_interface->get_namespace_info(m_name, m_namespace_id);
         uint64_t lba_size = get_formatted_lba_data_size(m_namespace_data);
-        std::string device_name = get_namespace_device_name(m_name, m_namespace_id);
         if (lba_size > MAX_LBA) {
             throw std::runtime_error(std::string{"Unsupported LBA size: "} + std::to_string(lba_size));
         }
@@ -178,15 +169,15 @@ void SingleNamespaceDriveHandler::load() {
         m_partition_table = std::make_shared<GptPartitionTable>(m_lba_size);
         try {
             // try reading the table GPT
-            m_partition_table->load(device_name, m_drive_interface);
+            m_partition_table->load(m_name, m_drive_interface);
         }
         catch (const std::exception& e) {
-            log_warning("drive-handler", "Unable to read GPT on drive " << device_name << ", resetting GPT.");
+            log_warning("drive-handler", "Unable to read GPT on drive " << m_name << ", resetting GPT.");
             m_partition_table->reset(m_namespace_data.size);
             log_debug("drive-handler", "\tReloading...");
-            m_partition_table->save(device_name, m_drive_interface);
-            m_partition_table->load(device_name, m_drive_interface);
-            force_os_update_partition_table(device_name);
+            m_partition_table->save(m_name, m_drive_interface);
+            m_partition_table->load(m_name, m_drive_interface);
+            force_os_update_partition_table(m_name);
         }
     }
     catch (const NvmeException& e) {
@@ -221,7 +212,7 @@ std::vector<std::string> SingleNamespaceDriveHandler::get_volumes() const {
     }
     std::vector<std::string> ret{};
     for (const auto& id : m_partition_table->get_partition_ids()) {
-        ret.emplace_back(partition_id_to_volume_name(m_name, m_namespace_id, id));
+        ret.emplace_back(partition_id_to_volume_name(m_name, id));
     }
     return ret;
 }
@@ -229,12 +220,11 @@ std::vector<std::string> SingleNamespaceDriveHandler::get_volumes() const {
 
 std::string SingleNamespaceDriveHandler::create_volume(const uint64_t size_bytes) const {
     std::lock_guard<std::mutex> lock{m_mutex};
-    auto device_name = get_namespace_device_name(m_name, m_namespace_id);
 
     try {
         uint64_t size_lba = integer_divide_and_ceil(size_bytes, m_lba_size);
         unsigned id = m_partition_table->get_available_partition_id();
-        std::string partition_name = partition_id_to_volume_name(m_name, m_namespace_id, id);
+        std::string partition_name = partition_id_to_volume_name(m_name, id);
 
         log_debug("drive-handler", "Creating volume on drive " << m_name);
         log_debug("drive-handler", "\tRequested size (bytes): " << size_bytes);
@@ -250,16 +240,16 @@ std::string SingleNamespaceDriveHandler::create_volume(const uint64_t size_bytes
         m_partition_table->set_partition(id, pd);
         m_partition_table->update();
         log_debug("drive-handler", "\tReloading...");
-        m_partition_table->save(device_name, m_drive_interface);
-        m_partition_table->load(device_name, m_drive_interface);
-        force_os_update_partition_table(device_name);
+        m_partition_table->save(m_name, m_drive_interface);
+        m_partition_table->load(m_name, m_drive_interface);
+        force_os_update_partition_table(m_name);
         log_debug("drive-handler", "Volume " << partition_name << " created successfully");
         return partition_name;
     }
     catch (const std::exception& e) {
         try {
             // Try to reload information about partitions if something failed...
-            m_partition_table->load(device_name, m_drive_interface);
+            m_partition_table->load(m_name, m_drive_interface);
         }
         catch (...) { }
 
@@ -272,11 +262,10 @@ std::string SingleNamespaceDriveHandler::create_volume(const uint64_t size_bytes
 
 void SingleNamespaceDriveHandler::remove_volume(const std::string& id) const {
     std::lock_guard<std::mutex> lock{m_mutex};
-    auto device_name = get_namespace_device_name(m_name, m_namespace_id);
 
     try {
         log_debug("drive-handler", "Removing volume on drive " << m_name);
-        unsigned partition_id = volume_name_to_partition_id(m_name, m_namespace_id, id);
+        unsigned partition_id = volume_name_to_partition_id(m_name, id);
         log_debug("drive-handler", "\tPartition slot " << partition_id);
 
         auto ids = m_partition_table->get_partition_ids();
@@ -287,15 +276,15 @@ void SingleNamespaceDriveHandler::remove_volume(const std::string& id) const {
         m_partition_table->remove_partition(partition_id);
         m_partition_table->update();
         log_debug("drive-handler", "\tReloading...");
-        m_partition_table->save(device_name, m_drive_interface);
-        m_partition_table->load(device_name, m_drive_interface);
-        force_os_update_partition_table(device_name);
+        m_partition_table->save(m_name, m_drive_interface);
+        m_partition_table->load(m_name, m_drive_interface);
+        force_os_update_partition_table(m_name);
         log_debug("drive-handler", "Volume " << id << " removed successfully");
     }
     catch (const std::exception& e) {
         try {
             // Try to reload information about partitions if something failed...
-            m_partition_table->load(device_name, m_drive_interface);
+            m_partition_table->load(m_name, m_drive_interface);
         }
         catch (...) { }
 
@@ -314,9 +303,9 @@ SingleNamespaceDriveHandler::VolumeData SingleNamespaceDriveHandler::get_volume_
         if (!m_partition_table) {
             throw std::runtime_error("Partition table not initialized.");
         }
-        auto partition_data = m_partition_table->get_partition(volume_name_to_partition_id(m_name, m_namespace_id, id));
+        auto partition_data = m_partition_table->get_partition(volume_name_to_partition_id(m_name, id));
         vd.size_lba = partition_data.size_lba;
-
+        vd.uuid = partition_data.uuid;
     }
     catch (const std::exception& e) {
         log_error("drive-handler",
@@ -411,12 +400,11 @@ void SingleNamespaceDriveHandler::initialize_drive() {
     try {
         if (!m_partition_table->is_valid()) {
             log_info("drive-handler", "Initializing drive " << m_name);
-            std::string device_name = get_namespace_device_name(m_name, m_namespace_id);
             m_partition_table->reset(m_namespace_data.size);
             log_debug("drive-handler", "\tReloading...");
-            m_partition_table->save(device_name, m_drive_interface);
-            m_partition_table->load(device_name, m_drive_interface);
-            force_os_update_partition_table(device_name);
+            m_partition_table->save(m_name, m_drive_interface);
+            m_partition_table->load(m_name, m_drive_interface);
+            force_os_update_partition_table(m_name);
             log_debug("drive-handler", "Drive initialized successfully");
         }
     }
@@ -441,10 +429,9 @@ void SingleNamespaceDriveHandler::erase_volume(const std::string& id, bool fast_
             std::generate(data.begin(), data.end(), [&distribution, &generator]() { return distribution(generator); });
         }
 
-        auto partition_data = m_partition_table->get_partition(volume_name_to_partition_id(m_name, m_namespace_id, id));
-        std::string device_name = get_namespace_device_name(m_name, m_namespace_id);
+        auto partition_data = m_partition_table->get_partition(volume_name_to_partition_id(m_name, id));
 
-        m_drive_interface->write(device_name, partition_data.first_lba * m_lba_size,
+        m_drive_interface->write(m_name, partition_data.first_lba * m_lba_size,
                                  partition_data.size_lba * m_lba_size,
                                  [&data]() -> const utils::ByteBuffer& { return data; });
         log_debug("drive-handler", "Volume erased successfully");

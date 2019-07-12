@@ -16,21 +16,14 @@
 
 package com.intel.rsd.nodecomposer.composition.allocation.strategy;
 
+import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.ChangeTpmStateTask;
-import com.intel.rsd.nodecomposer.persistence.redfish.ComputerSystem;
 import com.intel.rsd.nodecomposer.types.actions.ChangeTpmStatusUpdateDefinition;
 import com.intel.rsd.nodecomposer.utils.beans.NodeComposerBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
-
-import static javax.transaction.Transactional.TxType.SUPPORTS;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
-
 @Component
-@Scope(SCOPE_SINGLETON)
 public class ChangeTpmStateTaskFactory {
     private final NodeComposerBeanFactory beanFactory;
 
@@ -39,10 +32,9 @@ public class ChangeTpmStateTaskFactory {
         this.beanFactory = beanFactory;
     }
 
-    @Transactional(SUPPORTS)
-    public ChangeTpmStateTask createChangeTpmStateTask(ComputerSystem computerSystem,
+    public ChangeTpmStateTask createChangeTpmStateTask(ODataId computerSystemOdataId,
                                                        ChangeTpmStatusUpdateDefinition changeTpmStatusUpdateDefinition) {
-        ChangeTpmStateTask changeTpmStateTask = beanFactory.create(ChangeTpmStateTask.class).init(computerSystem.getUri());
+        ChangeTpmStateTask changeTpmStateTask = beanFactory.create(ChangeTpmStateTask.class).init(computerSystemOdataId);
         changeTpmStateTask.setChangeTpmStatusUpdateDefinition(changeTpmStatusUpdateDefinition);
         return changeTpmStateTask;
     }

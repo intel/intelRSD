@@ -63,30 +63,36 @@ int agent_framework::generic::get_version_component(const char* version_string, 
         return 0;
     }
 
-    const char* s = version_string;
-
-    int i = 0;
-    while (i < index && *s) {
-        if (SEP == *(s++)) {
-            ++i;
-        }
-    }
-    if (i != index) {
+    //return 0 minor version for get_device_id ipmb command
+    if (index == Version::MINOR_INDEX) {
         return 0;
     }
+    else {
+        const char *s = version_string;
 
-    int value{0};
-    while (*s) {
-        if (isdigit(*s)) {
-            value = (value * 10) + (*s - '0');
+        int i = 0;
+        while (i < index && *s) {
+            if (SEP == *(s++)) {
+                ++i;
+            }
         }
-        else if (SEP == *s) {
-            break;
-        }
-        else {
+        if (i != index) {
             return 0;
         }
-        ++s;
+
+        int value{0};
+        while (*s) {
+            if (isdigit(*s)) {
+                value = (value * 10) + (*s - '0');
+            }
+            else if (SEP == *s) {
+                break;
+            }
+            else {
+                return 0;
+            }
+            ++s;
+        }
+        return value;
     }
-    return value;
 }

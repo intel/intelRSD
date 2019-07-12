@@ -19,10 +19,11 @@ package com.intel.rsd.nodecomposer.discovery.external.restgraph;
 import com.intel.rsd.nodecomposer.externalservices.resources.ExternalServiceResource;
 import com.intel.rsd.nodecomposer.externalservices.resources.redfish.ServiceRootResource;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.UUID;
+import java.util.Set;
 
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.stream.Collectors.collectingAndThen;
@@ -32,9 +33,12 @@ public final class RestGraph {
     private final HashSet<ExternalServiceResource> resources = new HashSet<>();
     private final HashSet<ResourceLink> links = new HashSet<>();
     private final ServiceRootResource serviceRootResource;
+    private final LocalDateTime captureTime;
 
-    public RestGraph(ServiceRootResource serviceRoot) {
+    public RestGraph(ServiceRootResource serviceRoot, Set<ResourceLink> allLinks, LocalDateTime captureTime) {
         this.serviceRootResource = serviceRoot;
+        allLinks.forEach(this::add);
+        this.captureTime = captureTime;
     }
 
     public Collection<ResourceLink> getLinks() {
@@ -45,23 +49,17 @@ public final class RestGraph {
         return resources.stream().filter(r -> !r.equals(serviceRootResource)).collect(collectingAndThen(toList(), Collections::unmodifiableList));
     }
 
-    public void add(ResourceLink link) {
-        resources.add(link.getSource());
-        resources.add(link.getTarget());
-        links.add(new ResourceLink(link.getSource(), link.getTarget(), link.getLinkName()));
-    }
-
-    public void addAll(Iterable<ResourceLink> links) {
-        for (ResourceLink link : links) {
-            add(link);
-        }
-    }
-
     public boolean contains(ResourceLink resourceLink) {
         return links.contains(resourceLink);
     }
 
-    public UUID findServiceUuid() {
-        return serviceRootResource.getUuid();
+    public LocalDateTime getCaptureTime() {
+        return captureTime;
+    }
+
+    private void add(ResourceLink link) {
+        resources.add(link.getSource());
+        resources.add(link.getTarget());
+        links.add(new ResourceLink(link.getSource(), link.getTarget(), link.getLinkName()));
     }
 }

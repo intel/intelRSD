@@ -17,7 +17,6 @@
 package com.intel.rsd.resourcemanager.layers.cacher;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.Layer;
 import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.layers.ServiceId;
@@ -34,7 +33,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static com.intel.rsd.resourcemanager.layers.cacher.CacheHint.ALWAYS_CACHED;
-import static com.intel.rsd.resourcemanager.layers.cacher.CacheHint.asCacheHint;
 import static com.intel.rsd.resourcemanager.layers.cacher.HttpHeadersExtensions.getMaxStale;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.Collections.singletonList;
@@ -57,13 +55,16 @@ final class Cacher extends Layer {
 
     @Override
     protected Response invokeImpl(ServiceId serviceId, String path, HttpMethod method, HttpHeaders headers, JsonNode body,
-                                  Map<QueryParameterType, String> requestParams) {
+                                  Map<String, String> requestParams) {
 
         switch (method) {
             case GET:
                 return invokeReadOnlyRequest(serviceId, path, method, headers, body, requestParams);
 
-            case POST: case PUT: case PATCH: case DELETE:
+            case POST:
+            case PUT:
+            case PATCH:
+            case DELETE:
                 return invokeReadWriteRequest(serviceId, path, method, headers, body, requestParams);
 
             default:
@@ -73,7 +74,7 @@ final class Cacher extends Layer {
     }
 
     private Response invokeReadWriteRequest(ServiceId serviceId, String path, HttpMethod method, HttpHeaders headers, JsonNode body,
-                                            Map<QueryParameterType, String> requestParams) {
+                                            Map<String, String> requestParams) {
 
         val response = passToNextLayer(serviceId, path, method, headers, body, requestParams);
         if (response.getHttpStatus().is2xxSuccessful()) {
@@ -83,7 +84,7 @@ final class Cacher extends Layer {
     }
 
     private Response invokeReadOnlyRequest(ServiceId serviceId, String path, HttpMethod method, HttpHeaders headers, JsonNode body,
-                                           Map<QueryParameterType, String> requestParams) {
+                                           Map<String, String> requestParams) {
 
         val resourceReference = asResourceReference(serviceId, path);
         val maxStaleAsCacheHint = getMaxStale(headers).map(CacheHint::asCacheHint);
@@ -106,7 +107,10 @@ final class Cacher extends Layer {
                 cache.remove(resourceReference);
                 return nextLayerResponse;
 
-            case INTERNAL_SERVER_ERROR: case BAD_GATEWAY: case GATEWAY_TIMEOUT: case SERVICE_UNAVAILABLE:
+            case INTERNAL_SERVER_ERROR:
+            case BAD_GATEWAY:
+            case GATEWAY_TIMEOUT:
+            case SERVICE_UNAVAILABLE:
                 return tryFindCachedResponse(resourceReference, cacheHint).orElse(nextLayerResponse);
 
             default:

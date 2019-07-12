@@ -17,6 +17,7 @@
 #include "tools/drive_discovery/drive_reader.hpp"
 #include "logger/logger_factory.hpp"
 
+#include <cstring>
 #include <fstream>
 #include <algorithm>
 #include <list>
@@ -28,18 +29,14 @@ using namespace sysfs;
 
 namespace {
 
-static const char PATH_NVME_CLASS[] = "/sys/class/nvme";
+static const char PATH_BLOCK[] = "/sys/block";
 static const char PATH_MOUNTS[] = "/proc/mounts";
+static const char NVME_PREFIX[] = "nvme";
 
 bool is_drive_mounted(const std::string& drive, const std::vector<SysfsMount>& mounts) {
-    /*
-     * Without 'n' we would have false matches if we had enough drives
-     * i.e. for 11 drives, there will be entries like nvme0n1p1, nvme1n1p1, ..., nvme10n1p1
-     * if the file has the entry for nvme10, then nvme1 would be also matched,
-     * 'n' is added to make sure this does not happen
-     */
+    /* This condition is true only for single namespace drives. */
     for (const auto& mount : mounts) {
-        if (mount.name.find(drive + "n") != std::string::npos) {
+        if (mount.name.find(drive) != std::string::npos) {
             return true;
         }
     }
@@ -68,21 +65,24 @@ std::vector<std::string> DriveReader::get_drives() const {
     SysfsDir nvme_class_dir{};
     try {
         // path may throw logic_error, get_dir may throw runtime_error
-        nvme_class_dir = m_sysfs_interface->get_dir(Path(::PATH_NVME_CLASS));
+        nvme_class_dir = m_sysfs_interface->get_dir(Path(::PATH_BLOCK));
 
         std::vector<std::string> drives{};
         for (const auto& drive_path : nvme_class_dir.links) {
             auto drive_name = drive_path.basename();
 
+	    if (drive_name.rfind(NVME_PREFIX, 0) != 0){
+	      continue;
+	    }
             // ignore mounted drives
             if (!is_drive_mounted(drive_name, mounts)) {
                 drives.emplace_back(std::move(drive_name));
-            }
+	    }
         }
         return drives;
     }
     catch (const std::exception& e) {
-        log_error("drive-reader", "Exception while opening " << ::PATH_NVME_CLASS
+        log_error("drive-reader", "Exception while opening " << ::PATH_BLOCK
             << " device class: " << e.what());
         return {};
     }

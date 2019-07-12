@@ -1,0 +1,9 @@
+{
+  "name": "node-ssdp",
+  "version": "3.0.0-beta2-modified",
+  "dependencies": {
+    "async": "^2.1.4",
+    "debug": "^2.3.3",
+    "ip": "^1.1.4"
+  }
+}

@@ -10,7 +10,10 @@ image:
 
 applicationProperties:
   server:
+    address: ${SERVER_ADDRESS}
     port: 8999
+  event_processing:
+    enabled: true
   spring:
     datasource:
       url: "jdbc:postgresql://podm-db-postgresql.default.svc.cluster.local.:5432/nodecomposer"

@@ -40,9 +40,12 @@ class ReturnCodes:
     CREATED = 201
     ACCEPTED = 202
     NO_CONTENT = 204
+    INVALID_FORWARDING = 301
     BAD_REQUEST = 400
+    INVALID_CERTS = 401
     NOT_FOUND = 404
     METHOD_NOT_ALLOWED = 405
+    TIMEOUT = 408
     CONFLICT = 409
     GONE = 410
     UNPROCESSABLE_ENTITY = 422
@@ -50,6 +53,17 @@ class ReturnCodes:
     NOT_IMPLEMENTED = 501
     SERVICE_UNAVAILABLE = 503
 
+
+class ErrorReturnCodes:
+    ErrorCodes = {
+        301: "Invalid forwarding",
+        400: "Bad request from endpoint",
+        401: "Invalid certification files",
+        404: "No endpoint present at the provided ApiEndpoint",
+        408: "Timeout reached",
+        500: "Internal server error",
+        503: "Service unavailable"
+    }
 
 class ResourceTypes:
     SERVICE_ROOT = "ServiceRoot"

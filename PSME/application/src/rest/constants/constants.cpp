@@ -50,6 +50,7 @@ const char DRIVE_ID[] = "driveId";
 const char MANAGER_ID[] = "managerId";
 const char NIC_ID[] = "nicId";
 const char NETWORK_INTERFACE_ID[] = "networkInterfaceId";
+const char NETWORK_ADAPTER_ID[] = "networkAdapterId";
 const char NETWORK_DEVICE_FUNCTION_ID[] = "networkDeviceFunctionId";
 const char NODE_ID[] = "nodeId";
 const char ETHERNET_SWITCH_ID[] = "ethernetSwitchId";
@@ -80,6 +81,8 @@ const char SESSION_ID[] = "sessionId";
 const char ACCOUNT_ID[] = "accountId";
 const char ROLE_ID[] = "roleId";
 const char INTEL_RACKSCALE_REGISTRY_URL[] = "/registries/Intel_RackScale.1.0.0.json";
+const char LOG_SERVICE_ID[] = "logServiceId";
+const char LOG_ENTRY_ID[] = "logEntryId";
 
 const char PATH_SEP = '/';
 const char VARIABLE_BEGIN = '{';
@@ -141,7 +144,8 @@ const char ADMINISTRATOR[] = "Administrator";
 const char PERFORMANCE_CONFIGURATION[] = "PerformanceConfiguration";
 const char CURRENT_CONFIGURATION_ID[] = "CurrentConfigurationId";
 const char CONFIGURATIONS[] = "Configurations";
-
+const char LOG_SERVICES[] = "LogServices";
+const char SERVICE_ENABLED[] = "ServiceEnabled";
 }
 
 namespace ErrorMessage {
@@ -205,7 +209,6 @@ const char GRAPHICAL_CONSOLE[] = "GraphicalConsole";
 const char MAX_CONCURRENT_SESSIONS[] = "MaxConcurrentSessions";
 const char CONNECT_TYPES_SUPPORTED[] = "ConnectTypesSupported";
 const char ENABLED[] = "Enabled";
-const char SERVICE_ENABLED[] = "ServiceEnabled";
 const char SERIAL_CONSOLE[] = "SerialConsole";
 const char COMMAND_SHELL[] = "CommandShell";
 const char MANAGER_FOR_CHASSIS[] = "ManagerForChassis";
@@ -293,7 +296,6 @@ const char ALLOWABLE_VALUES[] = "AllowableValues";
 }
 
 namespace UpdateService {
-const char SERVICE_ENABLED[] = "ServiceEnabled";
 const char HTTP_PUSH_URI[] = "HttpPushUri";
 const char HASH_UPDATE_SERVICE_SIMPLE_UPDATE[] = "#UpdateService.SimpleUpdate";
 const char SIMPLE_UPDATE[] = "SimpleUpdate";
@@ -304,7 +306,6 @@ const char TARGETS[] = "Targets";
 }
 
 namespace EventService {
-const char SERVICE_ENABLED[] = "ServiceEnabled";
 const char DELIVERY_RETRY_ATTEMPTS[] = "DeliveryRetryAttempts";
 const char DELIVERY_RETRY_INTERVAL_SECONDS[] = "DeliveryRetryIntervalSeconds";
 const char EVENT_TYPES_FOR_SUBSCRIPTION[] = "EventTypesForSubscription";
@@ -349,7 +350,6 @@ const char FPGAOF[] = "FPGA-oF";
 
 namespace TaskService {
 const char TASK_SERVICE[] = "TaskService";
-const char SERVICE_ENABLED[] = "ServiceEnabled";
 const char DATETIME[] = "DateTime";
 const char COMPLETED_TASK_OVERWRITE_POLICY[] = "CompletedTaskOverWritePolicy";
 const char LIFE_CYCLE_EVENT_ON_TASK_STATE_CHANGE[] = "LifeCycleEventOnTaskStateChange";
@@ -388,7 +388,6 @@ const char REGISTRY_VERSION[] = "RegistryVersion";
 }
 
 namespace SessionService {
-extern const char SERVICE_ENABLED[] = "ServiceEnabled";
 extern const char SESSION_TIMEOUT[] = "SessionTimeout";
 extern const char SESSIONS[] = "Sessions";
 }
@@ -400,7 +399,6 @@ extern const char OEM[] = "Oem";
 }
 
 namespace AccountService {
-const char SERVICE_ENABLED[] = "ServiceEnabled";
 const char AUTH_FAILURE_LOGGING_THRESHOLD[] = "AuthFailureLoggingThreshold";
 const char MIN_PASSWORD_LENGTH[] = "MinPasswordLength";
 const char LOCAL_ACCOUNT_AUTH[] = "LocalAccountAuth";
@@ -422,6 +420,25 @@ const char IS_PREDEFINED[] = "IsPredefined";
 const char ASSIGNED_PRIVILEGES[] = "AssignedPrivileges";
 const char OEM_PRIVILEGES[] = "OemPrivileges";
 const char ROLE_ID[] = "RoleId";
+}
+
+namespace LogService {
+const char LOG_ENTRY_TYPE[] = "LogEntryType";
+const char OVERWRITE_POLICY[] = "OverWritePolicy";
+const char ENTRIES[] = "Entries";
+}
+
+namespace LogEntry {
+const char ENTRY_TYPE[] = "EntryType";
+const char ENTRY_CODE[] = "EntryCode";
+const char EVENT_TIMESTAMP[] = "EventTimestamp";
+const char LINKS[] = "Links";
+const char ORIGIN_OF_CONDITION[] = "OriginOfCondition";
+const char SENSOR_TYPE[] = "SensorType";
+const char SENSOR_NUMBER[] = "SensorNumber";
+const char MESSAGE[] = "Message";
+const char MESSAGE_ID[] = "MessageId";
+const char RECORD_ID[] = "RecordID";
 }
 
 }

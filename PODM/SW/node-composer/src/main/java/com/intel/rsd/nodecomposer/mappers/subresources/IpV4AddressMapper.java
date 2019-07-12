@@ -19,10 +19,10 @@ package com.intel.rsd.nodecomposer.mappers.subresources;
 import com.intel.rsd.nodecomposer.externalservices.resources.redfish.IpV4AddressObject;
 import com.intel.rsd.nodecomposer.mappers.subresources.strategies.EmbeddableCleanAndCreateStrategy;
 import com.intel.rsd.nodecomposer.persistence.redfish.embeddables.IpV4Address;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.Objects;
 
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
@@ -30,7 +30,7 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 @Component
 @Scope(SCOPE_PROTOTYPE)
 public class IpV4AddressMapper extends SubresourceMapper<IpV4AddressObject, IpV4Address> {
-    @Inject
+    @Autowired
     public IpV4AddressMapper(EmbeddableCleanAndCreateStrategy<IpV4Address> entityCleanAndCreateStrategy) {
         super(IpV4Address.class, entityCleanAndCreateStrategy);
     }

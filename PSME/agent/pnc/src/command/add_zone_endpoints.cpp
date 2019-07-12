@@ -144,6 +144,8 @@ void store_endpoints_in_zone_db(const attribute::Array<Uuid>& endpoints_uuids,
 void add_zone_endpoints(const AddZoneEndpoints::Request& request, AddZoneEndpoints::Response& response) {
     log_info("pnc-gami", "Adding endpoints to zone.");
 
+    validate_request(request);
+
     auto response_builder = []() {
         AddZoneEndpoints::Response res{};
         return res.to_json();
@@ -156,7 +158,6 @@ void add_zone_endpoints(const AddZoneEndpoints::Request& request, AddZoneEndpoin
     agent_framework::action::TaskCreator task_creator{};
     task_creator.prepare_task();
 
-    task_creator.add_prerun_action(std::bind(validate_request, request));
     task_creator.add_subtask(std::bind(bind_endpoints, request.get_endpoints(), request.get_zone()));
     task_creator.add_subtask(std::bind(store_endpoints_in_zone_db, request.get_endpoints(), request.get_zone()));
 

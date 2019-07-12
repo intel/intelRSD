@@ -19,15 +19,13 @@ package com.intel.rsd.nodecomposer.business.redfish.services.helpers;
 import com.intel.rsd.nodecomposer.business.dto.EndpointDto;
 import com.intel.rsd.nodecomposer.business.dto.EndpointDto.ConnectedEntityDto;
 import com.intel.rsd.nodecomposer.business.dto.EndpointDto.IdentifierDto;
-import com.intel.rsd.nodecomposer.business.dto.EndpointDto.Links;
 import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.persistence.dao.PciePortDao;
-import com.intel.rsd.nodecomposer.persistence.redfish.ComputerSystem;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
 import com.intel.rsd.nodecomposer.types.DurableNameFormat;
 import com.intel.rsd.nodecomposer.types.Protocol;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -39,11 +37,10 @@ import static com.intel.rsd.nodecomposer.business.redfish.services.helpers.Initi
 import static com.intel.rsd.nodecomposer.types.DurableNameFormat.findByProtocol;
 import static com.intel.rsd.nodecomposer.types.EntityRole.INITIATOR;
 import static java.util.stream.Collectors.toSet;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class InitiatorEndpointCreateRequestBuilder {
+
     private final PciePortDao pciePortDao;
 
     @Autowired
@@ -51,21 +48,20 @@ public class InitiatorEndpointCreateRequestBuilder {
         this.pciePortDao = pciePortDao;
     }
 
-    public EndpointDto buildInitiatorEndpointCreationRequest(Protocol fabricType, ComputerSystem computerSystem) {
-        EndpointDto endpointDto = new EndpointDto();
-        endpointDto.addIdentifier(buildIdentifierDto(getDurableNameFormat(fabricType), computerSystem.getUuid()));
+    public EndpointDto buildInitiatorEndpointCreationRequest(Protocol fabricType, UUID targetSystemUuid, List<String> connectionIds) {
+        val endpointDto = new EndpointDto();
+        endpointDto.addIdentifier(buildIdentifierDto(getDurableNameFormat(fabricType), targetSystemUuid));
         endpointDto.addConnectedEntity(buildConnectedEntityDto());
 
         if (PNC_FABRIC_TYPES.contains(fabricType)) {
-            addUpstreamPorts(computerSystem, endpointDto);
+            findUpstreamPortsOdataIds(connectionIds).forEach(oDataId -> endpointDto.getLinks().addPort(oDataId));
         }
 
         return endpointDto;
     }
 
-    private void addUpstreamPorts(ComputerSystem computerSystem, EndpointDto endpointDto) {
-        Links links = endpointDto.getLinks();
-        getUpstreamPortsConnectedWithComputerSystem(computerSystem.getPcieConnectionIds()).forEach(links::addPort);
+    private Set<ODataId> findUpstreamPortsOdataIds(List<String> connectionIds) {
+        return getUpstreamPortsConnectedWithComputerSystem(connectionIds);
     }
 
     private Set<ODataId> getUpstreamPortsConnectedWithComputerSystem(List<String> pcieConnectionIds) {
@@ -81,7 +77,7 @@ public class InitiatorEndpointCreateRequestBuilder {
     }
 
     private IdentifierDto buildIdentifierDto(DurableNameFormat durableNameFormat, UUID computerSystemUuid) {
-        IdentifierDto identifierDto = new IdentifierDto();
+        val identifierDto = new IdentifierDto();
         identifierDto.setDurableNameFormat(durableNameFormat);
         identifierDto.setDurableName(createDurableName(durableNameFormat, computerSystemUuid));
 
@@ -89,7 +85,7 @@ public class InitiatorEndpointCreateRequestBuilder {
     }
 
     private ConnectedEntityDto buildConnectedEntityDto() {
-        ConnectedEntityDto connectedEntityDto = new ConnectedEntityDto();
+        val connectedEntityDto = new ConnectedEntityDto();
         connectedEntityDto.setEntityRole(INITIATOR);
 
         return connectedEntityDto;

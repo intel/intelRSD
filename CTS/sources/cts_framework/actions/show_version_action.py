@@ -44,7 +44,7 @@ class ShowVersionAction(Action):
         elif configuration.generate:
             self.generate_config()
         else:
-            print "CTS Version: %s" % BuildInformation.BUILD_VERSION
+            print "CTS Version: %s" % BuildInformation.get_version()
 
     @staticmethod
     def update_process():

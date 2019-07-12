@@ -18,6 +18,7 @@ package com.intel.rsd.resourcemanager.layers.unifier.unification;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.intel.rsd.crawler.Resource;
+import com.intel.rsd.resourcemanager.layers.unifier.unification.UnifiedOdataIdResolverFactoryImpl.UnificationMappings;
 import com.intel.rsd.resourcemanager.layers.unifier.unification.converters.CompositeConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -93,6 +94,11 @@ public final class JsonUnifier implements Unifier<JsonNode>, Deunifier<JsonNode>
         @Override
         public void updateMapping(Collection<Resource> resources) {
             delegate.updateMapping(resources);
+        }
+
+        @Override
+        public UnificationMappings getUnificationMappings() {
+            return delegate.getUnificationMappings();
         }
 
         @Override

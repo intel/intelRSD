@@ -29,7 +29,7 @@ from bs4 import BeautifulSoup
 from jsonpointer import resolve_pointer, JsonPointerException
 
 from cts_core.commons.api_caller import ApiCaller
-from cts_core.commons.error import cts_error
+from cts_core.commons.error import cts_error, cts_warning
 from cts_core.commons.json_helpers import get_odata_type, is_special_property
 from cts_core.discovery.api_resource import ApiResource
 from cts_core.discovery.discovery_container import DiscoveryContainer
@@ -145,49 +145,68 @@ class ApiExplorer:
         link, status, response_body, _ = self._get_resource(url,
                                                             api_endpoint_override=api_endpoint_override)
 
+        if link is None:
+            cts_error("GET {id:id} Response from service is not correct. CTS can not verify this endpoint", id=url)
+            self._status = ValidationStatus.FAILED
+            return
+
+        # try to detect all others odata_id
+        self._get_all_odata_id(response_body, api_endpoint_override)
+
+        if not response_body:
+            cts_error("GET {id:id} Empty response body", id=url)
+            self._status = ValidationStatus.FAILED
+            return
+
+        if status == RequestStatus.SUCCESS and response_body:
+            api_resource = ApiResource(link.link, link.netloc, response_body, expected_odata_type)
+            self._discovery_container.add_resource(api_resource)
+            self._process_resource(api_resource)
+
+    def _get_all_odata_id(self, response_body, api_endpoint_override):
+        for newly_discovered_odata in self._find_all_odata_id(dict(response_body)):
+            short_link = newly_discovered_odata[1][0]
+            link = self._api_caller.links_factory.get_resource_link(short_link,
+                                                                    api_endpoint_override=api_endpoint_override)
+            if self._discovery_container.is_visited(link.link):
+                continue
+
+            _, status, _, response_body, _ = self._api_caller.get_resource(short_link,
+                                                                           None,
+                                                                           api_endpoint_override=api_endpoint_override)
+            if status == RequestStatus.SUCCESS and response_body:
+                self._enqueue_resource(short_link,
+                                       self._clear_type(response_body),
+                                       api_endpoint_override=api_endpoint_override)
+
+    @staticmethod
+    def _clear_type(response_body):
+        raw_odata_type = None
         try:
-            self._get_members(url, response_body, expected_odata_type, api_endpoint_override)
+            raw_odata_type = response_body["@odata.type"].replace("#", "")
+            if len(raw_odata_type.split(".")) == 3:
+                return '.'.join((raw_odata_type[0], raw_odata_type[2]))
+        finally:
+            return raw_odata_type
+
+    def _find_all_odata_id(self, json_soup):
+        flat_dict = list(self.__transform_soup_into_flat_list(json_soup))
+        return [(i.split('=')[0], i.split('=')[1:]) for i in flat_dict if i.split('=')[0] == "@odata.id"]
+
+    def __transform_soup_into_flat_list(self, json_soup):
+        try:
+            for soup_key, soup_values in json_soup.items():
+                if isinstance(soup_values, dict):
+                    for flat_list_element in self.__transform_soup_into_flat_list(soup_values):
+                        yield flat_list_element
+                elif isinstance(soup_values, list):
+                    for value in soup_values:
+                        for flat_list_element in self.__transform_soup_into_flat_list(value):
+                            yield flat_list_element
+                else:
+                    yield str('{key}={value}'.format(key=soup_key, value=soup_values))
         except:
             pass
-
-        if not response_body:
-            cts_error("GET {id:id} Empty response body", id=url)
-            self._status = ValidationStatus.FAILED
-            return
-
-        if status == RequestStatus.SUCCESS and response_body:
-            api_resource = ApiResource(link.link, link.netloc, response_body, expected_odata_type)
-            self._discovery_container.add_resource(api_resource)
-            self._process_resource(api_resource)
-
-    def _get_members(self, url, response_body, expected_odata_type, api_endpoint_override=None):
-        status = ValidationStatus.BLOCKED
-        link = None
-
-        if "Members" in response_body:
-            len_members_exists = len(response_body["Members"])
-            founded_members = []
-            for founded_member in range(0, len_members_exists):
-                founded_members.append(response_body["Members"][founded_member]["@odata.id"])
-
-            for founded_member in list(set(founded_members)):
-                link, status, response_body, _ = self._get_resource(founded_member,
-                                                                    api_endpoint_override=api_endpoint_override)
-
-                if status == RequestStatus.SUCCESS and response_body:
-                    api_resource = ApiResource(link.link, link.netloc, response_body, expected_odata_type)
-                    self._discovery_container.add_resource(api_resource)
-                    self._process_resource(api_resource)
-
-        if not response_body:
-            cts_error("GET {id:id} Empty response body", id=url)
-            self._status = ValidationStatus.FAILED
-            return
-
-        if status == RequestStatus.SUCCESS and response_body:
-            api_resource = ApiResource(link.link, link.netloc, response_body, expected_odata_type)
-            self._discovery_container.add_resource(api_resource)
-            self._process_resource(api_resource)
 
     @performance_measure
     def _get_resource(self, url, api_endpoint_override=None):
@@ -211,12 +230,31 @@ class ApiExplorer:
             try:
                 return RequestStatus.SUCCESS, resolve_pointer(response_body, pointer)
             except JsonPointerException as exception:
-                cts_error("JSON pointer exception while dereferencing {path} from {url:id} "
-                          "resource; Error: {error}",
-                          path=pointer, url=url, error=exception)
-                self._status = ValidationStatus.FAILED
-                return RequestStatus.FAILED, {}
+                pointer_response_body = self._check_resource_list(response_body, pointer, url)
+                if not pointer_response_body:
+                    cts_error("JSON pointer exception while dereferencing {path} from {url:id} "
+                              "resource; Error: {error}",
+                              path=pointer, url=url, error=exception)
+                    self._status = ValidationStatus.FAILED
+                    return RequestStatus.FAILED, {}
+                return RequestStatus.SUCCESS, pointer_response_body
         return RequestStatus.SUCCESS, response_body
+
+    @staticmethod
+    def _check_resource_list(response_body, pointer, url):
+        cts_warning("Could not find requestes resource {path} from {url:id} by JSON pointer dereferencing. "
+                    "Trying to use alternative, non-RSD based method using requested @odata.id",
+                    path=pointer, url=url)
+        dissected_pointer = pointer.rsplit("/", 1)
+        resource_list = resolve_pointer(response_body, dissected_pointer[0])
+        if isinstance(resource_list, list):
+            requested_resource_odata = url[url.find("/redfish"):]
+            for resource in resource_list:
+                if resource["@odata.id"] == requested_resource_odata:
+                    return resource
+        cts_error("Could not find {path} from {url:id} with search by @odata.id",
+                  path=pointer, url=url)
+        return None
 
     def _process_resource(self, api_resource):
         """
@@ -227,6 +265,11 @@ class ApiExplorer:
         except KeyError as key:
             cts_error("{url:id}: Unknown @odata.type {type}. Not able to process sub-elements",
                       url=api_resource.url, type=key)
+            self._status = ValidationStatus.FAILED
+            return
+        except AttributeError as attribute_error:
+            cts_error("{url:id}: Missing entities in response {type}. Not able to process sub-elements",
+                      url=api_resource.url, type=attribute_error)
             self._status = ValidationStatus.FAILED
             return
 
@@ -328,8 +371,8 @@ class ApiExplorer:
                                         json_body,
                                         path=path.append(property_description.name))
         elif property_description.type in self._metadata_container.types.keys():
-            if self._metadata_container.types[
-                property_description.type].type_category == MetadataTypeCategories.COMPLEX_TYPE:
+            if self._metadata_container.types[property_description.type].type_category == \
+                    MetadataTypeCategories.COMPLEX_TYPE:
                 return self._process_complex_type(property_description,
                                                   json_body,
                                                   url,

@@ -21,7 +21,7 @@
 #include "logger/logger.hpp"
 #include <iostream>
 #include <stdexcept>
-#include "opae/cxx/core/properties.h"
+#include <uuid/uuid.hpp>
 
 
 
@@ -59,7 +59,13 @@ bool operator!=(const fpga_version& a, const fpga_version& b) {
 OpaeCppDeviceReader::OpaeCppDeviceReader() {}
 
 
-DeviceReader& OpaeCppDeviceReader::read_devices(const PcieDeviceAddress& pcie_device_address) {
+OpaeCppDeviceReader::Devices OpaeCppDeviceReader::get_devices() {
+
+    return read_devices(properties::none);
+}
+
+
+OpaeCppDeviceReader::Devices OpaeCppDeviceReader::get_devices(const PcieDeviceAddress& pcie_device_address) {
 
     // properties section:
 
@@ -69,46 +75,31 @@ DeviceReader& OpaeCppDeviceReader::read_devices(const PcieDeviceAddress& pcie_de
     property->device = pcie_device_address.m_device_num;
     property->function = pcie_device_address.m_func_num;
 
+    // enumeration section:
+
+    std::vector<properties::ptr_t> properties{property};
+
+    return read_devices(properties);
+}
+
+
+OpaeCppDeviceReader::Devices OpaeCppDeviceReader::get_devices(const PcieDeviceAddress& pcie_device_address,
+                                                              fpga_objtype obj_type) {
+
+    // properties section:
+
+    auto property = properties::get();
+
+    property->bus = pcie_device_address.m_bus_num;
+    property->device = pcie_device_address.m_device_num;
+    property->function = pcie_device_address.m_func_num;
+    property->type = obj_type;
+
     // enumeration section::
 
     std::vector<properties::ptr_t> properties{property};
 
-    auto tokens = token::enumerate(properties);
-
-    for (auto& token : tokens) {
-
-        try {
-
-            Device device = discover(token);
-            m_devices.emplace_back(std::move(device));
-        }
-        catch (const std::runtime_error& ex) {
-
-            log_error(LOGUSR, "Could not read OPAE device: " << ex.what());
-        }
-    }
-    return *this;
-}
-
-
-DeviceReader& OpaeCppDeviceReader::read_devices() {
-
-    auto tokens = token::enumerate(properties::none);
-
-    for (auto& token : tokens) {
-
-        try {
-
-            auto device = discover(token);
-
-            m_devices.emplace_back(std::move(device));
-        }
-        catch (const std::exception& ex) {
-
-            log_error(LOGUSR, "Could not read OPAE device: " << ex.what());
-        }
-    }
-    return *this;
+    return read_devices(properties);
 }
 
 
@@ -116,6 +107,30 @@ Device OpaeCppDeviceReader::discover(const token::ptr_t& token_ptr) {
     Device device;
     read_properties(device, token_ptr);
     return device;
+}
+
+
+OpaeCppDeviceReader::Devices OpaeCppDeviceReader::read_devices(const Properties& properties) {
+
+    auto tokens = token::enumerate(properties);
+
+    Devices devices{};
+
+    for (auto& token : tokens) {
+
+        try {
+
+            auto device = discover(token);
+
+            devices.emplace_back(std::move(device));
+        }
+        catch (const std::exception& ex) {
+
+            log_error(LOGUSR, "Could not read OPAE device: " << ex.what());
+        }
+    }
+
+    return devices;
 }
 
 

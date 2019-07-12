@@ -16,7 +16,7 @@
 
 package com.intel.rsd.nodecomposer.discovery.external.events;
 
-import com.intel.rsd.nodecomposer.ModelState;
+import com.intel.rsd.nodecomposer.Dirtying;
 import com.intel.rsd.nodecomposer.externalservices.WebClientBuilder;
 import com.intel.rsd.nodecomposer.externalservices.WebClientRequestException;
 import com.intel.rsd.nodecomposer.externalservices.resources.redfish.VolumeResource;
@@ -41,16 +41,15 @@ public class VolumeDiscoverer implements ApplicationListener<VolumeCreatedEvent>
     private final WebClientBuilder webClientBuilder;
     private final DiscoverableEntityDao discoverableEntityDao;
     private final VolumeMapper volumeMapper;
-    private final ModelState modelState;
 
-    public VolumeDiscoverer(WebClientBuilder webClientBuilder, DiscoverableEntityDao discoverableEntityDao, VolumeMapper volumeMapper, ModelState modelState) {
+    public VolumeDiscoverer(WebClientBuilder webClientBuilder, DiscoverableEntityDao discoverableEntityDao, VolumeMapper volumeMapper) {
         this.webClientBuilder = webClientBuilder;
         this.discoverableEntityDao = discoverableEntityDao;
         this.volumeMapper = volumeMapper;
-        this.modelState = modelState;
     }
 
     @Override
+    @Dirtying
     @Transactional(Transactional.TxType.REQUIRES_NEW)
     public void onApplicationEvent(VolumeCreatedEvent event) {
         try (val webClient = webClientBuilder.createResourceManagerInstance().build()) {
@@ -66,8 +65,6 @@ public class VolumeDiscoverer implements ApplicationListener<VolumeCreatedEvent>
             Volume volume = discoverableEntityDao.createEntity(oDataIdFromString(volumeUri), Volume.class);
             volumeMapper.map(volumeResource, volume);
             volume.setStorageService(storageService);
-
-            modelState.dirty("VolumeDiscoverer");
         } catch (WebClientRequestException e) {
             log.error("Could not discover volume: {}", event, e);
         }

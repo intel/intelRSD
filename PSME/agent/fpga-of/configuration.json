@@ -16,9 +16,7 @@
         {
             "ipv4": "127.0.0.1",
             "locationOffset": 10,
-            "parentId": "1",
-            "nic-drivers": ["ixgbe", "i40e", "mlx5_core", "mlx4_core"],
-            "rdma-port": 4420
+            "parentId": "1"
         }
     ],
     "database": {

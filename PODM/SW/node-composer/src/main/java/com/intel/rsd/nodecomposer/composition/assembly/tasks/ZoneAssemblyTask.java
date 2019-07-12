@@ -21,14 +21,17 @@ import com.intel.rsd.nodecomposer.business.BusinessApiException;
 import com.intel.rsd.nodecomposer.business.EntityOperationException;
 import com.intel.rsd.nodecomposer.business.redfish.services.actions.FabricActionsInvoker;
 import com.intel.rsd.nodecomposer.business.redfish.services.actions.ZoneActionsInvoker;
-import com.intel.rsd.nodecomposer.discovery.external.partial.EndpointObtainer;
+import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
+import com.intel.rsd.nodecomposer.persistence.dao.EndpointDao;
 import com.intel.rsd.nodecomposer.persistence.dao.GenericDao;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
 import com.intel.rsd.nodecomposer.persistence.redfish.Endpoint;
 import com.intel.rsd.nodecomposer.persistence.redfish.Zone;
 import com.intel.rsd.nodecomposer.types.actions.ZoneActionRequest;
 import com.intel.rsd.nodecomposer.utils.measures.TimeMeasured;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -37,7 +40,6 @@ import javax.transaction.Transactional;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.intel.rsd.collections.IterableHelper.any;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
@@ -47,34 +49,41 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 @SpringAware
 @Component
 @Scope(SCOPE_PROTOTYPE)
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class ZoneAssemblyTask extends NodeTask {
     private static final long serialVersionUID = 4716521385997852306L;
 
     @Autowired
     private transient GenericDao genericDao;
-    @Autowired
-    private transient EndpointObtainer endpointObtainer;
-    @Autowired
-    private transient FabricActionsInvoker fabricActionService;
+
     @Autowired
     private transient ZoneActionsInvoker invoker;
+
+    @Autowired
+    private transient EndpointDao endpointDao;
+
+    @Autowired
+    private transient FabricActionsInvoker fabricActionService;
+
+    @Setter
+    private ODataId fabricOdataId;
 
     @Override
     @Transactional(REQUIRES_NEW)
     @TimeMeasured(tag = "[AssemblyTask]")
     public void run() {
-        ComposedNode composedNode = getComposedNode();
-        Endpoint initiatorEndpoint = endpointObtainer.getInitiatorEndpoint(composedNode.getComputerSystem(), any(getComposedNode().getEndpoints()).getFabric());
+        val node = getComposedNode();
+        val system = getComputerSystemFromNode(node);
+        val initiatorEndpoint = endpointDao.findInitiatorEndpointBySystemAndFabric(system.getUri(), fabricOdataId);
 
         if (initiatorEndpoint == null) {
-            throw new IllegalStateException(format("There is no initiator endpoint on ComputerSystem with UUID: %s",
-                composedNode.getComputerSystem().getUuid()));
+            throw new IllegalStateException(format("There is no initiator endpoint on ComputerSystem with UUID: %s", system.getUuid()));
         }
 
         if (initiatorEndpoint.getZone() == null) {
-            createZone(composedNode, initiatorEndpoint);
+            createZone(node, initiatorEndpoint);
         } else {
-            HashSet<Endpoint> endpoints = new HashSet<>(composedNode.getEndpoints());
+            HashSet<Endpoint> endpoints = new HashSet<>(node.getEndpoints());
             endpoints.add(initiatorEndpoint);
             updateZone(initiatorEndpoint.getZone(), endpoints);
         }

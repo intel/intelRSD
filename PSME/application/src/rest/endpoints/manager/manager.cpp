@@ -56,6 +56,7 @@ json::Json make_prototype() {
 
     r[Common::REDUNDANCY] = json::Json::value_t::array;
     r[Manager::ETHERNET_INTERFACES] = json::Json::value_t::null;
+    r[Common::LOG_SERVICES] = json::Json::value_t::null;
     r[Manager::NETWORK_PROTOCOL] = json::Json::value_t::object;
 
     /*
@@ -282,6 +283,8 @@ void endpoint::Manager::get(const server::Request& request, server::Response& re
         PathBuilder(request).append(constants::Manager::NETWORK_PROTOCOL).build();
     r[constants::Manager::ETHERNET_INTERFACES][Common::ODATA_ID] =
         PathBuilder(request).append(constants::Manager::ETHERNET_INTERFACES).build();
+    r[constants::Common::LOG_SERVICES][Common::ODATA_ID] =
+        PathBuilder(request).append(constants::Common::LOG_SERVICES).build();
 
     // RMM specific actions
     if (utils::has_resource_capability(manager, Capability::RMM)) {

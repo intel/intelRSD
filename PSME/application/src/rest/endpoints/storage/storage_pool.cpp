@@ -51,6 +51,7 @@ json::Json make_prototype() {
     r[Swordfish::ALLOCATED_VOLUMES] = json::Json::value_t::object;
     r[Swordfish::ALLOCATED_POOLS] = json::Json::value_t::object;
 
+    r[Swordfish::CAPACITY][Common::ODATA_TYPE] = "#Capacity.v1_0_0.Capacity";
     r[Swordfish::CAPACITY][Data::DATA][Data::ALLOCATED_BYTES] = json::Json::value_t::null;
     r[Swordfish::CAPACITY][Data::DATA][Data::CONSUMED_BYTES] = json::Json::value_t::null;
     r[Swordfish::CAPACITY_SOURCES] = json::Json::value_t::array;
@@ -83,6 +84,7 @@ void endpoint::StoragePool::get(const server::Request& req, server::Response& re
     if (!storage_pool.get_identifiers().empty()) {
         json::Json id = json::Json();
         const auto& identifier = storage_pool.get_identifiers().front();
+        id[Common::ODATA_TYPE] = "#Resource.v1_1_0.Identifier";
         id[Common::DURABLE_NAME] = identifier.get_durable_name();
         id[Common::DURABLE_NAME_FORMAT] = identifier.get_durable_name_format();
         r[Swordfish::IDENTIFIER] = std::move(id);

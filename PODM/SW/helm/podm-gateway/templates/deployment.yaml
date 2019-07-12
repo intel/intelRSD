@@ -35,7 +35,7 @@ spec:
             items:
               - key: application.yml
                 path: application.yml
-      {{- if .Values.northbound_security.enabled }}
+      {{- if .Values.global.northbound_security.enabled }}
         - name: northbound-security-jks
           secret:
             secretName: {{ $northboundSecurity }}
@@ -52,14 +52,14 @@ spec:
             - name: podm-gateway-config
               mountPath: /app/config
               readOnly: true
-          {{- if .Values.northbound_security.enabled }}
+          {{- if .Values.global.northbound_security.enabled }}
             - name: northbound-security-jks
               mountPath: /var/run/secrets/nb
               readOnly: true
           {{ end }}
           {{- include "shared.coverage.mount" . | indent 12}}
           env:
-            {{- if .Values.northbound_security.enabled }}
+            {{- if .Values.global.northbound_security.enabled }}
             - name: SERVER_SSL_ENABLED
               value: 'true'
             - name: SERVER_SSL_KEY-STORE
@@ -84,11 +84,15 @@ spec:
             - name: http
               containerPort: {{ .Values.applicationProperties.server.port }}
               protocol: TCP
+              {{- if .Values.global.northbound_security.enabled }}
+            - name: https
+              containerPort: {{ .Values.applicationProperties.server.httpsPort }}
+              protocol: TCP
+              {{ end }}
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: http
-              {{- if .Values.northbound_security.enabled }}
+              {{- if .Values.global.northbound_security.enabled }}
               scheme: HTTPS
               port:  {{ .Values.service.httpsPort }}
               {{ else }}
@@ -101,8 +105,7 @@ spec:
           livenessProbe:
             httpGet:
               path: /actuator/health
-              port: http
-              {{- if .Values.northbound_security.enabled  }}
+              {{- if .Values.global.northbound_security.enabled  }}
               scheme: HTTPS
               port:  {{ .Values.service.httpsPort }}
               {{ else }}

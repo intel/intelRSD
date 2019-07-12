@@ -69,6 +69,7 @@ void Threadpool::join_threads() {
 
 void Threadpool::stop_threads() {
     for (auto i = 0u; i < m_thread_count; ++i) {
+        // Add empty task to stop a thread
         m_tasks.push_front(Task());
     }
 }

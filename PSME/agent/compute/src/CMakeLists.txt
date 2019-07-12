@@ -26,6 +26,7 @@ add_subdirectory(status)
 add_subdirectory(ipmb)
 add_subdirectory(telemetry)
 add_subdirectory(utils)
+add_subdirectory(log_service)
 
 add_library(compute-commands STATIC
     $<TARGET_OBJECTS:compute-command-sdv>
@@ -40,6 +41,7 @@ add_library(compute-utils
     $<TARGET_OBJECTS:compute-telemetry>
     $<TARGET_OBJECTS:compute-tree-stability>
     $<TARGET_OBJECTS:compute-utils-obj>
+    $<TARGET_OBJECTS:compute-log-service>
 )
 
 add_library(compute-ipmb

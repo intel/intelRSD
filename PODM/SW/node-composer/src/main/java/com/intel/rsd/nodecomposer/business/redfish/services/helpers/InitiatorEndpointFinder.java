@@ -17,10 +17,10 @@
 package com.intel.rsd.nodecomposer.business.redfish.services.helpers;
 
 import com.intel.rsd.nodecomposer.business.EntityOperationException;
-import com.intel.rsd.nodecomposer.business.redfish.services.EndpointCreationService;
+import com.intel.rsd.nodecomposer.business.redfish.services.RemoteEndpointAccessService;
 import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
-import com.intel.rsd.nodecomposer.discovery.external.partial.EndpointObtainer;
 import com.intel.rsd.nodecomposer.persistence.dao.DriveDao;
+import com.intel.rsd.nodecomposer.persistence.dao.EndpointDao;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
 import com.intel.rsd.nodecomposer.types.Protocol;
@@ -28,46 +28,47 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 import static com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId.oDataIdFromUri;
 import static com.intel.rsd.nodecomposer.externalservices.WebClientExceptionUtils.badRequestInTheRootCause;
 import static com.intel.rsd.nodecomposer.types.Protocol.NVME;
 import static com.intel.rsd.nodecomposer.types.Protocol.PCIE;
-import static com.intel.rsd.nodecomposer.types.redfish.ResourceNames.ENDPOINTS_RESOURCE_NAME;
+import static com.intel.rsd.nodecomposer.utils.Contracts.requiresNonNull;
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
-import static javax.ws.rs.core.UriBuilder.fromUri;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
+import static java.util.Optional.ofNullable;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 @Slf4j
 public class InitiatorEndpointFinder {
+
     public static final List<Protocol> PNC_FABRIC_TYPES = asList(NVME, PCIE);
 
-    private final EndpointObtainer endpointObtainer;
-    private final EndpointCreationService endpointCreationService;
-    private final InitiatorEndpointCreateRequestBuilder initiatorEndpointCreateRequestBuilder;
     private final DriveDao driveDao;
 
+    private final RemoteEndpointAccessService remoteEndpointAccessService;
+
+    private final EndpointDao endpointDao;
+
     @Autowired
-    public InitiatorEndpointFinder(EndpointObtainer endpointObtainer, EndpointCreationService endpointCreationService, DriveDao driveDao,
-                                   InitiatorEndpointCreateRequestBuilder initiatorEndpointCreateRequestBuilder) {
-        this.endpointObtainer = endpointObtainer;
-        this.endpointCreationService = endpointCreationService;
-        this.initiatorEndpointCreateRequestBuilder = initiatorEndpointCreateRequestBuilder;
+    public InitiatorEndpointFinder(RemoteEndpointAccessService remoteEndpointAccessService, DriveDao driveDao, EndpointDao endpointDao) {
         this.driveDao = driveDao;
+        this.endpointDao = endpointDao;
+        this.remoteEndpointAccessService = remoteEndpointAccessService;
     }
 
     public ODataId findOrCreateInitiatorEndpoint(ComposedNode composedNode, ODataId fabricODataId, Protocol fabricType) {
-        val initiatorEndpoint = Optional.ofNullable(PNC_FABRIC_TYPES.contains(fabricType)
-            ? driveDao.getConnectedInitiatorEndpoint(composedNode.getComputerSystem())
-            : endpointObtainer.getInitiatorEndpoint(composedNode.getComputerSystem(), fabricODataId));
+        val system = composedNode.getComputerSystem();
+        requiresNonNull(system, format("There is no computer system connected to the composed node(%s)", composedNode.getUri()));
+
+        val initiatorEndpoint = ofNullable(
+            PNC_FABRIC_TYPES.contains(fabricType)
+                ? driveDao.getConnectedInitiatorEndpoint(system)
+                : endpointDao.findInitiatorEndpointBySystemAndFabric(system.getUri(), fabricODataId)
+        );
 
         return initiatorEndpoint.map(DiscoverableEntity::getUri)
             .orElseGet(() -> createOrObtainEndpoint(composedNode, fabricODataId, fabricType));
@@ -75,22 +76,17 @@ public class InitiatorEndpointFinder {
 
     @SneakyThrows
     private ODataId createOrObtainEndpoint(ComposedNode composedNode, ODataId fabricODataId, Protocol fabricType) {
-        val endpointsCollectionUri = fromUri(fabricODataId.toUri()).path(ENDPOINTS_RESOURCE_NAME).build();
-        val endpointCreationRequest = initiatorEndpointCreateRequestBuilder.buildInitiatorEndpointCreationRequest(fabricType, composedNode.getComputerSystem());
+        val system = composedNode.getComputerSystem();
+        requiresNonNull(system, "computerSystem");
         try {
-            return endpointCreationService.createEndpointWithRetry(endpointsCollectionUri, endpointCreationRequest);
+            return remoteEndpointAccessService.createInitiatorEndpoint(fabricODataId, fabricType, system.getUuid(), system.getPcieConnectionIds());
         } catch (EntityOperationException e) {
-            return tryToFindInitiatorEndpointOnBadRequest(composedNode, endpointsCollectionUri, e);
+            if (!badRequestInTheRootCause(e)) {
+                log.warn("Cannot find initiator endpoint, while creating initiator endpoint return bad request");
+                throw new EntityOperationException(e.getMessage(), e);
+            }
+            val uri = remoteEndpointAccessService.getInitiatorEndpointUriBySystemUuid(fabricODataId, composedNode.getAssociatedComputerSystemUuid());
+            return oDataIdFromUri(uri);
         }
-    }
-
-    private ODataId tryToFindInitiatorEndpointOnBadRequest(ComposedNode composedNode, URI endpointsCollectionUri, EntityOperationException e)
-        throws EntityOperationException {
-        if (badRequestInTheRootCause(e)) {
-            return oDataIdFromUri(endpointObtainer.getInitiatorEndpointUriBySystemUuid(endpointsCollectionUri,
-                composedNode.getAssociatedComputerSystemUuid().toString()));
-        }
-        log.warn("Cannot find initiator endpoint, while creating initiator endpoint return bad request");
-        throw new EntityOperationException(e.getMessage(), e);
     }
 }

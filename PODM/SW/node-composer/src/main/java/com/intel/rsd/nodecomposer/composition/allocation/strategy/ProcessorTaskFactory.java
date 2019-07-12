@@ -21,16 +21,9 @@ import com.intel.rsd.nodecomposer.composition.assembly.tasks.FpgaProcessorAssemb
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.NodeTask;
 import com.intel.rsd.nodecomposer.utils.beans.NodeComposerBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
-
-import static javax.transaction.Transactional.TxType.SUPPORTS;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
-
 @Component
-@Scope(SCOPE_SINGLETON)
 public class ProcessorTaskFactory {
     private final NodeComposerBeanFactory beanFactory;
 
@@ -39,7 +32,6 @@ public class ProcessorTaskFactory {
         this.beanFactory = beanFactory;
     }
 
-    @Transactional(SUPPORTS)
     public NodeTask createFpgaProcessorAssemblyTask(ODataId fpgaProcessorUri) {
         FpgaProcessorAssemblyTask task = beanFactory.create(FpgaProcessorAssemblyTask.class);
         task.setFpgaProcessorUri(fpgaProcessorUri);

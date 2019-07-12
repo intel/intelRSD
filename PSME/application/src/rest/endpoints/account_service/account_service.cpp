@@ -45,7 +45,7 @@ json::Json make_prototype() {
     r[Common::STATUS][Common::STATE] = "Enabled";
     r[Common::STATUS][Common::HEALTH] = "OK";
 
-    r[AccountService::SERVICE_ENABLED] = true;
+    r[Common::SERVICE_ENABLED] = true;
     r[AccountService::LOCAL_ACCOUNT_AUTH] = "Enabled";
 
     r[AccountService::ACCOUNTS] = json::Json::value_t::object;
@@ -72,7 +72,7 @@ void AccountService::get(const server::Request& req, server::Response& res) {
     auto r = make_prototype();
 
     r[Common::STATUS][Common::STATE] = enums::State(enums::State::Enabled).to_string();
-    r[constants::AccountService::SERVICE_ENABLED] = true;
+    r[constants::Common::SERVICE_ENABLED] = true;
     r[Common::ODATA_ID] = PathBuilder(req).build();
 
     set_response(res, r);

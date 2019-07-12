@@ -36,7 +36,7 @@ class Constants:
     DIR_HOME_CTS_TESTS_DATA = os.path.join(*(DIR_HOME_CTS, "tests_data"))
     DIR_HOME_CTS_PERFORMANCE_DATA = os.path.join(*(DIR_HOME_CTS, "performance_data"))
 
-    DIR_HOME_CTS_SCENARIO = os.path.join(*(DIR_HOME_CTS_TESTS, "Rack_Scale_2_4_Scenario/required"))
+    DIR_HOME_CTS_SCENARIO = os.path.join(*(DIR_HOME_CTS_TESTS, "Rack_Scale_2_5_Scenario/required"))
     DIR_HOME_CTS_SCENARIO_EXTERNAL = os.path.join(*(DIR_HOME_CTS_SCENARIO, "ext"))
 
     TESTS_PACKAGES = "tests_packages"

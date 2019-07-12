@@ -57,6 +57,7 @@ public:
     struct VolumeData final {
         OptionalField<uint64_t> size_lba{};
         OptionalField<uint32_t> block_size_bytes{};
+        OptionalField<std::string> uuid{};
     };
 
     /*! Struct representing drive SMART data */

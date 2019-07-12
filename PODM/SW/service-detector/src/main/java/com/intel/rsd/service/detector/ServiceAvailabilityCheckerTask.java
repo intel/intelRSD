@@ -50,11 +50,11 @@ public class ServiceAvailabilityCheckerTask implements Runnable {
             val service = optService.get();
             try {
                 restTemplate.getForEntity(service.getServiceUri(), JsonNode.class);
+                serviceRepository.setServiceState(service.getId(), Enabled);
             } catch (ResourceAccessException exc) {
                 serviceRepository.setServiceState(service.getId(), UnavailableOffline);
                 return;
             }
-            serviceRepository.setServiceState(service.getId(), Enabled);
         } else {
             log.debug("Failed to find {} representation in database, probably it was already removed", serviceODataId);
         }

@@ -20,16 +20,14 @@ import com.intel.rsd.nodecomposer.types.discovery.DiscoveryServiceEndpoint;
 import com.intel.rsd.nodecomposer.utils.beans.NodeComposerBeanFactory;
 import com.intel.rsd.nodecomposer.utils.lock.Lock;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.integration.leader.event.OnRevokedEvent;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,13 +37,10 @@ import java.util.concurrent.ScheduledFuture;
 
 import static com.google.common.collect.Sets.difference;
 import static com.intel.rsd.nodecomposer.utils.beans.JndiNames.DISCOVERY_TASK_SCHEDULER;
-import static javax.transaction.Transactional.TxType.SUPPORTS;
 import static org.apache.commons.lang3.time.DateUtils.MILLIS_PER_SECOND;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Slf4j
 @Component
-@Scope(SCOPE_SINGLETON)
 public class ConfigurationTasksManager {
     final Map<UUID, ScheduledFuture<?>> configurationTasks = new HashMap<>();
 
@@ -53,7 +48,7 @@ public class ConfigurationTasksManager {
     private final TaskScheduler configurationTaskScheduler;
     private final NodeComposerBeanFactory beanFactory;
 
-    @Inject
+    @Autowired
     public ConfigurationTasksManager(@Value("${discovery-service.configurer-interval-seconds:300}") long configurerIntervalSeconds,
                                      @Qualifier(DISCOVERY_TASK_SCHEDULER) TaskScheduler configurationTaskScheduler,
                                      NodeComposerBeanFactory beanFactory) {
@@ -66,7 +61,6 @@ public class ConfigurationTasksManager {
      * LockType.WRITE used due to concurrent access to configuration tasks map that modifies it (put operation)
      */
     @Lock
-    @Transactional(SUPPORTS)
     public void scheduleConfigurationTasks(Map<UUID, DiscoveryServiceEndpoint> discoveryServiceEndpoints) {
         Set<UUID> toBeScheduled = discoveryServiceEndpoints.keySet();
         Set<UUID> alreadyScheduled = configurationTasks.keySet();

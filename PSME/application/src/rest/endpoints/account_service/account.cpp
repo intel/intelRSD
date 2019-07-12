@@ -79,6 +79,7 @@ void Account::get(const server::Request& req, server::Response& res) {
     r[constants::Account::LOCKED] = account.is_locked();
     r[constants::Account::PASSWORD] = json::Json::value_t::null;
 
+    r[Common::LINKS][Common::ODATA_TYPE] = "#ManagerAccount.v1_0_0.Links";
     r[Common::LINKS][constants::Account::ROLE][Common::ODATA_ID] =
         PathBuilder(Routes::ROLES_COLLECTION_PATH).append(Common::ADMINISTRATOR).build();
 

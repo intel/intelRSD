@@ -54,7 +54,7 @@ json::Json make_prototype() {
     r[Common::STATUS][Common::HEALTH] = json::Json::value_t::null;
     r[Common::STATUS][Common::HEALTH_ROLLUP] = json::Json::value_t::null;
 
-    r[SessionService::SERVICE_ENABLED] = json::Json::value_t::null;
+    r[Common::SERVICE_ENABLED] = json::Json::value_t::null;
     r[SessionService::SESSION_TIMEOUT] = json::Json::value_t::null;
 
     r[SessionService::SESSIONS][Common::ODATA_ID] = "/redfish/v1/SessionService/Sessions";
@@ -77,7 +77,7 @@ void endpoint::SessionService::get(const server::Request& request, server::Respo
                                        ? enums::State(enums::State::Enabled).to_string() : enums::State(
             enums::State::Disabled).to_string();
 
-    r[constants::SessionService::SERVICE_ENABLED] = session::SessionServiceManager::get_instance()->is_service_enabled();
+    r[constants::Common::SERVICE_ENABLED] = session::SessionServiceManager::get_instance()->is_service_enabled();
     r[constants::SessionService::SESSION_TIMEOUT] = session::SessionServiceManager::get_instance()->get_session_timeout().count();
 
     r[Common::ODATA_ID] = PathBuilder(request).build();
@@ -90,7 +90,7 @@ void endpoint::SessionService::patch(const server::Request& request, server::Res
     const auto& json = JsonValidator::validate_request_body<schema::SessionServicePatchSchema>(request);
     auto current_service_enabled = session::SessionServiceManager::get_instance()->is_service_enabled();
     auto current_session_timeout = session::SessionServiceManager::get_instance()->get_session_timeout().count();
-    auto service_enabled = json.value(constants::SessionService::SERVICE_ENABLED, bool{current_service_enabled});
+    auto service_enabled = json.value(constants::Common::SERVICE_ENABLED, bool{current_service_enabled});
     auto session_timeout = json.value(constants::SessionService::SESSION_TIMEOUT,
                                       std::int64_t{current_session_timeout});
 

@@ -97,6 +97,23 @@ void set_processor_is_being_erased(const std::string& processor_uuid, bool is_be
 void
 sync_processors_with_db(const Uuid& system_uuid, std::vector<agent_framework::model::Processor>& processors);
 
+
+/*!
+ * @brief Get ethernet interface UUID from IP address
+ * @param ipv4_address IPv4 address of the interface
+ * @return UUID of the interface with given IP address
+ */
+OptionalField<Uuid>
+get_ethernet_interface_uuid_from_ip_address(const agent_framework::model::attribute::Ipv4Address& ipv4_address);
+
+
+/*!
+ * @brief Checks if RDMA is supported on interface exposing specified IP address
+ * @param ipv4_address IP address exposed by interface to check
+ * @return True if the interface supports RDMA, false otherwise
+ */
+bool is_rdma_supported_for_address(const std::string& ipv4_address);
+
 }
 }
 }

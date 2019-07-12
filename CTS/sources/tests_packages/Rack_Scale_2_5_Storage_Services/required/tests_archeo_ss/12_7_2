@@ -1,0 +1,17 @@
+{
+  "name": "12.7.2",
+  "resources": {
+    "volumes_members": ["Volume.v1_0_0.Volume", "Volumes"],
+    "endpoints_members": ["Endpoint.Endpoint", "Endpoints"]
+  },
+  "actions": [
+    ["reduceby_match_collection", ["volumes_selected_members", "volumes_members", "endpoints_members",
+      ["Links/Oem/Intel_RackScale/Endpoints[*]/@odata.id"], false]],
+    ["string_logical_test", ["volumes_selected_members", "Volumes (selected)", ["Identifiers[*]/DurableName"],
+      "nvmexpress", true]],
+    ["string_logical_test", ["volumes_selected_members", "Volumes (selected)", ["Identifiers[*]/DurableNameFormat"],
+      "NQN"]],
+    ["string_logical_test", ["volumes_selected_members", "Volumes (selected)",
+      ["IPTransportDetails[*]/TransportProtocol"], "RoCEv2"]]
+  ]
+}

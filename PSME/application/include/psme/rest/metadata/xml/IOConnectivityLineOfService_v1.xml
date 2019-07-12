@@ -24,7 +24,7 @@
   <edmx:DataServices>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOConnectivityLineOfService">
-
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="IOConnectivityLineOfService" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="A service option within the IO Connectivity line of service."/>
         <Annotation Term="OData.LongDescription" String="An IO connectivity service option may be used to specify the characteristics of storage connectivity."/>
@@ -32,7 +32,7 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOConnectivityLineOfService.v1_0_0">
-
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="IOConnectivityLineOfService" BaseType="IOConnectivityLineOfService.IOConnectivityLineOfService">
         <Annotation Term="OData.Description" String="A service option within the IO Connectivity line of service."/>
         <Annotation Term="OData.LongDescription" String="An IO connectivity service option may be used to specify the characteristics of storage connectivity."/>
@@ -47,10 +47,19 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOConnectivityLineOfService.v1_0_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.Description" String="Changed type of AccessProtocols to Collection of Protocol.Protocol."/>
+      <EntityType Name="IOConnectivityLineOfService" BaseType="IOConnectivityLineOfService.v1_0_0.IOConnectivityLineOfService"/>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOConnectivityLineOfService.v1_0_2">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="IOConnectivityLineOfService" BaseType="IOConnectivityLineOfService.v1_0_1.IOConnectivityLineOfService"/>
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOConnectivityLineOfService.v1_1_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.Description" String="Change references to unversioned. "/>
       <EntityType Name="IOConnectivityLineOfService" BaseType="IOConnectivityLineOfService.v1_0_0.IOConnectivityLineOfService">
         <Property Name="MaxBytesPerSecond" Type="Edm.Int64">
@@ -66,7 +75,12 @@
           <Annotation Term="Measures.Unit" String="[IO]/s"/>
         </Property>
       </EntityType>
+    </Schema>
 
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="IOConnectivityLineOfService.v1_1_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="IOConnectivityLineOfService" BaseType="IOConnectivityLineOfService.v1_1_0.IOConnectivityLineOfService"/>
     </Schema>
 
   </edmx:DataServices>

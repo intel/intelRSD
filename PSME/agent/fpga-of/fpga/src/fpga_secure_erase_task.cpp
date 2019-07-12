@@ -46,6 +46,7 @@ void FpgaSecureEraseTask::operator()() {
     try {
         secure_erase(m_agent_context, m_processor_uuid);
         utils::update_processor_erased(m_processor_uuid, true);
+        update_reconfigured_slot_details(m_agent_context, m_processor_uuid);
     }
     catch (const std::exception& e) {
         log_error("agent", "An error occurred while erasing processor: " << e.what());

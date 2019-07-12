@@ -18,7 +18,7 @@
 
 function(install_curl)
     include(ConfigurationPackage OPTIONAL)
-    assure_package(curl 7.64.0 "https://curl.haxx.se/download/curl-7.64.0.tar.gz" "a026740d599a32bcbbe6e70679397899")
+    assure_package(curl 7.65.0 "https://curl.haxx.se/download/curl-7.65.0.tar.gz" "a9471b18bcdaf3bfca597535b4fae9db")
 
     set(CONFIGURE_FLAGS)
 

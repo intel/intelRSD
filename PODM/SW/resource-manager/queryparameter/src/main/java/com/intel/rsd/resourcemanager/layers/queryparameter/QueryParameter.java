@@ -17,7 +17,6 @@
 package com.intel.rsd.resourcemanager.layers.queryparameter;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.Layer;
 import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.layers.ServiceId;
@@ -33,10 +32,19 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static com.intel.rsd.json.JsonUtils.objectToJsonNode;
+import static com.intel.rsd.redfish.RedfishErrors.createRedfishError;
+import static com.intel.rsd.resourcemanager.layers.queryparameter.QueryParameterType.getParameterTypeByString;
+import static com.intel.rsd.resourcemanager.layers.queryparameter.QueryParameterType.getSupportedQueryParams;
 import static com.intel.rsd.resourcemanager.layers.queryparameter.QueryParameterConstants.REDFISH_MEMBERS;
 import static com.intel.rsd.resourcemanager.layers.queryparameter.QueryParameterConstants.REDFISH_MEMBERS_COUNT;
 import static com.intel.rsd.resourcemanager.layers.queryparameter.QueryParameterConstants.REDFISH_ODATA_ID;
+import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
 import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpStatus.NOT_IMPLEMENTED;
+import static org.springframework.http.ResponseEntity.status;
 
 @Slf4j
 @Component
@@ -55,16 +63,48 @@ public class QueryParameter extends Layer {
 
     @Override
     protected Response invokeImpl(ServiceId serviceId, String path, HttpMethod method, HttpHeaders headers, JsonNode body,
-                                  Map<QueryParameterType, String> requestParams) {
+                                  Map<String, String> requestParams) {
+
+
+        val queryParameters = extractSupportedParamsFrom(requestParams);
+        if (isThereAnyUnsupportedParameters(requestParams, queryParameters)) {
+            val redfishError = createRedfishError(NOT_IMPLEMENTED, getUnsupportedParametersMessage(requestParams));
+            return new Response(status(redfishError.getHttpStatus()).body(objectToJsonNode(redfishError)));
+        }
+
         val response = passToNextLayer(serviceId, path, method, headers, body, requestParams);
 
-        if (response.getBody() != null && isCollectionAndParameterRequest(response, requestParams)) {
+        if (response.getBody() != null && isCollectionAndParameterRequest(response, queryParameters)) {
             val resources = getCollectionResources(response, serviceId);
 
-            return resourceCollectionFilter.filter(response, requestParams, resources);
+            return resourceCollectionFilter.filter(response, queryParameters, resources);
         }
 
         return response;
+    }
+
+
+    private Map<QueryParameterType, String> extractSupportedParamsFrom(Map<String, String> requestParameters) {
+        return requestParameters.entrySet().stream()
+            .filter(entry -> getSupportedQueryParams().contains(getParameterTypeByString(entry.getKey())))
+            .collect(toMap(entry -> getParameterTypeByString(entry.getKey()), Map.Entry::getValue));
+    }
+
+    private boolean isThereAnyUnsupportedParameters(Map<String, String> requestParameters, Map<QueryParameterType, String> queryParams) {
+        queryParams.forEach((key, value) -> requestParameters.remove(key.getValue()));
+
+        return requestParameters.entrySet().stream()
+            .anyMatch(entry -> getParameterTypeByString(entry.getKey()) != null);
+    }
+
+    private String getUnsupportedParametersMessage(Map<String, String> requestParameters) {
+        String unsupportedParameters = requestParameters.entrySet().stream()
+            .filter(entry -> getParameterTypeByString(entry.getKey()) != null)
+            .map(Map.Entry::getKey)
+            .collect(joining(", "));
+        String message = "These parameters are not supported";
+
+        return format("%s: %s", message, unsupportedParameters);
     }
 
     private Collection<Response> getCollectionResources(Response response, ServiceId serviceId) {

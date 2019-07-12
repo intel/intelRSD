@@ -28,16 +28,17 @@ namespace {
 json::Json make_prototype() {
     json::Json r(json::Json::value_t::object);
 
-    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#Intel_RackScale.ProcessorMetrics.ProcessorMetrics";
+    r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#ProcessorMetrics.ProcessorMetrics";
     r[Common::ODATA_ID] = json::Json::value_t::null;
-    r[Common::ODATA_TYPE] = "#Intel_RackScale.ProcessorMetrics.v1_0_0.ProcessorMetrics";
+    r[Common::ODATA_TYPE] = "#ProcessorMetrics.v1_0_0.ProcessorMetrics";
     r[Common::ID] = json::Json::value_t::null;
     r[Common::NAME] = "Processor Metrics";
     r[Common::DESCRIPTION] = "Processor Metrics";
     r[ProcessorMetrics::AVERAGE_FREQUENCY_MHZ] = json::Json::value_t::null;
     r[ProcessorMetrics::BANDWIDTH_PERCENT] = json::Json::value_t::null;
     r[ProcessorMetrics::CONSUMED_POWER_WATT] = json::Json::value_t::null;
-    r[ProcessorMetrics::HEALTH] = json::Json::value_t::array;
+    r[Common::OEM][Common::RACKSCALE][ProcessorMetrics::HEALTH] = json::Json::value_t::array;
+    r[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.ProcessorMetrics";
     r[ProcessorMetrics::TEMPERATURE_CELSIUS] = json::Json::value_t::null;
     r[ProcessorMetrics::THROTTLING_CELSIUS] = json::Json::value_t::null;
 

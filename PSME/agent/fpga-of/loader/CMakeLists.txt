@@ -26,6 +26,8 @@ target_link_libraries(fpgaof-loader
     agent-framework
     json
     opaepp
+    PRIVATE
+    fpgaof-utils
     )
 
 target_include_directories(fpgaof-loader

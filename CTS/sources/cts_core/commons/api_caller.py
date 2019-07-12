@@ -29,6 +29,7 @@ import re
 import requests
 import socket
 import OpenSSL
+import sys
 from distutils.util import strtobool
 from os import getenv, getppid
 from traceback import format_exc
@@ -128,10 +129,10 @@ class ApiCaller:
             if not self._is_controlled_by_framework:
                 self._log_request(kwargs)
 
-            response = self._do_request(kwargs, url, http_method)
+            response, status_code = self._do_request(kwargs, url, http_method)
 
             if response is None:
-                return None, RequestStatus.FAILED, None, None, None
+                return None, RequestStatus.FAILED, status_code, None, None
 
             self._register_request(http_method, kwargs, response, url)
 
@@ -167,7 +168,12 @@ class ApiCaller:
                     method=response.request.method, url=url,
                     code=ReturnCodes.NO_CONTENT)
             try:
-                response_body = json.loads(response.text, object_pairs_hook=OrderedDict)
+                if isinstance(response.text, OrderedDict):
+                    response_without_any_ordered_dict_collection = json.dumps(response.text)
+                else:
+                    response_without_any_ordered_dict_collection = response.text
+                response_body = json.loads(response_without_any_ordered_dict_collection,
+                                           object_pairs_hook=OrderedDict)
             except (JSONDecodeError, ValueError) as err:
                 method = response.request.method if response.request else ''
                 cts_error("{method} {url:id} Unable to parse. Error {err:exception}", method=method, url=url, err=err)
@@ -200,44 +206,63 @@ class ApiCaller:
             print "%s::request_id=%d" % (LoggingLevel.CONTROL, request_id)
 
     def _do_request(self, kwargs, url, http_method):
+        response = None
         if ReplayController.replay_mode_on():
             response = ReplayController.request(http_method, url, **kwargs)
-        else:
-            response = None
 
         if response is None:
-            requests_method = {HttpMethods.GET: requests.get, HttpMethods.PATCH: requests.patch,
+            requests_method = {HttpMethods.GET: requests.get,
+                               HttpMethods.PATCH: requests.patch,
                                HttpMethods.POST: requests.post,
                                HttpMethods.DELETE: requests.delete}[http_method]
 
             try:
                 self._suppress_urllib3_error()
-
                 response = requests_method(url, **kwargs)
             except OpenSSL.SSL.Error as ose:
-                cts_error("There is a problem with CertFile or KeyFile: {err}", err=' '.join(ose.message[0]))
+                cts_error("There is a problem with CertFile or KeyFile: {err}",
+                          err=' '.join(ose.message[0]))
+                return None, ReturnCodes.INVALID_CERTS
+            except requests.HTTPError as err:
+                cts_error("{method} {url:id} Error {err:exception}",
+                          method=http_method, url=url, err=err)
+                return None, ReturnCodes.METHOD_NOT_ALLOWED
+            except requests.TooManyRedirects as err:
+                cts_error("{method} {url:id} Error {err:exception}",
+                          method=http_method, url=url, err=err)
+                return None, ReturnCodes.INVALID_FORWARDING
+            except requests.Timeout as err:
+                cts_error("{method} {url:id} Error {err:exception}",
+                          method=http_method, url=url, err=err)
+                return None, ReturnCodes.TIMEOUT
+            except requests.ConnectionError as err:
+                cts_error("{method} {url:id} Error {err:exception}",
+                          method=http_method, url=url, err=err)
+                return None, ReturnCodes.NOT_FOUND
             except requests.RequestException as err:
                 cts_error("{method} {url:id} Error {err:exception}",
                           method=http_method, url=url, err=err)
-                return None
+                return None, ReturnCodes.BAD_REQUEST
+        return response, response.status_code
 
-        return response
-
-    def _suppress_urllib3_error(self):
+    @staticmethod
+    def _suppress_urllib3_error():
         try:
             # Try to suppress user warnings
             from requests.packages.urllib3.exceptions import InsecureRequestWarning
             from requests.packages.urllib3 import disable_warnings
-            disable_warnings(InsecureRequestWarning)
+            disable_warnings(category=InsecureRequestWarning)
         except:
             pass
 
-    def _log_request(self, kwargs):
+    @staticmethod
+    def _log_request(kwargs):
         cts_message(" request parameters:")
         for key, value in kwargs.iteritems():
             cts_message("     {key}:{value}", key=str(key), value=str(value))
 
-    def _log_response(self, response, response_body):
+    @staticmethod
+    def _log_response(response, response_body):
         pretty_response = json.dumps(response_body, indent=4) \
             if response.status_code != ReturnCodes.NO_CONTENT else "No content"
         cts_message("status code: %d" % response.status_code)
@@ -273,6 +298,9 @@ class ApiCaller:
             self._perform_call(url,
                                acceptable_return_codes=acceptable_return_codes,
                                api_endpoint_override=api_endpoint_override)
+        if not discovery_container:
+            return link, status, status_code, response_body, headers
+
         if status == RequestStatus.SUCCESS:
             if response_body and status_code != ReturnCodes.NOT_FOUND:
                 status = discovery_container.add_resource(
@@ -506,7 +534,8 @@ class ApiCaller:
 
         return link, kwargs
 
-    def read_certificate(self, certificate_file):
+    @staticmethod
+    def read_certificate(certificate_file):
         try:
             with open(certificate_file, "r") as f:
                 return f.read()

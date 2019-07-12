@@ -58,8 +58,8 @@ FpgaofKeyGenerator::KeyType FpgaofKeyGenerator::generate_key(const agent_framewo
     ss << processor.get_fpga().get_bus();
     ss << processor.get_fpga().get_device();
     ss << processor.get_fpga().get_function();
-    ss << processor.get_fpga().get_fw_id();
-    ss << processor.get_fpga().get_fw_version();
+    ss << processor.get_fpga().get_firmware_id();
+    ss << processor.get_fpga().get_firmware_version();
 
     return ss.str();
 }

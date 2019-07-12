@@ -30,7 +30,6 @@ json::Json SecurityCapabilities::to_json() const {
     json::Json result = json::Json();
     result[literals::SecurityCapabilities::PASSPHRASE_CAPABLE] = get_passphrase_capable();
     result[literals::SecurityCapabilities::MAX_PASSPHRASE_COUNT] = get_max_passphrase_count();
-    result[literals::SecurityCapabilities::SECURITY_STATES] = get_security_states().to_json();
     return result;
 }
 
@@ -38,6 +37,5 @@ SecurityCapabilities SecurityCapabilities::from_json(const json::Json& json) {
     attribute::SecurityCapabilities region{};
     region.set_passphrase_capable(json[literals::SecurityCapabilities::PASSPHRASE_CAPABLE]);
     region.set_max_passphrase_count(json[literals::SecurityCapabilities::MAX_PASSPHRASE_COUNT]);
-    region.set_security_states(Array<enums::SecurityStates>::from_json(json[literals::SecurityCapabilities::SECURITY_STATES]));
     return region;
 }

@@ -96,7 +96,6 @@ public:
                                  const std::vector<uint8_t>& bitstream_bytes);
 
 
-private:
     /*!
      * @brief Returns opae fpga token for given processor uuid from model
      * @param opae_proxy_context opae proxy context wrapped

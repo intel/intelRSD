@@ -19,10 +19,10 @@ package com.intel.rsd.nodecomposer.mappers.subresources;
 import com.intel.rsd.nodecomposer.externalservices.resources.redfish.IdentifierObject;
 import com.intel.rsd.nodecomposer.mappers.subresources.strategies.EmbeddableCleanAndCreateStrategy;
 import com.intel.rsd.nodecomposer.persistence.redfish.embeddables.Identifier;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.Objects;
 
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
@@ -30,7 +30,7 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 @Component
 @Scope(SCOPE_PROTOTYPE)
 public class IdentifierMapper extends SubresourceMapper<IdentifierObject, Identifier> {
-    @Inject
+    @Autowired
     public IdentifierMapper(EmbeddableCleanAndCreateStrategy<Identifier> embeddableCleanAndCreateStrategy) {
         super(Identifier.class, embeddableCleanAndCreateStrategy);
     }

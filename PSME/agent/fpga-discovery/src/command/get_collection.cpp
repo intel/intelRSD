@@ -36,7 +36,8 @@ void get_collection(GetCollection::ContextPtr, const GetCollection::Request& req
     if (process_resource_collections<Manager,
         Link<LinkType::Strong, CollectionType::Systems, System>,
         Link<LinkType::Strong, CollectionType::Chassis, Chassis>,
-        Link<LinkType::Strong, CollectionType::Fabrics, Fabric>
+        Link<LinkType::Strong, CollectionType::Fabrics, Fabric>,
+        Link<LinkType::Strong, CollectionType::StorageServices, StorageService>
     >(uuid, name, response)) {}
     else if (process_resource_collections<Fabric,
         Link<LinkType::Strong, CollectionType::Endpoints, Endpoint>,

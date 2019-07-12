@@ -1,0 +1,39 @@
+{
+  "SchemaDefinition": "RedfishInteroperabilityProfile.v1_0_0",
+  "ProfileName": "IntelRSDBaselineCompute",
+  "ProfileVersion": "0.0.1",
+  "Purpose": "RSD 2.4 baseline interoperability profile for a managed compute device.",
+  "OwningEntity": "Intel RSD.",
+  "ContactInfo": "rsd_profile@intel.com",
+  "Protocol": {
+    "MinVersion": "1.0",
+    "Discovery": "Mandatory"
+  },
+  "RequiredProfiles": {
+    "IntelRSDComputeBase": {
+      "MinVersion": "1.0.0"
+    }
+  },
+  "Resources": {
+    "Processor": {
+      "PropertyRequirements": {
+        "Oem": {
+          "PropertyRequirements": {
+            "Intel_RackScale": {
+              "PropertyRequirements": {
+                "CurrentConfiguration": {
+                    "Purpose": "Used to get current or to set desired Processor configuration.",
+                    "WriteRequirement": "Mandatory"
+                },
+                "Configurations": {
+                  "Purpose": "Used to get list of supported Processor configurations.",
+                  "MinCount": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

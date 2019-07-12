@@ -1,0 +1,13 @@
+{
+  "name": "9.2.6",
+  "resources": {
+    "chassis_members": ["Chassis.Chassis", "Chassis"]
+  },
+  "actions": [
+    ["reduceby_string", ["chassis_selected_members", "chassis_members", ["ChassisType"], ["Rack"]]],
+    ["createlist", ["id_list", "chassis_selected_members", "Chassis of type Rack", "Oem/Intel_RackScale/Location/Id"]],
+    ["createlist", ["parentid_list", "chassis_selected_members", "Chassis of type Rack", "Oem/Intel_RackScale/Location/ParentId"]],
+    ["all_elements_unique", ["id_list", "ID's of Chassis of type Rack"]],
+    ["all_elements_identical", ["parentid_list", "Parent ID's of Chassis of type Rack"]]
+    ]
+}

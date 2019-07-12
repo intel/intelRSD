@@ -19,7 +19,6 @@ package com.intel.rsd.resourcemanager.layers.merger.request.creators;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.intel.rsd.resourcemanager.common.CacheUpdater;
 import com.intel.rsd.resourcemanager.common.DetectedManagersCache;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.common.ServiceDetectorApiConsumer;
 import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.layers.merger.request.ExecutableRequest;
@@ -60,10 +59,10 @@ public class ManagerDeleteRequestCreator implements SelectableRequestCreator {
 
     /**
      * Deletion of requested Manager can be performed only if this manager is related with remote Redfish service.
-     * Deletion operation will not be delegated to underlying RedfishServices.
+     * Deletion operation will not be delegated to underlying Redfish services.
      */
     @Override
-    public ExecutableRequest create(String managerUri, HttpMethod method, HttpHeaders headers, JsonNode body, Map<QueryParameterType, String> requestParams) {
+    public ExecutableRequest create(String managerUri, HttpMethod method, HttpHeaders headers, JsonNode body, Map<String, String> requestParams) {
         return layer -> {
             if (detectedManagersCache.contains(managerUri)) {
                 val responseEntity = serviceDetectorApiConsumer.deleteManager(managerUri);

@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.Member;
-import lombok.Data;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
 import org.springframework.boot.actuate.endpoint.web.annotation.WebEndpoint;
 import org.springframework.stereotype.Component;
@@ -48,9 +47,20 @@ public class HazelcastActuatorEndpoint {
         return true;
     }
 
-    @Data
     @JsonInclude
     public class Details {
-        private final boolean isLeader;
+        private boolean isLeader;
+
+        public Details(Boolean isLeader) {
+            this.isLeader = isLeader;
+        }
+
+        public Boolean getIsLeader() {
+            return isLeader;
+        }
+
+        public void setIsLeader(Boolean leader) {
+            isLeader = leader;
+        }
     }
 }

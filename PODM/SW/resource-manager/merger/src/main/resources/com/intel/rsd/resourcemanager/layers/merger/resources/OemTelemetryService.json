@@ -1,0 +1,13 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Intel_RackScale.TelemetryService.TelemetryService",
+  "@odata.id": "/redfish/v1/Oem/Intel_RackScale/TelemetryService",
+  "@odata.type": "#TelemetryService.v1_0_0.TelemetryService",
+  "Id": "TelemetryService",
+  "Name": "Telemetry Service",
+  "MetricReportDefinitions": {
+    "@odata.id": "/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricReportDefinitions"
+  },
+  "MetricDefinitions": {
+    "@odata.id": "/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricDefinitions"
+  }
+}

@@ -26,9 +26,9 @@ using namespace agent::spdk;
 using namespace agent_framework::module;
 
 
-REGISTER_SPDK_COMMAND(GetTasksCollection, [] (GetTasksCollection::ContextPtr,
-                                              const GetTasksCollection::Request&,
-                                              GetTasksCollection::Response& response) {
+REGISTER_SPDK_COMMAND(GetTasksCollection, [](GetTasksCollection::ContextPtr,
+                                             const GetTasksCollection::Request&,
+                                             GetTasksCollection::Response& response) {
         log_debug("spdk-agent", "Getting collection of tasks...");
         auto keys = get_manager<agent_framework::model::Task>().get_keys();
         for (const auto& key : keys) {

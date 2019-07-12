@@ -39,8 +39,6 @@ class TestsDumpAction(Action):
 
     DEFAULT_DIR = Constants.DIR_HOME_CTS_TESTS
     TESTS_PACKAGES = Constants.TESTS_PACKAGES
-    TESTS_PACKAGES_SUBDIR = Constants.TESTS_PACKAGES_SUBDIR
-
     METADATA_PACKAGES = Constants.METADATA_PACKAGES
     METADATA_HOME_DIR = Constants.METADATA_HOME_DIR
 
@@ -53,14 +51,22 @@ class TestsDumpAction(Action):
         self.create_folders()
 
     def get_package_contents(self):
+
         template = [x for x in pkg_resources.resource_listdir(self.TESTS_PACKAGES, "") if not x.startswith("__")]
 
         for folder in template:
-            req_dir = os.path.join(*(folder, self.TESTS_PACKAGES_SUBDIR))
-            search_dir = [x for x in pkg_resources.resource_listdir(self.TESTS_PACKAGES, req_dir) if not x.endswith(".pyc")]
+            # dirty hack using endswith - TODO: resource_listdir lists files and dirs, not only dirs
+            dirs = [x for x in pkg_resources.resource_listdir(self.TESTS_PACKAGES, folder) if not x.endswith((".py", ".pyc", ".md"))]
 
-            for test_for_copy in search_dir:
-                self.copy_to_custom_dir(req_dir, test_for_copy)
+            for subfolder in dirs:
+                req_dir = os.path.join(*(folder, subfolder))
+
+                for test_dir in [x for x in pkg_resources.resource_listdir(self.TESTS_PACKAGES, req_dir) if not x.endswith(".pyc")]:
+                    if not pkg_resources.resource_isdir(self.TESTS_PACKAGES, os.path.join(req_dir, test_dir)):
+                        self.copy_to_custom_dir(req_dir, test_dir)
+                    else:
+                        for archeo_test_resource in [x for x in pkg_resources.resource_listdir(self.TESTS_PACKAGES, os.path.join(req_dir, test_dir))]:
+                            self.copy_to_custom_dir(os.path.join(req_dir, test_dir), archeo_test_resource)
 
     def copy_to_custom_dir(self, dirs, filename):
         tests_dir = os.path.join(*(self.DEFAULT_DIR, dirs))

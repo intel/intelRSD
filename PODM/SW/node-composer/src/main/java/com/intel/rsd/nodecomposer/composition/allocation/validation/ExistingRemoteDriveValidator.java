@@ -28,18 +28,12 @@ import com.intel.rsd.nodecomposer.persistence.redfish.base.Entity;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.HasProtocol;
 import com.intel.rsd.nodecomposer.types.Protocol;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import javax.transaction.Transactional;
-
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Slf4j
 @Component
-@Scope(SCOPE_SINGLETON)
 @SuppressWarnings("checkstyle:ClassFanOutComplexity")
 public class ExistingRemoteDriveValidator {
     private final VolumeHelper volumeHelper;
@@ -53,10 +47,9 @@ public class ExistingRemoteDriveValidator {
         this.traverser = traverser;
     }
 
-    @Transactional(MANDATORY)
     public Violations validateProtocolFromExistingRequestedDrive(RemoteDrive drive) {
-        Protocol protocol = drive.getProtocol();
-        Violations violations = new Violations();
+        val protocol = drive.getProtocol();
+        val violations = new Violations();
         if (protocol != null) {
             violations.addAll(protocolValidator.validate(protocol));
             violations.addAll(validateIfRequestedResourceMatchToRequestedProtocol(protocol, drive.getResourceODataId()));
@@ -66,7 +59,7 @@ public class ExistingRemoteDriveValidator {
     }
 
     public void validateRemoteDrive(RemoteDrive resource) throws AllocationRequestProcessingException {
-        Violations violations = new Violations();
+        val violations = new Violations();
         if (resource == null || resource.getResourceODataId() == null) {
             violations.addMissingPropertyViolation("resource");
             throw new AllocationRequestProcessingException(violations);
@@ -74,7 +67,7 @@ public class ExistingRemoteDriveValidator {
     }
 
     private Violations validateCapacity(RemoteDrive resource) {
-        Violations violations = new Violations();
+        val violations = new Violations();
 
         if (resource.getCapacityGib() != null) {
             violations.addViolation("CapacityGiB property is not allowed when requesting Composed Node with existing Volume or Endpoint");
@@ -83,23 +76,22 @@ public class ExistingRemoteDriveValidator {
     }
 
     private Violations validateIfRequestedResourceMatchToRequestedProtocol(Protocol protocol, ODataId resourceODataId) {
-        Violations violations = new Violations();
+        val violations = new Violations();
 
-        final Entity resourceEntity;
         try {
-            resourceEntity = traverser.traverseDiscoverableEntity(resourceODataId);
+            val resourceEntity = traverser.traverseDiscoverableEntity(resourceODataId);
+            violations.addAll(validateProtocolWithResource(protocol, resourceEntity));
         } catch (ODataIdResolvingException e) {
             log.error("Requested resource does not exist." + e);
             violations.addViolation("Requested resource does not exist.");
             return violations;
         }
 
-        violations.addAll(validateProtocolWithResource(protocol, resourceEntity));
         return violations;
     }
 
     private Violations validateProtocolWithResource(Protocol protocol, Entity resourceEntity) {
-        Violations violations = new Violations();
+        val violations = new Violations();
         violations.addAll(validateProtocolWithEntityContainingRemoteDriveProtocol(protocol, resourceEntity));
         violations.addAll(validateProtocolWithVolume(protocol, resourceEntity));
 

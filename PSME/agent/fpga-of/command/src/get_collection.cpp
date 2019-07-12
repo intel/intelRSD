@@ -49,6 +49,10 @@ void get_collection(GetCollection::ContextPtr, const GetCollection::Request& req
     else if (process_resource_collections<Zone,
         Link<LinkType::Weak, CollectionType::Endpoints, Endpoint>
     >(uuid, name, response)) {}
+    else if (process_resource_collections<Processor,
+        Link<LinkType::Weak, CollectionType::Processors, Processor>,
+        Link<LinkType::Weak, CollectionType::PCIeFunctions, PcieFunction>
+    >(uuid, name, response)) {}
     else {
         THROW(agent_framework::exceptions::InvalidUuid, "fpgaof-agent",
               "Component not found - invalid UUID: " + uuid);

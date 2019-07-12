@@ -41,7 +41,7 @@ json::Json make_prototype() {
     r[Common::STATUS][Common::HEALTH] = "OK";
     r[Common::STATUS][Common::HEALTH_ROLLUP] = "OK";
 
-    r[UpdateService::SERVICE_ENABLED] = true;
+    r[Common::SERVICE_ENABLED] = true;
 
     json::Json simple_update(json::Json::value_t::object);
     simple_update[Common::TARGET] = json::Json::value_t::null;

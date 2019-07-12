@@ -28,7 +28,6 @@ import com.intel.rsd.nodecomposer.types.Protocol;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -40,14 +39,13 @@ import java.util.UUID;
 
 import static com.intel.rsd.java.lang.Pair.pairOf;
 import static com.intel.rsd.nodecomposer.types.EntityRole.INITIATOR;
+import static com.intel.rsd.nodecomposer.types.Protocol.OEM;
 import static java.lang.String.format;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Slf4j
 @Component
-@Scope(SCOPE_SINGLETON)
 public class ServiceResourceFinder {
     private final InitiatorEndpointUuidExtractor uuidExtractor;
 
@@ -72,13 +70,13 @@ public class ServiceResourceFinder {
         return map;
     }
 
-    public Optional<FabricResource> getFabricResource(WebClient webClient, @NonNull Protocol protocol) {
+    public Optional<FabricResource> tryFindFabricResource(WebClient webClient, @NonNull Protocol protocol) {
         try {
             ServiceRootResource serviceRoot = (ServiceRootResource) webClient.get(webClient.getBaseUri());
             for (ResourceSupplier resourceSupplierFabric : serviceRoot.getFabrics()) {
-                FabricResource fabric = (FabricResource) resourceSupplierFabric.get();
-                if (protocol.equals(fabric.getFabricType())) {
-                    return of(fabric);
+                FabricResource fabricResource = (FabricResource) resourceSupplierFabric.get();
+                if (protocol.equals(getFabricTypeFromResource(fabricResource))) {
+                    return of(fabricResource);
                 }
             }
             return empty();
@@ -89,16 +87,20 @@ public class ServiceResourceFinder {
         }
     }
 
+    private Protocol getFabricTypeFromResource(FabricResource fabric) {
+        if (OEM.equals(fabric.getFabricType())) {
+            return fabric.getFabricTypeFromOem();
+        }
+        return fabric.getFabricType();
+    }
+
     private List<ZoneResource> retrieveZonesFromDiscoveryService(WebClient webClient, @NonNull Protocol fabricProtocol) {
         List<ZoneResource> zoneResources = new ArrayList<>();
         try {
-            ServiceRootResource serviceRoot = (ServiceRootResource) webClient.get(webClient.getBaseUri());
-            for (ResourceSupplier resourceSupplierFabric : serviceRoot.getFabrics()) {
-                FabricResource fabric = (FabricResource) resourceSupplierFabric.get();
-                if (fabricProtocol.equals(fabric.getFabricType())) {
-                    for (ResourceSupplier resourceSupplier : fabric.getZones()) {
-                        zoneResources.add((ZoneResource) resourceSupplier.get());
-                    }
+            Optional<FabricResource> fabric = tryFindFabricResource(webClient, fabricProtocol);
+            if (fabric.isPresent()) {
+                for (ResourceSupplier resourceSupplier : fabric.get().getZones()) {
+                    zoneResources.add((ZoneResource) resourceSupplier.get());
                 }
             }
         } catch (WebClientRequestException e) {

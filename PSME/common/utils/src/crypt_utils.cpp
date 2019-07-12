@@ -265,6 +265,14 @@ std::string generate_salt() {
     char salt[KDF_SALT_SIZE + 1]{0};
     gcry_create_nonce(salt, KDF_SALT_SIZE);
 
+    if (std::string(salt).length() < KDF_SALT_SIZE) {
+        for (uint32_t index = 0; index < KDF_SALT_SIZE; index++) {
+            while (!salt[index]) {
+                gcry_create_nonce(salt + index, 1);
+            }
+        }
+     }
+
     return std::string(salt);
 }
 

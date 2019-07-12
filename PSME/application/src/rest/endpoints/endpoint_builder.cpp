@@ -148,12 +148,28 @@ void EndpointBuilder::build_endpoints() {
     // "/redfish/v1/Chassis/{chassisId:[0-9]+}/Power"
     mp.register_handler(Power::UPtr(new Power(constants::Routes::POWER_PATH)));
 
-// "/redfish/v1/Chassis/{chassisId:[0-9]+}/Power/Oem/Intel_RackScale/Actions/Intel.Oem.RequestPowerSupplyStateChange"
+    // "/redfish/v1/Chassis/{chassisId:[0-9]+}/Power/Oem/Intel_RackScale/Actions/Intel.Oem.RequestPowerSupplyStateChange"
     mp.register_handler(PowerSupplyRequestStateChange::UPtr(
         new PowerSupplyRequestStateChange(constants::Routes::POWER_SUPPLY_REQUEST_STATE_CHANGE_PATH)));
 
     // "/redfish/v1/Chassis/{chassisId:[0-9]+}/Thermal"
     mp.register_handler(Thermal::UPtr(new Thermal(constants::Routes::THERMAL_PATH)));
+
+    // "/redfish/v1/Chassis/{chassisId:[0-9]+}/NetworkAdapters"
+    mp.register_handler(NetworkAdapterCollection::UPtr(new NetworkAdapterCollection(
+        constants::Routes::NETWORK_ADAPTERS_COLLECTION_PATH)));
+
+    // "/redfish/v1/Chassis/{chassisId:[0-9]+}/NetworkAdapters/{networkAdapterId:[0-9]+}"
+    mp.register_handler(NetworkAdapter::UPtr(new NetworkAdapter(
+        constants::Routes::NETWORK_ADAPTER_PATH)));
+
+    // "/redfish/v1/Chassis/{chassisId:[0-9]+}/NetworkAdapters/{networkAdapterId:[0-9]+}/NetworkDeviceFunctions"
+    mp.register_handler(NetworkDeviceFunctionsCollection::UPtr(new NetworkDeviceFunctionsCollection(
+        constants::Routes::CHASSIS_NETWORK_DEVICE_FUNCTIONS_COLLECTION_PATH)));
+
+    // "/redfish/v1/Chassis/{chassisId:[0-9]+}/NetworkAdapters/{networkAdapterId:[0-9]+}/NetworkDeviceFunctions/{networkDeviceFunctionId:[0-9]+}"
+    mp.register_handler(NetworkDeviceFunction::UPtr(new NetworkDeviceFunction(
+        constants::Routes::CHASSIS_NETWORK_DEVICE_FUNCTION_PATH)));
 
     // "/redfish/v1/Managers"
     mp.register_handler(ManagerCollection::UPtr(new ManagerCollection(constants::Routes::MANAGER_COLLECTION_PATH)));
@@ -186,6 +202,22 @@ void EndpointBuilder::build_endpoints() {
 
     // "/redfish/v1/Managers/{managerId:[0-9]+}/NetworkProtocol"
     mp.register_handler(NetworkProtocol::UPtr(new NetworkProtocol(constants::Routes::NETWORK_PROTOCOL_PATH)));
+
+    // "/redfish/v1/Managers/{managerId:[0-9]+}/LogServices"
+    mp.register_handler(LogServicesCollection::UPtr(
+        new LogServicesCollection(constants::Routes::MANAGER_LOG_SERVICES_COLLECTION_PATH)));
+
+    // "/redfish/v1/Managers/{managerId:[0-9]+}/LogServices/{logServiceId:[0-9]+}"
+    mp.register_handler(LogService::UPtr(
+        new LogService(constants::Routes::MANAGER_LOG_SERVICE_PATH)));
+
+    // "/redfish/v1/Managers/{managerId:[0-9]+}/LogServices/{logServiceId:[0-9]+}/Entries"
+    mp.register_handler(LogEntryCollection::UPtr(
+        new LogEntryCollection(constants::Routes::MANAGER_LOG_ENTRY_COLLECTION_PATH)));
+
+     // "/redfish/v1/Managers/{managerId:[0-9]+}/LogServices/{logServiceId:[0-9]+}/Entries/{entryId:[0-9]+}"
+    mp.register_handler(LogEntry::UPtr(
+        new LogEntry(constants::Routes::MANAGER_LOG_ENTRY_PATH)));
 
     // "/redfish/v1/Systems"
     mp.register_handler(SystemsCollection::UPtr(new SystemsCollection(constants::Routes::SYSTEMS_COLLECTION_PATH)));
@@ -240,23 +272,7 @@ void EndpointBuilder::build_endpoints() {
     // "/redfish/v1/Systems/{systemId:[0-9]+}/Processors/{processorId:[0-9]+}/Actions/Oem/Intel.Oem.SecureErase"
     mp.register_handler(ProcessorSecureErase::UPtr(new ProcessorSecureErase(constants::Routes::PROCESSORS_SECURE_ERASE_PATH)));
 
-    // "/redfish/v1/Systems/{systemId:[0-9]+}/NetworkInterfaces"
-    mp.register_handler(NetworkInterfacesCollection::UPtr(new NetworkInterfacesCollection(
-        constants::Routes::NETWORK_INTERFACES_COLLECTION_PATH)));
-
-    // "/redfish/v1/Systems/{systemId:[0-9]+}/NetworkInterfaces/{networkInterfaceId:[0-9]+}"
-    mp.register_handler(NetworkInterface::UPtr(new NetworkInterface(
-        constants::Routes::NETWORK_INTERFACE_PATH)));
-
-    // "/redfish/v1/Systems/{systemId:[0-9]+}/NetworkInterfaces/{networkInterfaceId:[0-9]+}/NetworkDeviceFunctions"
-    mp.register_handler(NetworkDeviceFunctionsCollection::UPtr(new NetworkDeviceFunctionsCollection(
-        constants::Routes::NETWORK_DEVICE_FUNCTIONS_COLLECTION_PATH)));
-
-    // "/redfish/v1/Systems/{systemId:[0-9]+}/NetworkInterfaces/{networkInterfaceId:[0-9]+}/NetworkDeviceFunctions/{networkDeviceFunctionId:[0-9]+}"
-    mp.register_handler(NetworkDeviceFunction::UPtr(new NetworkDeviceFunction(
-        constants::Routes::NETWORK_DEVICE_FUNCTION_PATH)));
-
-    // "/redfish/v1/Systems/{systemId:[0-9]+}/Processors/{processorId:[0-9]+}/Oem/Intel_RackScale/Metrics"
+    // "/redfish/v1/Systems/{systemId:[0-9]+}/Processors/{processorId:[0-9]+}/Metrics"
     mp.register_handler(ProcessorMetrics::UPtr(new ProcessorMetrics(constants::Routes::PROCESSORS_METRICS_PATH)));
 
     // "/redfish/v1/Systems/{systemId:[0-9]+}/Metrics"
@@ -427,14 +443,14 @@ void EndpointBuilder::build_endpoints() {
     // "/redfish/v1/Fabrics/{fabricId}/Switches/{switchId}/Ports/{portId:[0-9]+}/Actions/Port.Reset"
     mp.register_handler(PortReset::UPtr(new PortReset(constants::Routes::PORT_RESET_PATH)));
 
-    // "/redfish/v1/Oem/Intel_RackScale/TelemetryService"
+    // "/redfish/v1/TelemetryService"
     mp.register_handler(TelemetryService::UPtr(new TelemetryService(constants::Routes::TELEMETRY_SERVICE_PATH)));
 
-    // "/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricDefinitions"
+    // "/redfish/v1/TelemetryService/MetricDefinitions"
     mp.register_handler(MetricDefinitionsCollection::UPtr(
         new MetricDefinitionsCollection(constants::Routes::METRIC_DEFINITIONS_COLLECTION_PATH)));
 
-    // "/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricDefinitions/{metricDefinitionId}"
+    // "/redfish/v1/TelemetryService/MetricDefinitions/{metricDefinitionId}"
     mp.register_handler(MetricDefinition::UPtr(new MetricDefinition(constants::Routes::METRIC_DEFINITION_PATH)));
 
     // "/redfish/v1/AccountService"

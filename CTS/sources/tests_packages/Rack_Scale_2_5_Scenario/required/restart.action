@@ -1,0 +1,45 @@
+{
+  "name": "Restart",
+  "type": "usecase",
+  "actions": [
+    {
+      "name": "Try restart",
+      "type": "usecase",
+      "description": "Try to Reset Computer System",
+      "action": {
+        "username": "admin",
+        "password": "admin",
+        "request": "{ComputerSystem.v1_0_0.ComputerSystem}/{any}/Actions/ComputerSystem.Reset",
+        "request_method": "POST",
+        "payload": "{'ResetType': 'ForceRestart'}",
+        "response": [
+          200,
+          204
+        ]
+      }
+    },
+    {
+      "name": "timeout",
+      "type": "timeout",
+      "value": 10
+    },
+    {
+      "name": "Try get information",
+      "type": "usecase",
+      "description": "Try get information from Computer System",
+      "action": {
+        "username": "admin",
+        "password": "admin",
+        "request": "{ComputerSystem.v1_0_0.ComputerSystem}/{any}/Actions/ComputerSystem.Reset",
+        "request_method": "GET",
+        "payload": null,
+        "response": [
+          200,
+          201
+        ],
+        "retry_if_fail": "3",
+        "retry_timeout": "90"
+      }
+    }
+  ]
+}

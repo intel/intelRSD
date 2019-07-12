@@ -33,3 +33,5 @@
 #include "agent-framework/module/model/endpoint.hpp"
 #include "agent-framework/module/model/pcie_device.hpp"
 #include "agent-framework/module/model/pcie_function.hpp"
+#include "agent-framework/module/model/log_service.hpp"
+#include "agent-framework/module/model/log_entry.hpp"

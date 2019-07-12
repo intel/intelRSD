@@ -54,9 +54,7 @@ json::Json make_prototype() {
     r[constants::NetworkInterface::LINK_STATUS] = json::Json::value_t::null;
 
     r[constants::NetworkInterface::IPv4_ADDRESSES] = json::Json::value_t::array;
-
     r[constants::NetworkInterface::IPv6_STATIC_ADDRESSES] = json::Json::value_t::array;
-
     r[constants::NetworkInterface::IPv6_ADDRESS_POLICY_TABLE] = json::Json::value_t::array;
 
     r[constants::NetworkInterface::MAX_IPv6_STATIC_ADDRESSES] = json::Json::value_t::null;
@@ -92,9 +90,10 @@ void endpoint::SystemNetworkInterface::get(const server::Request& req, server::R
         req.params).get();
 
     endpoint::status_to_json(ni, r);
+    endpoint::utils::fill_name_and_description(ni, r);
 
-    r[constants::NetworkInterface::PERMANENT_MAC_ADDRESS] = ni.get_factory_mac_address();
     r[constants::Common::MAC_ADDRESS] = ni.get_mac_address();
+    r[constants::NetworkInterface::PERMANENT_MAC_ADDRESS] = ni.get_factory_mac_address();
     r[constants::NetworkInterface::SPEED_MBPS] = ni.get_speed_mbps();
     r[constants::NetworkInterface::AUTO_NEG] = ni.get_autosense();
     r[constants::NetworkInterface::FULL_DUPLEX] = ni.get_full_duplex();
@@ -105,6 +104,7 @@ void endpoint::SystemNetworkInterface::get(const server::Request& req, server::R
     for (const auto& ipv4_addr : ipv4_addresses) {
         if (ipv4_addr.get_address().has_value()) {
             json::Json ipv4_address = json::Json();
+            ipv4_address[Common::ODATA_TYPE] = "#IPAddresses.v1_0_0.IPv4Address";
             ipv4_address[IpAddress::ADDRESS] = ipv4_addr.get_address();
             ipv4_address[IpAddress::SUBNET_MASK] = ipv4_addr.get_subnet_mask();
             ipv4_address[IpAddress::ADDRESS_ORIGIN] = ipv4_addr.get_address_origin();
@@ -117,6 +117,7 @@ void endpoint::SystemNetworkInterface::get(const server::Request& req, server::R
     for (const auto& ipv6_addr : ipv6_addresses) {
         if (ipv6_addr.get_address().has_value()) {
             json::Json ipv6_address = json::Json();
+            ipv6_address[Common::ODATA_TYPE] = "#IPAddresses.v1_0_0.IPv6Address";
             ipv6_address[IpAddress::ADDRESS] = ipv6_addr.get_address();
             ipv6_address[IpAddress::PREFIX_LENGTH] = ipv6_addr.get_prefix_length();
             // in GAMI there is DHCP option which has to be shown as DHCPv6

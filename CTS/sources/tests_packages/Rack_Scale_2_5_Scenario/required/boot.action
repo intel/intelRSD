@@ -1,0 +1,59 @@
+{
+  "name": "Boot usecase",
+  "type": "usecase",
+  "actions": [
+    {
+      "name": "Locate BIOS resource",
+      "type": "usecase",
+      "description": "Trying to locate a BIOS resource",
+      "action": {
+        "username": "admin",
+        "password": "admin",
+        "request": "{Bios.v1_0_2.Bios}/{any}/",
+        "request_method": "GET",
+        "payload": null,
+        "response": [
+          200
+        ]
+      }
+    },
+    {
+      "name": "Change BIOS attribute",
+      "type": "usecase",
+      "description": "Change BIOS attribute, replace old phone number with new one",
+      "action": {
+        "username": "admin",
+        "password": "admin",
+        "request": "{Bios.v1_0_2.Bios}/{any}/Settings",
+        "request_method": "PATCH",
+        "payload": {
+          "AttributeRegistry": {
+            "AdminPhone": "012345678"
+          },
+          "response": [
+            200,
+            201,
+            204
+          ]
+        }
+      }
+    },
+    {
+      "name": "Restart BIOS",
+      "type": "usecase",
+      "description": "Restart BIOS to apply a new changes",
+      "action": {
+        "username": "admin",
+        "password": "admin",
+        "request": "{Bios.v1_0_2.Bios}/{any}/Actions/Bios.ResetBios",
+        "request_method": "POST",
+        "payload": "{'ResetType': 'ForceRestart'}",
+        "response": [
+          200,
+          201,
+          204
+        ]
+      }
+    }
+  ]
+}

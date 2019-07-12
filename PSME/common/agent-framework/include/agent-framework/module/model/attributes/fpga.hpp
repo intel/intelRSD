@@ -146,18 +146,18 @@ public:
      *
      * @return FPGA Firmware ID
      */
-    const OptionalField<std::string>& get_fw_id() const {
-        return m_fw_id;
+    const OptionalField<std::string>& get_firmware_id() const {
+        return m_firmware_id;
     }
 
 
     /*!
      * @brief Set FPGA Firmware ID
      *
-     * @param fw_id FPGA Firmware ID
+     * @param firmware_id FPGA Firmware ID
      */
-    void set_fw_id(const OptionalField<std::string>& fw_id) {
-        m_fw_id = fw_id;
+    void set_firmware_id(const OptionalField<std::string>& firmware_id) {
+        m_firmware_id = firmware_id;
     }
 
 
@@ -166,18 +166,18 @@ public:
      *
      * @return FPGA Firmware Manufacturer
      */
-    const OptionalField<std::string>& get_fw_manufacturer() const {
-        return m_fw_manufacturer;
+    const OptionalField<std::string>& get_firmware_manufacturer() const {
+        return m_firmware_manufacturer;
     }
 
 
     /*!
      * @brief Set FPGA Firmware Manufacturer
      *
-     * @param fw_manufacturer FPGA Firmware Manufacturer
+     * @param firmware_manufacturer FPGA Firmware Manufacturer
      */
-    void set_fw_manufacturer(const OptionalField<std::string>& fw_manufacturer) {
-        m_fw_manufacturer = fw_manufacturer;
+    void set_firmware_manufacturer(const OptionalField<std::string>& firmware_manufacturer) {
+        m_firmware_manufacturer = firmware_manufacturer;
     }
 
 
@@ -186,18 +186,18 @@ public:
      *
      * @return FPGA Firmware Version
      */
-    const OptionalField<std::string>& get_fw_version() const {
-        return m_fw_version;
+    const OptionalField<std::string>& get_firmware_version() const {
+        return m_firmware_version;
     }
 
 
     /*!
      * @brief Set FPGA Firmware Version
      *
-     * @param fw_version FPGA Firmware Version
+     * @param firmware_version FPGA Firmware Version
      */
-    void set_fw_version(const OptionalField<std::string>& fw_version) {
-        m_fw_version = fw_version;
+    void set_firmware_version(const OptionalField<std::string>& firmware_version) {
+        m_firmware_version = firmware_version;
     }
 
 
@@ -242,26 +242,6 @@ public:
 
 
     /*!
-     * @brief Get FPGA Sideband Interface
-     *
-     * @return FPGA Sideband Interface
-     */
-    const OptionalField<enums::FpgaInterface>& get_sideband_interface() const {
-        return m_sideband_interface;
-    }
-
-
-    /*!
-     * @brief Set FPGA Sideband Interface
-     *
-     * @param sideband_interface FPGA Sideband Interface
-     */
-    void set_sideband_interface(const OptionalField<enums::FpgaInterface>& sideband_interface) {
-        m_sideband_interface = sideband_interface;
-    }
-
-
-    /*!
      * @brief Get FPGA PCIe Virtual Functions
      *
      * @return FPGA PCIe Virtual Functions
@@ -286,8 +266,8 @@ public:
      *
      * @return FPGA Reconfiguration Slots Details
      */
-    const Array<FpgaReconfigurationSlot>& get_reconfiguration_slots_details() const {
-        return m_reconfiguration_slots_details;
+    const Array<FpgaReconfigurationSlot>& get_reconfiguration_slots() const {
+        return m_reconfiguration_slots;
     }
 
 
@@ -296,8 +276,8 @@ public:
      *
      * @param slots FPGA slots
      */
-    void set_reconfiguration_slots_details(const Array<FpgaReconfigurationSlot>& reconfiguration_slots_details) {
-        m_reconfiguration_slots_details = reconfiguration_slots_details;
+    void set_reconfiguration_slots(const Array<FpgaReconfigurationSlot>& reconfiguration_slots) {
+        m_reconfiguration_slots = reconfiguration_slots;
     }
 
 
@@ -363,15 +343,14 @@ private:
     uint8_t m_func{};
     OptionalField<enums::FpgaType> m_type{};
     OptionalField<std::string> m_model{};
-    OptionalField<std::string> m_fw_id{};
-    OptionalField<std::string> m_fw_manufacturer{};
-    OptionalField<std::string> m_fw_version{};
+    OptionalField<std::string> m_firmware_id{};
+    OptionalField<std::string> m_firmware_manufacturer{};
+    OptionalField<std::string> m_firmware_version{};
     OptionalField<enums::FpgaInterface> m_host_interface{};
     FpgaInterfaces m_external_interfaces{};
-    OptionalField<enums::FpgaInterface> m_sideband_interface{};
     OptionalField<std::uint32_t> m_pcie_virtual_functions{};
     OptionalField<bool> m_programmable_from_host{};
-    Array<FpgaReconfigurationSlot> m_reconfiguration_slots_details{};
+    Array<FpgaReconfigurationSlot> m_reconfiguration_slots{};
     bool m_erased{false};
 };
 

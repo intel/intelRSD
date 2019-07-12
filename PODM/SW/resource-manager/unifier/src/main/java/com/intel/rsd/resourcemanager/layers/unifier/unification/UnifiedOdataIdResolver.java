@@ -17,6 +17,7 @@
 package com.intel.rsd.resourcemanager.layers.unifier.unification;
 
 import com.intel.rsd.crawler.Resource;
+import com.intel.rsd.resourcemanager.layers.unifier.unification.UnifiedOdataIdResolverFactoryImpl.UnificationMappings;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -24,6 +25,7 @@ import java.util.Optional;
 public interface UnifiedOdataIdResolver {
     boolean updateMapping(Resource resource);
     void updateMapping(Collection<Resource> resources);
+    UnificationMappings getUnificationMappings();
 
     Optional<String> toUnified(String serviceSpecificOdataId);
     Optional<String> toServiceSpecific(String unifiedOdataId);

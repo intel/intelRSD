@@ -26,7 +26,6 @@ buildscript {
         gradleVersionsPluginVersion = '0.17.0'
         asciidoctorGradlePluginVersion = '1.5.3' //DO NOT UPDATE, newer versions have problems with diagram generation
 
-        springPlatformBomVersion = 'Cairo-RC1'
         springCloudVersion = 'Finchley.M8'
 
         springIntegrationHazelcastVersion = '1.0.0.RELEASE'
@@ -44,6 +43,7 @@ buildscript {
         mockitoVersion = '2.0.2-beta'
         jacocoVersion = '0.8.2'
         jacocoCounter = 'LINE'
+        testNGVersion = '6.14.3'
     }
     repositories {
         mavenCentral()
@@ -90,7 +90,7 @@ subprojects {
         maven { url 'http://sndyuk.github.com/maven' }
     }
 
-    apply plugin: 'java'
+    apply plugin: 'java-library'
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'jacoco'
 
@@ -111,7 +111,7 @@ subprojects {
 
     dependencyManagement {
         imports {
-            mavenBom("io.spring.platform:platform-bom:${springPlatformBomVersion}")
+            mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
             mavenBom("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
         }
     }

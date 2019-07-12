@@ -19,7 +19,6 @@ package com.intel.rsd.resourcemanager.layers.merger.request.creators;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.intel.rsd.resourcemanager.common.CacheUpdater;
 import com.intel.rsd.resourcemanager.common.DetectedManagersCache;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.common.ServiceDetectorApiConsumer;
 import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.layers.merger.request.ExecutableRequest;
@@ -64,7 +63,7 @@ public class ManagersCollectionPostRequestCreator implements SelectableRequestCr
     }
 
     @Override
-    public ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<QueryParameterType, String> requestParams) {
+    public ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<String, String> requestParams) {
         return layer -> {
             val responseEntity = serviceDetectorApiConsumer.registerManager(body);
             if (responseEntity.getStatusCode().is2xxSuccessful()) {

@@ -18,12 +18,14 @@ package com.intel.rsd.nodecomposer.externalservices;
 
 import com.intel.rsd.nodecomposer.externalservices.redfish.response.RedfishClientException;
 import com.intel.rsd.nodecomposer.externalservices.redfish.response.UnexpectedRedirectionException;
+import com.intel.rsd.nodecomposer.types.net.HttpStatusCode;
 import com.intel.rsd.nodecomposer.types.redfish.ExternalServiceError;
 
 import java.util.Objects;
 import java.util.Optional;
 
 import static com.intel.rsd.nodecomposer.types.net.HttpStatusCode.BAD_REQUEST;
+import static com.intel.rsd.nodecomposer.types.net.HttpStatusCode.NOT_FOUND;
 import static com.intel.rsd.nodecomposer.types.net.HttpStatusCode.SERVICE_UNAVAILABLE;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -33,34 +35,34 @@ public final class WebClientExceptionUtils {
     private WebClientExceptionUtils() {
     }
 
+    public static boolean isResourceNotFoundTheRootCause(Throwable e) {
+        return isRootCauseWithGivenStatus(e, NOT_FOUND);
+    }
+
     public static boolean isServiceUnavailableTheRootCause(Throwable e) {
-        Optional<RedfishClientException> redfishRootCause = getRedfishExceptionRootCause(e);
-
-        if (!redfishRootCause.isPresent()) {
-            return false;
-        }
-
-        ExternalServiceError externalServiceError = redfishRootCause.get().getExternalServiceError();
-        return externalServiceError != null
-            && Objects.equals(externalServiceError.getResponse().getHttpStatusCode(), SERVICE_UNAVAILABLE);
+        return isRootCauseWithGivenStatus(e, SERVICE_UNAVAILABLE);
     }
 
     public static boolean badRequestInTheRootCause(Throwable e) {
-        Optional<RedfishClientException> redfishRootCause = getRedfishExceptionRootCause(e);
-
-        if (!redfishRootCause.isPresent()) {
-            return false;
-        }
-
-        ExternalServiceError externalServiceError = redfishRootCause.get().getExternalServiceError();
-        return externalServiceError != null
-            && Objects.equals(externalServiceError.getResponse().getHttpStatusCode(), BAD_REQUEST);
+        return isRootCauseWithGivenStatus(e, BAD_REQUEST);
     }
 
     public static boolean isConnectionExceptionTheRootCause(Throwable e) {
         Optional<RedfishClientException> redfishRootCause = getRedfishExceptionRootCause(e);
         return redfishRootCause.isPresent()
             && redfishRootCause.get().getCause() instanceof WebClientConnectionException;
+    }
+
+    private static boolean isRootCauseWithGivenStatus(Throwable e, HttpStatusCode statusCode) {
+        Optional<RedfishClientException> redfishRootCause = getRedfishExceptionRootCause(e);
+
+        if (!redfishRootCause.isPresent()) {
+            return false;
+        }
+
+        ExternalServiceError externalServiceError = redfishRootCause.get().getExternalServiceError();
+        return externalServiceError != null
+            && Objects.equals(externalServiceError.getResponse().getHttpStatusCode(), statusCode);
     }
 
     @SuppressWarnings({"unchecked"})

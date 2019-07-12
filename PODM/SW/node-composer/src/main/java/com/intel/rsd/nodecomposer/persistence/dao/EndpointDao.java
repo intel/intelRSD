@@ -16,47 +16,52 @@
 
 package com.intel.rsd.nodecomposer.persistence.dao;
 
+import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.persistence.redfish.Endpoint;
 import com.intel.rsd.nodecomposer.types.Protocol;
-import org.springframework.context.annotation.Scope;
+import lombok.NonNull;
+import lombok.val;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.TypedQuery;
-import javax.transaction.Transactional;
 import java.util.List;
-import java.util.UUID;
 
+import static com.intel.rsd.collections.IterableHelper.singleOrNull;
 import static com.intel.rsd.nodecomposer.persistence.redfish.Endpoint.GET_ENDPOINTS_ASSOCIATED_WITH_COMPUTER_SYSTEM_BY_PROTOCOL;
 import static com.intel.rsd.nodecomposer.persistence.redfish.Endpoint.GET_ENDPOINTS_WITH_NULL_USERNAME_BY_PROTOCOL;
-import static com.intel.rsd.nodecomposer.persistence.redfish.Endpoint.GET_ENDPOINT_MATCHING_UUID;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
+import static com.intel.rsd.nodecomposer.persistence.redfish.Endpoint.GET_INITIATOR_ENDPOINT_BY_FABRIC_AND_SYSTEM;
+import static com.intel.rsd.nodecomposer.persistence.redfish.Endpoint.GET_INITIATOR_ENDPOINT_BY_STORAGE_SERVICE_AND_SYSTEM;
+import static com.intel.rsd.nodecomposer.types.EntityRole.INITIATOR;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class EndpointDao extends Dao<Endpoint> {
 
-    @Transactional(MANDATORY)
-    public List<Endpoint> findEndpointMatchingUuid(UUID uuid) {
-        TypedQuery<Endpoint> query = entityManager.createNamedQuery(GET_ENDPOINT_MATCHING_UUID, Endpoint.class);
-        query.setParameter("uuid", uuid);
+    public Endpoint findInitiatorEndpointBySystemAndFabric(@NonNull ODataId computerSystemOdataId, @NonNull ODataId fabricOdataId) {
+        val query = entityManager.createNamedQuery(GET_INITIATOR_ENDPOINT_BY_FABRIC_AND_SYSTEM, Endpoint.class)
+            .setParameter("role", INITIATOR)
+            .setParameter("system", computerSystemOdataId)
+            .setParameter("fabric", fabricOdataId);
 
-        return query.getResultList();
+        return singleOrNull(query.getResultList());
     }
 
-    @Transactional(MANDATORY)
+    public Endpoint findInitiatorEndpointBySystemAndStorageService(@NonNull ODataId computerSystemOdataId, @NonNull ODataId storageServiceOdataId) {
+        val query = entityManager.createNamedQuery(GET_INITIATOR_ENDPOINT_BY_STORAGE_SERVICE_AND_SYSTEM, Endpoint.class)
+            .setParameter("role", INITIATOR)
+            .setParameter("system", computerSystemOdataId)
+            .setParameter("ss", storageServiceOdataId);
+
+        return singleOrNull(query.getResultList());
+    }
+
     public List<Endpoint> findEndpointsWithNullUsername(Protocol protocol) {
-        TypedQuery<Endpoint> query = entityManager.createNamedQuery(GET_ENDPOINTS_WITH_NULL_USERNAME_BY_PROTOCOL, Endpoint.class);
-        query.setParameter("protocol", protocol);
+        val query = entityManager.createNamedQuery(GET_ENDPOINTS_WITH_NULL_USERNAME_BY_PROTOCOL, Endpoint.class).setParameter("protocol", protocol);
 
         return query.getResultList();
     }
 
-    @Transactional(MANDATORY)
     public List<Endpoint> findEndpointsWithAssociatedComputerSystem(Protocol protocol) {
-        TypedQuery<Endpoint> query = entityManager.createNamedQuery(GET_ENDPOINTS_ASSOCIATED_WITH_COMPUTER_SYSTEM_BY_PROTOCOL,
-            Endpoint.class);
-        query.setParameter("protocol", protocol);
+        val query = entityManager.createNamedQuery(GET_ENDPOINTS_ASSOCIATED_WITH_COMPUTER_SYSTEM_BY_PROTOCOL, Endpoint.class)
+            .setParameter("protocol", protocol);
 
         return query.getResultList();
     }

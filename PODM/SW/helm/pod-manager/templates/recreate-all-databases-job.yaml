@@ -9,7 +9,7 @@ metadata:
   name: {{ template "pod-manager.fullname" . }}-recreate-all-databases-job
   namespace: default
 spec:
-  backoffLimit: 2
+  backoffLimit: 15
   template:
     metadata:
       labels:
@@ -22,10 +22,13 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.global.registry_secret }}
       {{ end }}
+      shareProcessNamespace: true
       containers:
       - name: {{ .Release.Name }}-recreate-all-databases-job
-        image: "{{ .Values.global.registry }}bitnami/postgresql:10.7.0"
+        image: "{{ .Values.global.infrastructure_registry }}bitnami/postgresql:10.7.0"
         imagePullPolicy: "IfNotPresent"
+        securityContext:
+          runAsUser: 0
         env:
         - name: POSTGRES_USER
           value: postgres
@@ -41,10 +44,8 @@ spec:
             secretKeyRef:
               name: {{ .Values.secretName }}
               key: database-password
-        command: ["bash"]
+        command: ["bash", "-xe", "-c"]
         args:
-        - -xe
-        - -c
         - |
 {{ .Files.Get "scripts/recreate-all-databases-on-cluster.sh" | indent 10 }}
 {{ if .Release.IsInstall }}
@@ -52,3 +53,9 @@ spec:
 {{ else }}
           "recreate_user_and_grant_privileges"
 {{ end }}
+          RESULT=$?
+          if [ $RESULT -eq 0 ]; then
+            #kill istio-proxy sidecar container (if exists) in order to finish job successfully
+            pkill -INT pilot-agent || exit 0;
+          fi
+

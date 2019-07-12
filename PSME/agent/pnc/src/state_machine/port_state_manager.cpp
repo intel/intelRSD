@@ -32,6 +32,8 @@
 #include <thread>
 #include <chrono>
 
+
+
 using namespace agent::pnc::state_machine;
 using namespace agent::pnc::discovery;
 using namespace agent::pnc::discovery::utils;
@@ -45,6 +47,7 @@ using namespace agent::pnc::tools;
 using PS = PortState;
 using PE = PortEvent;
 using PSM = PortStateManager;
+
 
 /*
  * How this state machine works:
@@ -65,7 +68,7 @@ using PSM = PortStateManager;
  */
 
 PortStateManager::PortStateManager(PortStateWorkerPtr worker, const std::string& id, const std::string& switch_uuid,
-        const std::string& port_uuid):
+                                   const std::string& port_uuid) :
     m_worker(worker), m_sm(id, PS::Initial), m_switch_uuid(switch_uuid), m_port_uuid(port_uuid) {
 
     // First event initialization transitions
@@ -88,13 +91,21 @@ PortStateManager::PortStateManager(PortStateWorkerPtr worker, const std::string&
     m_sm.add_transition(PS::Full_Standby,  PE::DeviceHotUnplugged, PS::NoDevice,      wrap(this, &PSM::action_remove));
     m_sm.add_transition(PS::NoDevice_Busy, PE::DeviceHotPlugged,   PS::Oob_Busy,      wrap(this, &PSM::action_oob));
     m_sm.add_transition(PS::NoDevice,      PE::DeviceHotPlugged,   PS::Full_Standby,  wrap(this, &PSM::action_full_bind_unbind_recover));
+
+    // Synchronization with model transitions
+    m_sm.add_transition(PS::Full_Standby, PE::ModelBindingNotDetected, PS::Full_Standby, wrap(this, &PSM::action_bindings_recover));
+    m_sm.add_transition(PS::Full_Standby, PE::IllegalBindingDetected,  PS::Full_Standby, wrap(this, &PSM::action_unbind_nonmgmt));
+    m_sm.add_transition(PS::Oob_Busy,     PE::IllegalBindingDetected,  PS::Full_Standby, wrap(this, &PSM::action_unbind_nonmgmt_ib_discovery));
 }
+
 
 PortStateManager::~PortStateManager() {}
 
+
 void PortStateManager::init_binding(bool is_bound, bool is_bound_to_host) {
     log_debug("port-state-manager", "StateMachine: updating binding state: bound = " << is_bound
-        << ", bound to host = " << is_bound_to_host);
+                                                                                     << ", bound to host = "
+                                                                                     << is_bound_to_host);
     m_prev_bound = is_bound;
     PortEvent ev = PE::BindingNotDetected;
     if (is_bound) {
@@ -103,6 +114,7 @@ void PortStateManager::init_binding(bool is_bound, bool is_bound_to_host) {
     m_sm.send_event(ev);
 }
 
+
 void PortStateManager::init_presence(bool is_present) {
     log_debug("port-state-manager", "StateMachine: updating device presence: dev present = " << is_present);
     m_prev_present = is_present;
@@ -110,25 +122,29 @@ void PortStateManager::init_presence(bool is_present) {
     m_sm.send_event(ev);
 }
 
+
 void PortStateManager::update(bool is_present, bool is_bound, bool is_bound_to_host, bool is_being_erased) {
 
     log_debug("port-state-manager",
-        "State machine - current state = " << m_sm.get_current_state().to_string());
+              "State machine - current state = " << m_sm.get_current_state().to_string());
     // if we are still in initial state - try initializing
     if (!m_sm.is_initialized()) {
         init_binding(is_bound, is_bound_to_host);
         init_presence(is_present);
     }
-    // in other cases - just process the data
+        // in other cases - just process the data
     else {
-        generate_events(is_present, is_bound, is_being_erased);
+        generate_events(is_present, is_bound, is_bound_to_host, is_being_erased);
     }
 }
 
-void PortStateManager::generate_events(bool is_present, bool is_bound, bool is_being_erased) {
+
+void PortStateManager::generate_events(bool is_present, bool is_bound, bool is_bound_to_host, bool is_being_erased) {
 
     log_debug("port-state-manager", "StateMachine: updating states: device present = " << is_present
-        << ", is bound = " << is_bound << ", is being erased = " << is_being_erased);
+                                                                                       << ", is bound = " << is_bound
+                                                                                       << ", is being erased = "
+                                                                                       << is_being_erased);
 
     // while drive/FPGA is being erased, port may be unbound -> we need to account for it
     bool is_used = is_bound || is_being_erased;
@@ -138,10 +154,19 @@ void PortStateManager::generate_events(bool is_present, bool is_bound, bool is_b
     else if (m_prev_present != is_present) {
         m_sm.send_event(is_present ? PE::DeviceHotPlugged : PE::DeviceHotUnplugged);
     }
+    // These transitions below has lower priority than transitions above and are executed next time if they overlap
+    else if (!is_used && !is_bound_to_host && is_present && m_worker->is_port_in_valid_zone(m_port_uuid)) {
+        m_sm.send_event(PE::ModelBindingNotDetected);
+    }
+    else if (is_bound && !is_bound_to_host && !is_being_erased && is_present &&
+             !m_worker->is_port_in_valid_zone(m_port_uuid)) {
+        m_sm.send_event(PE::IllegalBindingDetected);
+    }
 
     m_prev_present = is_present;
     m_prev_bound = is_used;
 }
+
 
 bool PortStateManager::action_oob(const PortTransition&) {
     try {
@@ -155,6 +180,7 @@ bool PortStateManager::action_oob(const PortTransition&) {
     }
     return true;
 }
+
 
 bool PortStateManager::action_remove(const PortTransition&) {
     try {
@@ -176,6 +202,7 @@ bool PortStateManager::action_remove(const PortTransition&) {
     }
 }
 
+
 bool PortStateManager::action_ib_bind_unbind(const PortTransition&) {
     try {
         log_debug("port-state-manager", "StateMachine: bind/ib discovery/unbind action started ...");
@@ -194,10 +221,11 @@ bool PortStateManager::action_ib_bind_unbind(const PortTransition&) {
     }
     catch (std::exception e) {
         log_error("port-state-manager",
-            "StateMachine: bind/ib discovery/unbind action failed: " << e.what());
+                  "StateMachine: bind/ib discovery/unbind action failed: " << e.what());
         return false;
     }
 }
+
 
 bool PortStateManager::action_bind(const PortTransition&) {
     try {
@@ -211,6 +239,7 @@ bool PortStateManager::action_bind(const PortTransition&) {
         return false;
     }
 }
+
 
 bool PortStateManager::action_unbind(const PortTransition&) {
     try {
@@ -226,6 +255,7 @@ bool PortStateManager::action_unbind(const PortTransition&) {
     }
 }
 
+
 bool PortStateManager::action_full_unbind(const PortTransition&) {
     try {
         log_debug("port-state-manager", "StateMachine: full discovery/unbind action started ...");
@@ -236,7 +266,7 @@ bool PortStateManager::action_full_unbind(const PortTransition&) {
     }
     catch (std::exception e) {
         log_error("port-state-manager",
-            "StateMachine: full discovery/unbind action failed: " << e.what());
+                  "StateMachine: full discovery/unbind action failed: " << e.what());
         return false;
     }
     try {
@@ -244,10 +274,11 @@ bool PortStateManager::action_full_unbind(const PortTransition&) {
     }
     catch (std::exception e) {
         log_debug("port-state-manager",
-            "StateMachine: no drive for device: " << e.what());
+                  "StateMachine: no drive for device: " << e.what());
     }
     return true;
 }
+
 
 bool PortStateManager::action_full_bind_unbind_recover(const PortTransition&) {
     try {
@@ -276,7 +307,7 @@ bool PortStateManager::action_full_bind_unbind_recover(const PortTransition&) {
     }
     catch (std::exception e) {
         log_error("port-state-manager",
-            "StateMachine: bind/full discovery/unbind action failed: " << e.what());
+                  "StateMachine: bind/full discovery/unbind action failed: " << e.what());
         return false;
     }
     try {
@@ -284,7 +315,69 @@ bool PortStateManager::action_full_bind_unbind_recover(const PortTransition&) {
     }
     catch (std::exception e) {
         log_debug("port-state-manager",
-            "StateMachine: no drive for device: " << e.what());
+                  "StateMachine: no drive/processor for device: " << e.what());
+    }
+    return true;
+}
+
+
+bool PortStateManager::action_bindings_recover(const PortTransition&) {
+    try {
+        log_debug("port-state-manager", "StateMachine: bindings recovery action started ...");
+        auto bindings = m_worker->get_bindings_on_port(m_port_uuid);
+        // recover bindings
+        log_debug("port-state-manager", "StateMachine: Restoring bindings...");
+        for (const auto& binding : bindings) {
+            m_worker->attach_endpoint_to_zone(m_switch_uuid, std::get<1>(binding), std::get<0>(binding));
+            log_debug("port-state-manager", "StateMachine: Binding to be recovered found!");
+        }
+        log_debug("port-state-manager", "StateMachine: bindings recovery action finished");
+    }
+    catch (std::exception e) {
+        log_error("port-state-manager",
+                  "StateMachine: bindings recovery action failed: " << e.what());
+        return false;
+    }
+    return true;
+}
+
+
+bool PortStateManager::action_unbind_nonmgmt(const PortTransition&) {
+    try {
+        log_debug("port-state-manager", "StateMachine: unbind non-mgmt host action started ...");
+        m_worker->unbind_port(m_switch_uuid, m_port_uuid);
+        log_debug("port-state-manager", "StateMachine: unbind non-mgmt host action finished");
+    }
+    catch (std::exception e) {
+        log_error("port-state-manager",
+                  "StateMachine: unbind non-mgmt host action failed: " << e.what());
+        return false;
+    }
+    return true;
+}
+
+
+bool PortStateManager::action_unbind_nonmgmt_ib_discovery(const PortTransition&) {
+    try {
+        log_debug("port-state-manager", "StateMachine: unbind non-mgmt && ib discovery action started ...");
+        log_debug("port-state-manager", "StateMachine: Locking port...");
+        m_worker->lock_port(m_port_uuid);
+        log_debug("port-state-manager", "StateMachine: Unbinding from non-mgmt host...");
+        m_worker->unbind_port(m_switch_uuid, m_port_uuid);
+        log_debug("port-state-manager", "StateMachine: Binding...");
+        uint8_t bridge_id = m_worker->bind_to_host(m_switch_uuid, m_port_uuid);
+        log_debug("port-state-manager", "StateMachine: Discovering...");
+        m_worker->ib_discovery(m_switch_uuid, m_port_uuid, bridge_id, m_device_uuid);
+        log_debug("port-state-manager", "StateMachine: Unbinding...");
+        m_worker->unbind_from_host(m_switch_uuid, bridge_id);
+        log_debug("port-state-manager", "StateMachine: Unlocking port...");
+        m_worker->unlock_port(m_port_uuid);
+        log_debug("port-state-manager", "StateMachine: unbind non-mgmt && ib discovery action finished");
+    }
+    catch (std::exception e) {
+        log_error("port-state-manager",
+                  "StateMachine: unbind non-mgmt && ib discovery action failed: " << e.what());
+        return false;
     }
     return true;
 }

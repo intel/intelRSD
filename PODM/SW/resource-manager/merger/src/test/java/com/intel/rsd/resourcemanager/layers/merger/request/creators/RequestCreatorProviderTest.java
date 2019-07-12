@@ -17,7 +17,6 @@
 package com.intel.rsd.resourcemanager.layers.merger.request.creators;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.merger.request.ExecutableRequest;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +27,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 import static org.springframework.core.Ordered.LOWEST_PRECEDENCE;
 import static org.springframework.http.HttpMethod.GET;
@@ -46,7 +46,7 @@ public class RequestCreatorProviderTest {
     @Test
     public void whenOneMatchingSelectableRequestCreatorIsRegistered_itShouldBeReturned() {
         First firstSelectableRequestCreator = new First();
-        sut = new RequestCreatorProvider(Arrays.asList(firstSelectableRequestCreator));
+        sut = new RequestCreatorProvider(singletonList(firstSelectableRequestCreator));
         RequestCreator result = sut.selectCreator("/", GET);
         assertEquals(result, firstSelectableRequestCreator);
     }
@@ -68,7 +68,7 @@ public class RequestCreatorProviderTest {
         }
 
         @Override
-        public ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<QueryParameterType, String> requestParams) {
+        public ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<String, String> requestParams) {
             return null;
         }
     }
@@ -81,7 +81,7 @@ public class RequestCreatorProviderTest {
         }
 
         @Override
-        public ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<QueryParameterType, String> requestParams) {
+        public ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<String, String> requestParams) {
             return null;
         }
     }

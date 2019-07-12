@@ -169,6 +169,8 @@ class MetadataContainer:
     def to_be_ignored(self, *types):
         ignored_types = self.get_ignored_types
         for type in set(types):
+            if not type:
+                continue
             if self._wide_types(type, ignored_types):
                 return True
             elif type in ignored_types:

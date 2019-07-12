@@ -35,14 +35,13 @@ json::Json Fpga::to_json() const {
 
     json[literals::Fpga::TYPE] = m_type;
     json[literals::Fpga::MODEL] = m_model;
-    json[literals::Fpga::FW_ID] = m_fw_id;
-    json[literals::Fpga::FW_MANUFACTURER] = m_fw_manufacturer;
-    json[literals::Fpga::FW_VERSION] = m_fw_version;
+    json[literals::Fpga::FIRMWARE_ID] = m_firmware_id;
+    json[literals::Fpga::FIRMWARE_MANUFACTURER] = m_firmware_manufacturer;
+    json[literals::Fpga::FIRMWARE_VERSION] = m_firmware_version;
     json[literals::Fpga::HOST_INTERFACE] = m_host_interface;
-    json[literals::Fpga::SIDEBAND_INTERFACE] = m_sideband_interface;
     json[literals::Fpga::PCIE_VIRTUAL_FUNCTIONS] = m_pcie_virtual_functions;
     json[literals::Fpga::PROGRAMMABLE_FROM_HOST] = m_programmable_from_host;
-    json[literals::Fpga::RECONFIGURATION_SLOTS_DETAILS] = m_reconfiguration_slots_details.to_json();
+    json[literals::Fpga::RECONFIGURATION_SLOTS] = m_reconfiguration_slots.to_json();
     json[literals::Fpga::ERASED] = m_erased;
 
     return json;
@@ -53,16 +52,15 @@ Fpga Fpga::from_json(const json::Json& json) {
 
     fpga.set_type(json.value(literals::Fpga::TYPE, OptionalField<enums::FpgaType>()));
     fpga.set_model(json.value(literals::Fpga::MODEL, OptionalField<std::string>()));
-    fpga.set_fw_id(json.value(literals::Fpga::FW_ID, OptionalField<std::string>()));
-    fpga.set_fw_manufacturer(json.value(literals::Fpga::FW_MANUFACTURER, OptionalField<std::string>()));
-    fpga.set_fw_version(json.value(literals::Fpga::FW_VERSION, OptionalField<std::string>()));
+    fpga.set_firmware_id(json.value(literals::Fpga::FIRMWARE_ID, OptionalField<std::string>()));
+    fpga.set_firmware_manufacturer(json.value(literals::Fpga::FIRMWARE_MANUFACTURER, OptionalField<std::string>()));
+    fpga.set_firmware_version(json.value(literals::Fpga::FIRMWARE_VERSION, OptionalField<std::string>()));
     fpga.set_host_interface(json.value(literals::Fpga::HOST_INTERFACE, OptionalField<enums::FpgaInterface>()));
-    fpga.set_sideband_interface(json.value(literals::Fpga::SIDEBAND_INTERFACE, OptionalField<enums::FpgaInterface>()));
     fpga.set_pcie_virtual_functions(json.value(literals::Fpga::PCIE_VIRTUAL_FUNCTIONS, OptionalField<std::uint32_t>()));
     fpga.set_programmable_from_host(json.value(literals::Fpga::PROGRAMMABLE_FROM_HOST, OptionalField<bool>()));
-    fpga.set_reconfiguration_slots_details(
+    fpga.set_reconfiguration_slots(
         Array<FpgaReconfigurationSlot>::from_json(
-            json.value(literals::Fpga::RECONFIGURATION_SLOTS_DETAILS, json::Json::array())
+            json.value(literals::Fpga::RECONFIGURATION_SLOTS, json::Json::array())
         )
     );
     fpga.set_erased(json.value(literals::Fpga::ERASED, OptionalField<bool>()));

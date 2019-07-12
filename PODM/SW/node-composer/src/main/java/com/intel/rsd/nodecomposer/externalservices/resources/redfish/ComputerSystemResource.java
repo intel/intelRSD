@@ -218,21 +218,11 @@ public class ComputerSystemResource extends ExternalServiceResourceImpl {
     public class Actions {
         @JsonProperty("#ComputerSystem.Reset")
         private Reset reset = new Reset();
-        @JsonProperty("Oem")
-        private Oem oem = new Oem();
 
         public class Reset {
             @JsonSetter(value = "ResetType@Redfish.AllowableValues", nulls = AS_EMPTY)
             @AsUnassigned({WHEN_NULL, WHEN_EMPTY_COLLECTION})
             private Ref<LinkedHashSet<ResetType>> allowableValues = unassigned();
-        }
-
-        public class Oem {
-            @JsonProperty("#Intel.Oem.StartDeepDiscovery")
-            private StartDeepDiscovery startDeepDiscovery = new StartDeepDiscovery();
-
-            public class StartDeepDiscovery {
-            }
         }
     }
 

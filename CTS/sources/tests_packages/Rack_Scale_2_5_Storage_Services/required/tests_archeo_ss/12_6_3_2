@@ -1,0 +1,21 @@
+{
+  "name": "12.6.3.2",
+  "resources": {
+    "volumes_members": ["Volume.v1_0_0.Volume", "Volumes"],
+    "endpoints_members": ["Endpoint.Endpoint", "Endpoints"]
+  },
+  "actions": [
+    ["reduceby_match_collection", [["volumes_selected_members", "volumes_selected_members_parent"], "volumes_members",
+            "endpoints_members", ["Links/Oem/Intel_RackScale/Endpoints[*]/@odata.id"], true]],
+    ["string_logical_test", ["volumes_selected_members", "Volumes (selected)", ["Identifiers[*]/DurableNameFormat"],
+            "NQN"]],
+    ["string_logical_test", ["volumes_selected_members", "Volumes (selected)", ["ConnectedEntities[*]/EntityRole"],
+            "Target"]],
+    ["all_lists_not_empty_test", ["volumes_selected_members", "Volumes (selected)",
+            ["Links/Oem/Intel_RackScale/Interfaces"]]],
+    ["string_logical_test", ["volumes_selected_members", "Volumes (selected)", ["EndpointProtocol"],
+            "NVMeOverFabrics"]],
+    ["all_lists_not_empty_test", ["volumes_selected_members_parent", "Volumes (selected)",
+            ["CapacitySources[0]/ProvidingPools"]]]
+  ]
+}

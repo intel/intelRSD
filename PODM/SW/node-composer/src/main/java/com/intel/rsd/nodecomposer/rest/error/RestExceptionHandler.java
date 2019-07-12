@@ -87,7 +87,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ResponseStatus(SERVICE_UNAVAILABLE)
     public ResponseEntity<RedfishError> composedNodeAssetNotAvailableException(ComposedNodeAssetNotAvailableException ex) {
         val redfishError = createRedfishErrorWithCustomMessage(SERVICE_UNAVAILABLE, format("Retry request after %s seconds.", ex.getRetryAfterSeconds()));
-        log.error("{}", redfishError);
+        log.error("{}", redfishError.getError());
         log.debug(ex.getMessage(), ex);
         return status(SERVICE_UNAVAILABLE).header("Retry-After", valueOf(ex.getRetryAfterSeconds())).body(redfishError);
     }
@@ -178,7 +178,8 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             .map(odata -> format("Provided URI %s could not be resolved", odata))
             .orElseGet(ex::getMessage);
 
-        log.error(extendedInfo, ex);
+        log.warn(extendedInfo);
+        log.debug(extendedInfo, ex);
         val redfishError = createRedfishError(NOT_FOUND, extendedInfo);
         return status(redfishError.getHttpStatus()).body(redfishError);
     }
@@ -196,7 +197,8 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ResponseBody
     @ResponseStatus(BAD_REQUEST)
     public ResponseEntity<RedfishError> requestValidationException(RequestValidationException ex) {
-        log.error(ex.getMessage(), ex);
+        log.error(ex.getMessage());
+        log.trace(ex.getMessage(), ex);
         val redfishError = createRedfishErrorWithCustomMessage(BAD_REQUEST, ex.getMessage(), ex.getViolations().asStringList().toArray(new String[0]));
         return status(redfishError.getHttpStatus()).body(redfishError);
     }
@@ -205,7 +207,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ResponseBody
     @ResponseStatus(CONFLICT)
     public ResponseEntity<RedfishError> resourceStateMismatchException(ResourceStateMismatchException ex) {
-        log.error(ex.getMessage(), ex);
         val redfishError = createRedfishError(
             CONFLICT,
             format("%s exception encountered.", ResourceStateMismatchException.class.getSimpleName()),

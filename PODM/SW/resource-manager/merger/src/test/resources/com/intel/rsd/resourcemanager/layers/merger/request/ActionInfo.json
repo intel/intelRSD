@@ -1,13 +1,13 @@
 [
   {
-    "Path": "/redfish/v1/Systems/1/Actions/Oem/Intel.Oem.StartDeepDiscovery",
+    "Path": "/redfish/v1/Systems/1/Actions/Oem/Intel.Oem.EraseOptaneDCPersistentMemory",
     "ResourcePath": "/redfish/v1/Systems/1",
-    "ActionName": "Intel.Oem.StartDeepDiscovery",
+    "ActionName": "Intel.Oem.EraseOptaneDCPersistentMemory",
     "ContainingFragment": {
       "Actions": {
         "Oem": {
-          "#Intel.Oem.StartDeepDiscovery": {
-            "target": "/redfish/v1/Systems/1/Actions/Oem/Intel.Oem.StartDeepDiscovery"
+          "#Intel.Oem.EraseOptaneDCPersistentMemory": {
+            "target": "/redfish/v1/Systems/1/Actions/Oem/Intel.Oem.EraseOptaneDCPersistentMemory"
           }
         }
       }

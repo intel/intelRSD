@@ -60,7 +60,9 @@ const std::map<std::string, std::string> ComputeKeyGenerator::m_keys_base_map{
     map_value_type(NetworkDeviceFunction::get_component().to_string(), "_NetworkDeviceFunction_"),
     map_value_type(TrustedModule::get_component().to_string(), "_TrustedPlatformModule_"),
     map_value_type(PcieDevice::get_component().to_string(), "_PcieDevice_"),
-    map_value_type(PcieFunction::get_component().to_string(), "_PcieFunction_")
+    map_value_type(PcieFunction::get_component().to_string(), "_PcieFunction_"),
+    map_value_type(LogService::get_component().to_string(), "_LogService_"),
+    map_value_type(LogEntry::get_component().to_string(), "_LogEntry_")
 };
 
 std::string ComputeKeyGenerator::m_agent_id{};
@@ -109,6 +111,7 @@ const std::string ComputeKeyGenerator::generate_key(const PcieDevice& device, co
     key += fru.get_manufacturer() + fru.get_model_number();
     return key;
 }
+
 
 template<>
 const std::string ComputeKeyGenerator::generate_key(const PcieFunction& function) {
@@ -236,12 +239,14 @@ const std::string ComputeKeyGenerator::generate_key(const TrustedModule& trusted
     return generate_key_base(trusted_module) + parent_system_key + interface_type.value().to_string();
 }
 
+
 template<>
 const std::string ComputeKeyGenerator::generate_key(const Metric& metric, const Resource& resource) {
     const auto& resource_key = resource.get_unique_key();
 
     return resource_key + metric.get_component().to_string() + metric.get_metric_definition_uuid() + metric.get_name();
 }
+
 
 template<>
 const std::string ComputeKeyGenerator::generate_key(const MetricDefinition& metric_def) {
@@ -250,6 +255,20 @@ const std::string ComputeKeyGenerator::generate_key(const MetricDefinition& metr
         key += metric_def.get_name();
     }
     return key;
+}
+
+
+template<>
+const std::string
+ComputeKeyGenerator::generate_key(const LogService& log_service) {
+    return generate_key_base(log_service) + log_service.get_parent_uuid();
+}
+
+
+template<>
+const std::string
+ComputeKeyGenerator::generate_key(const LogEntry& log_entry) {
+    return generate_key_base(log_entry) + log_entry.get_parent_uuid() + std::to_string(log_entry.get_record_id());
 }
 
 }

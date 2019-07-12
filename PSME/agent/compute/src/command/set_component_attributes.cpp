@@ -418,7 +418,7 @@ void process_system(const Uuid& system_uuid,
 
     if (performance_configuration_found) {
         if (attributes_to_configure.current_performance_configuration.value() > 7 ||
-            attributes_to_configure.current_performance_configuration.value() > get_system(system_uuid).get_performance_configurations().size()) {
+            attributes_to_configure.current_performance_configuration.value() >= get_system(system_uuid).get_performance_configurations().size()) {
             THROW(UnsupportedValue, "compute-agent", "Configuration index must be below number of configurations and not greater than 7.");
         }
         // Node index and CPU index set to 0 as this sets configuration for the whole system

@@ -45,7 +45,7 @@ json::Json make_prototype() {
     r[Common::STATUS][Common::HEALTH_ROLLUP] = "OK";
     r[Common::OEM] = json::Json::value_t::object;
 
-    r[EventService::SERVICE_ENABLED] = true;
+    r[Common::SERVICE_ENABLED] = true;
     r[EventService::DELIVERY_RETRY_ATTEMPTS] = 3;
     r[EventService::DELIVERY_RETRY_INTERVAL_SECONDS] = 60;
 

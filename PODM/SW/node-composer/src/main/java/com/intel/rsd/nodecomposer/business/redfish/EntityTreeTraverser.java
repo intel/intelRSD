@@ -22,17 +22,11 @@ import com.intel.rsd.nodecomposer.persistence.dao.GenericDao;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
-
 import static com.intel.rsd.nodecomposer.utils.Contracts.requiresNonNull;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class EntityTreeTraverser {
     private final GenericDao genericDao;
 
@@ -41,7 +35,6 @@ public class EntityTreeTraverser {
         this.genericDao = genericDao;
     }
 
-    @Transactional(MANDATORY)
     public DiscoverableEntity traverseDiscoverableEntity(ODataId uri) throws ODataIdResolvingException {
         requiresNonNull(uri, "uri");
 
@@ -53,7 +46,6 @@ public class EntityTreeTraverser {
         return discoverableEntity;
     }
 
-    @Transactional(MANDATORY)
     public ComposedNode traverseComposedNode(ODataId uri) throws ODataIdResolvingException {
         requiresNonNull(uri, "uri");
 
@@ -65,12 +57,10 @@ public class EntityTreeTraverser {
         return composedNode;
     }
 
-    @Transactional(MANDATORY)
     public DiscoverableEntity tryGetDiscoverableEntity(ODataId uri) {
         return genericDao.tryFind(DiscoverableEntity.class, uri).orElse(null);
     }
 
-    @Transactional(MANDATORY)
     public ComposedNode tryGetComposedNode(ODataId uri) {
         return genericDao.tryFind(ComposedNode.class, uri).orElse(null);
     }

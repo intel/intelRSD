@@ -17,7 +17,6 @@
 package com.intel.rsd.resourcemanager.layers.merger.request.creators;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.Layer;
 import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.layers.ServiceId;
@@ -33,8 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.intel.rsd.collections.IterableHelper.single;
 import static com.intel.rsd.ResourcePatterns.COMPUTER_SYSTEM_PATTERN;
+import static com.intel.rsd.collections.IterableHelper.single;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.METHOD_NOT_ALLOWED;
@@ -49,7 +48,7 @@ import static org.springframework.http.HttpStatus.METHOD_NOT_ALLOWED;
 public class ComputerSystemReadWriteRequestCreator implements SelectableRequestCreator {
 
     @Override
-    public ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<QueryParameterType, String> requestParams) {
+    public ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<String, String> requestParams) {
         return layer -> execute(path, method, headers, body, requestParams, layer);
     }
 
@@ -58,7 +57,7 @@ public class ComputerSystemReadWriteRequestCreator implements SelectableRequestC
         return RW_METHODS.contains(httpMethod) && COMPUTER_SYSTEM_PATTERN.matcher(path).matches();
     }
 
-    private Response[] execute(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<QueryParameterType, String> requestParams,
+    private Response[] execute(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<String, String> requestParams,
                                Layer layer) {
         Collection<ServiceId> servicesExposingPath = layer.getServicesExposingPath(path);
 

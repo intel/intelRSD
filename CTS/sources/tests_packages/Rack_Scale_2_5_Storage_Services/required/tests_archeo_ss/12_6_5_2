@@ -1,0 +1,17 @@
+{
+  "name": "12.6.5.2",
+  "resources": {
+    "drives_members": ["Drive.Drive", "Drives"],
+    "drives_metrics_members": ["DriveMetrics.DriveMetrics", "Drives Metrics"]
+  },
+  "actions": [
+    ["reduceby_string", ["drives_selected_members", "drives_members", ["Protocol"], ["NVMe"]]],
+    ["reduceby_match_collection", ["drives_selected_members2", "drives_selected_members", "drives_metrics_members",
+      ["Oem/Intel_RackScale/Metrics/@odata.id"], false]],
+    ["all_not_null_test", ["drives_selected_members2", "Drives (selected)", ["TemperatureKelvin",
+      "HealthData/AvailableSparePercentage", "HealthData/PredictedMediaLifeUsedPercent", "LifeTime/UnitsRead",
+      "LifeTime/UnitsWritten", "LifeTime/UnitSizeBytes", "LifeTime/HostReadCommands", "LifeTime/HostWriteCommands",
+      "LifeTime/ControllerBusyTimeMinutes", "LifeTime/PowerCycles", "LifeTime/PowerOnHours",
+      "HealthData/UnsafeShutdowns", "HealthData/MediaErrors"]]]
+  ]
+}

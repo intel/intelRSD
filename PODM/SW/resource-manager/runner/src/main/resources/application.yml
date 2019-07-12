@@ -85,5 +85,5 @@ cacher:
   max-heap-size-mb: 30
 fallback.isolation.semaphore.maxConcurrentRequests: 200
 
-logging.com.intel.rsd.resourcemanager.runner.requiredlayer.RequiredLayer: DEBUG
-logging.com.com.intel.rsd.resourcemanager.runner.requiredlayer.SouthboundRequestLogger: TRACE
+logging.level.com.intel.rsd.resourcemanager.runner.requiredlayer.RequiredLayer: DEBUG
+logging.level.com.intel.rsd.resourcemanager.runner.requiredlayer.SouthboundRequestLogger: TRACE

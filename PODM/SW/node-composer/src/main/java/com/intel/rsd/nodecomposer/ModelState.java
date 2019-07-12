@@ -18,27 +18,56 @@ package com.intel.rsd.nodecomposer;
 
 import com.hazelcast.core.IAtomicReference;
 import com.intel.rsd.services.common.Shared;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+import java.util.Set;
+
+import static java.lang.Thread.currentThread;
 
 @Component
 @Slf4j
 public class ModelState {
 
-    private final IAtomicReference<Boolean> isDirty;
+    private final Set<String> runningOperations;
+    private final IAtomicReference<LocalDateTime> timestamp;
 
     @Autowired
-    public ModelState(@Shared("ModelState.isDirty") IAtomicReference<Boolean> isDirty) {
-        this.isDirty = isDirty;
+    public ModelState(@Shared("ModelState:running-operations") Set<?> runningOperations,
+                      @Shared("ModelState:timestamp") IAtomicReference<LocalDateTime> timestamp) {
+
+        this.runningOperations = (Set<String>) runningOperations;
+        this.timestamp = timestamp;
+        this.timestamp.alter(existing -> existing == null ? LocalDateTimeProvider.now() : existing);
     }
 
-    public void dirty(String source) {
-        log.info("Marking model(dirty) because of {}", source);
-        isDirty.alter(input -> true);
+    public void register() {
+        val thread = currentThread().getName();
+        runningOperations.add(thread);
     }
 
-    public boolean getAndResetIfDirty() {
-        return isDirty.compareAndSet(true, false);
+    public void arrived() {
+        String thread = currentThread().getName();
+        timestamp.set(LocalDateTimeProvider.now());
+        runningOperations.remove(thread);
+    }
+
+    public boolean isNewerThan(@NonNull LocalDateTime lastSyncTimestamp) {
+        return !runningOperations.isEmpty()
+            || this.timestamp.get().isAfter(lastSyncTimestamp)
+            || this.timestamp.get().isEqual(lastSyncTimestamp);
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+            .append("runningOperations", runningOperations)
+            .append("timestamp", timestamp.get())
+            .toString();
     }
 }

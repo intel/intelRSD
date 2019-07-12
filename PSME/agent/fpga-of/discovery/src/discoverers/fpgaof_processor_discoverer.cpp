@@ -54,6 +54,7 @@ Array<FpgaReconfigurationSlot> get_reconfiguration_slots(const opaepp::Device& o
 
     FpgaReconfigurationSlot slot;
     slot.set_uuid(uuid_str);
+    slot.set_programmable_from_host(true);
     Array<FpgaReconfigurationSlot> slots_array{slot};
     return slots_array;
 }
@@ -61,7 +62,7 @@ Array<FpgaReconfigurationSlot> get_reconfiguration_slots(const opaepp::Device& o
 
 OptionalField<std::string> optional_uint16_to_hex(const OptionalField<uint16_t>& optional_value) {
     if (optional_value.has_value()) {
-        return to_hex_string<2>(optional_value.value());
+        return to_hex_string<2, true>(optional_value.value());
     }
     else {
         return OptionalField<std::string>();
@@ -70,20 +71,30 @@ OptionalField<std::string> optional_uint16_to_hex(const OptionalField<uint16_t>&
 
 
 void update_processor_with_opae(Processor& processor, const opaepp::Device& opae_device) {
+
     attribute::Fpga fpga = processor.get_fpga();
-    fpga.set_fw_version(::bbs_version_to_string(opae_device.get_blue_bitstream_version()));
-    fpga.set_fw_id(optional_uint16_to_hex(opae_device.get_blue_bitstream_id()));
-    fpga.set_fw_manufacturer(optional_uint16_to_hex(opae_device.get_vendor_id()));
-    fpga.set_reconfiguration_slots_details(::get_reconfiguration_slots(opae_device));
-    fpga.set_type(enums::FpgaType::Discrete);
-    fpga.set_pcie_virtual_functions(0);
-    fpga.set_bus(opae_device.get_bus());
-    fpga.set_device(opae_device.get_device());
-    fpga.set_function(opae_device.get_function());
+
+    if (opae_device.get_device_type() == FPGA_DEVICE) {
+
+        fpga.set_firmware_version(::bbs_version_to_string(opae_device.get_blue_bitstream_version()));
+        fpga.set_firmware_id(optional_uint16_to_hex(opae_device.get_blue_bitstream_id()));
+        fpga.set_firmware_manufacturer(optional_uint16_to_hex(opae_device.get_vendor_id()));
+        fpga.set_type(enums::FpgaType::Discrete);
+        fpga.set_pcie_virtual_functions(0);
+        fpga.set_bus(opae_device.get_bus());
+        fpga.set_device(opae_device.get_device());
+        fpga.set_function(opae_device.get_function());
+
+        processor.set_manufacturer(optional_uint16_to_hex(opae_device.get_vendor_id()));
+        processor.set_processor_type(enums::ProcessorType::FPGA);
+    }
+
+    if (opae_device.get_device_type() == FPGA_ACCELERATOR) {
+
+        fpga.set_reconfiguration_slots(::get_reconfiguration_slots(opae_device));
+    }
 
     processor.set_fpga(fpga);
-    processor.set_manufacturer(optional_uint16_to_hex(opae_device.get_vendor_id()));
-    processor.set_processor_type(enums::ProcessorType::FPGA);
 }
 }
 
@@ -91,14 +102,26 @@ void update_processor_with_opae(Processor& processor, const opaepp::Device& opae
 std::vector<Processor> FpgaofProcessorDiscoverer::discover(const Uuid& system_uuid) {
     std::vector<Processor> processors{};
 
-    auto opae_devices = m_context->opae_proxy_device_reader->read_devices().get_devices();
+    auto opae_devices = m_context->opae_proxy_device_reader->get_devices();
+
+    std::map<std::string, Processor> processor_cache{};
+
     for (const auto& opae_device: opae_devices) {
-        if (opae_device.get_device_type() == FPGA_DEVICE) {
-            Processor processor = FpgaofProcessorBuilder::build_default(system_uuid);
-            ::update_processor_with_opae(processor, opae_device);
-            processors.push_back(std::move(processor));
+
+        std::string pci_address_key = opae_device.get_pci_address();
+
+        if (processor_cache.find(pci_address_key) == processor_cache.end()) {
+
+            processor_cache[pci_address_key] = FpgaofProcessorBuilder::build_default(system_uuid);
         }
+
+        ::update_processor_with_opae(processor_cache[pci_address_key], opae_device);
     }
+
+    processors.reserve(processor_cache.size());
+
+    std::transform(processor_cache.begin(), processor_cache.end(), std::back_inserter(processors),
+                   [](auto const& pair) { return std::move(pair.second); });
 
     return processors;
 }

@@ -47,7 +47,6 @@ public class ComposedNodeRemovalService {
         this.nodeTasksCoordinator = nodeTasksCoordinator;
     }
 
-    @Transactional(REQUIRES_NEW)
     public void delete(ODataId composedNodeODataId) throws BusinessApiException {
         List<NodeTask> tasks = nodeDisassembler.getDisassemblyTasks(composedNodeODataId);
         for (NodeTask task : tasks) {
@@ -56,7 +55,7 @@ public class ComposedNodeRemovalService {
         nodeTasksCoordinator.removeAllTasks(composedNodeODataId);
     }
 
-    @Transactional(REQUIRES_NEW)
+    @Transactional(value = REQUIRES_NEW, rollbackOn = BusinessApiException.class)
     @SuppressWarnings({"checkstyle:IllegalCatch"})
     public void forceDelete(ODataId composedNodeODataId) throws BusinessApiException {
         List<NodeTask> tasks = nodeDisassembler.getDisassemblyTasks(composedNodeODataId);

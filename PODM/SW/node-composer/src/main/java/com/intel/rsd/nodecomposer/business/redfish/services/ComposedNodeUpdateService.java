@@ -21,16 +21,9 @@ import com.intel.rsd.nodecomposer.business.redfish.services.helpers.ComposedNode
 import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.rest.redfish.json.actions.ComposedNodePartialRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
-
-import static javax.transaction.Transactional.TxType.NEVER;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
-
 @Component
-@Scope(SCOPE_SINGLETON)
 public class ComposedNodeUpdateService {
     private final ComposedNodeUpdateHelper composedNodeUpdateHelper;
 
@@ -39,7 +32,6 @@ public class ComposedNodeUpdateService {
         this.composedNodeUpdateHelper = composedNodeUpdateHelper;
     }
 
-    @Transactional(NEVER)
     public void perform(ODataId composedNodeODataId, ComposedNodePartialRepresentation representation) throws BusinessApiException {
         composedNodeUpdateHelper.updateComposedNode(composedNodeODataId, representation);
     }

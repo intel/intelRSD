@@ -17,21 +17,18 @@
 package com.intel.rsd.nodecomposer.composition.assembly;
 
 import com.intel.rsd.nodecomposer.business.ODataIdResolvingException;
-import com.intel.rsd.nodecomposer.business.redfish.services.helpers.ProcessorHelper;
 import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.composition.allocation.strategy.ChangeTpmStateTaskFactory;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.CleanUpVlanDisassembleTask;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.ComposedNodeDeletionTask;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.ComputerSystemDisassembleTask;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.DeallocatePcieDriveTask;
-import com.intel.rsd.nodecomposer.composition.assembly.tasks.DetachProcessorTask;
+import com.intel.rsd.nodecomposer.composition.assembly.tasks.FabricDisassemblyTask;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.NodeRemovalTask;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.NodeTask;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.PowerOffDisassemblyTask;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.SecureEraseDisassemblyTaskFactory;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.SecureErasePcieDriveTask;
-import com.intel.rsd.nodecomposer.composition.assembly.tasks.SecureEraseProcessorTask;
-import com.intel.rsd.nodecomposer.composition.assembly.tasks.StorageServiceDisassemblyTask;
 import com.intel.rsd.nodecomposer.persistence.EntityNotFoundException;
 import com.intel.rsd.nodecomposer.persistence.NonUniqueResultException;
 import com.intel.rsd.nodecomposer.persistence.dao.ComposedNodeDao;
@@ -41,7 +38,6 @@ import com.intel.rsd.nodecomposer.persistence.redfish.ComputerSystem;
 import com.intel.rsd.nodecomposer.persistence.redfish.EthernetInterface;
 import com.intel.rsd.nodecomposer.persistence.redfish.EthernetSwitchPort;
 import com.intel.rsd.nodecomposer.persistence.redfish.Memory;
-import com.intel.rsd.nodecomposer.persistence.redfish.Processor;
 import com.intel.rsd.nodecomposer.persistence.redfish.embeddables.TrustedModule;
 import com.intel.rsd.nodecomposer.types.actions.ChangeTpmStatusUpdateDefinition;
 import com.intel.rsd.nodecomposer.types.net.MacAddress;
@@ -93,16 +89,14 @@ public class NodeDisassembler {
         this.forceOffEnabled = forceOffEnabled;
     }
 
-    @Transactional(REQUIRES_NEW)
+    @Transactional(value = REQUIRES_NEW, rollbackOn = ODataIdResolvingException.class)
     public List<NodeTask> getDisassemblyTasks(ODataId composedNodeODataId) throws ODataIdResolvingException {
         ComposedNode composedNode = resolveComposedNode(composedNodeODataId);
         List<NodeTask> tasks = new ArrayList<>();
 
-        tasks.addAll(prepareFpgaProcessorDetachTasks(composedNode));
         tasks.addAll(preparePcieDriveSecureEraseTasks(composedNode));
-        tasks.addAll(prepareProcessorSecureEraseTasks(composedNode));
         tasks.addAll(preparePcieDriveDeallocationTasks(composedNode));
-        tasks.add(beanFactory.create(StorageServiceDisassemblyTask.class));
+        tasks.add(beanFactory.create(FabricDisassemblyTask.class));
         if (composedNode.getComputerSystem() != null) {
             tasks.addAll(prepareComputerSystemRelatedTasks(composedNode));
         }
@@ -115,26 +109,12 @@ public class NodeDisassembler {
         return tasks;
     }
 
-    private Collection<NodeTask> prepareFpgaProcessorDetachTasks(ComposedNode composedNode) {
-        return composedNode.getProcessors().stream()
-            .filter(ProcessorHelper::isRemoteFpga)
-            .map(this::createDetachProcessorTask)
-            .collect(toList());
-    }
-
-    private DetachProcessorTask createDetachProcessorTask(Processor processor) {
-        DetachProcessorTask task = beanFactory.create(DetachProcessorTask.class);
-        task.setProcessorODataId(processor.getUri());
-
-        return task;
-    }
-
     private Collection<NodeTask> prepareComputerSystemRelatedTasks(ComposedNode composedNode) {
         ComputerSystem computerSystem = composedNode.getComputerSystem();
         Collection<NodeTask> tasks = new ArrayList<>();
 
         if (composedNode.isClearTpmOnDelete() && containsEnabledTrustedModule(computerSystem)) {
-            tasks.add(changeTpmStateTaskFactory.createChangeTpmStateTask(computerSystem, new ChangeTpmStatusUpdateDefinition(TRUE)));
+            tasks.add(changeTpmStateTaskFactory.createChangeTpmStateTask(computerSystem.getUri(), new ChangeTpmStatusUpdateDefinition(TRUE)));
         }
         if (composedNode.isClearOptanePersistentMemoryOnDelete() && containsOptaneMemoryModule(computerSystem)) {
             tasks.add(secureEraseDisassemblyTaskFactory.createSecureEraseDisassemblyTask(computerSystem.getUri(), TRUE, FALSE));
@@ -183,13 +163,6 @@ public class NodeDisassembler {
     private Collection<? extends NodeTask> preparePcieDriveSecureEraseTasks(ComposedNode composedNode) {
         return composedNode.getDrives().stream()
             .map(drive -> beanFactory.create(SecureErasePcieDriveTask.class).setPcieDriveODataId(drive.getUri()))
-            .collect(toList());
-    }
-
-    private Collection<? extends NodeTask> prepareProcessorSecureEraseTasks(ComposedNode composedNode) {
-        return composedNode.getProcessors().stream()
-            .filter(ProcessorHelper::isRemoteFpga)
-            .map(processor -> beanFactory.create(SecureEraseProcessorTask.class).setProcessorOdataid(processor.getUri()))
             .collect(toList());
     }
 

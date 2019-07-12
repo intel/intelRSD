@@ -23,6 +23,11 @@
 #include "agent-framework/database/database_entities.hpp"
 #include "agent-framework/database/database_keys.hpp"
 
+#include "net/network_interface.hpp"
+#include "sysfs/sysfs_interface.hpp"
+
+#include <libudev.h>
+
 
 
 using namespace agent_framework::model;
@@ -31,6 +36,9 @@ using namespace agent_framework::eventing;
 using namespace agent_framework::database;
 using namespace agent::fpgaof;
 using namespace agent::fpgaof::utils;
+
+const constexpr char SYSFS_NET_PATH[] = "/sys/class/net/";
+const constexpr char SYSFS_INFINIBAND_PATH[] = "/sys/class/infiniband/";
 
 namespace {
 
@@ -66,6 +74,17 @@ namespace agent {
 namespace fpgaof {
 namespace utils {
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
+#endif
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunsafe-loop-optimizations"
+#endif
+
+
 void partition_target_and_initiator_endpoints(const std::vector<Uuid>& input_endpoints,
                                               std::vector<Uuid>& target_endpoints,
                                               std::vector<Uuid>& initiator_endpoints) {
@@ -78,6 +97,15 @@ void partition_target_and_initiator_endpoints(const std::vector<Uuid>& input_end
         }
     }
 }
+
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 
 void set_processor_status(const std::string& processor_uuid,
@@ -135,6 +163,121 @@ void sync_processors_with_db(const Uuid& system_uuid, std::vector<agent_framewor
             SystemEntity(system_uuid).append(PROCESSORS_PROPERTY, processor.get_uuid());
         }
     }
+}
+
+
+OptionalField<Uuid> get_ethernet_interface_uuid_from_ip_address(const attribute::Ipv4Address& address_from_request) {
+    auto interfaces = get_manager<NetworkInterface>()
+        .get_keys([&address_from_request](const NetworkInterface& interface) {
+            for (const auto& ipv4 : interface.get_ipv4_addresses()) {
+                if (ipv4.get_address().has_value() && ipv4.get_address() == address_from_request.get_address()) {
+                    return true;
+                }
+            }
+            return false;
+        });
+
+    return interfaces.empty() ?
+           OptionalField<Uuid>{} :
+           OptionalField<Uuid>{interfaces.front()};
+}
+
+
+bool is_rdma_supported_for_address(const std::string& ipv4_address) {
+
+    sysfs::SysfsInterface sysfs_interface;
+    auto udev_ctx = udev_new();
+    udev_device* udev_ifa_device{nullptr};
+    udev_device* udev_ifa_parent_device{nullptr};
+    bool result = false;
+
+    /*
+     * This code finds device of network interface based on IPv4 address using net, then it's parent device using udev.
+     * Then it checks if any of the devices supporting RDMA have the same parent as network interface.
+     * If parents have the same sysfs path, we assume it's the same parent device and RDMA is supported.
+     *
+     * There also some check in-between like having a driver and having a parent device.
+     */
+    try {
+        // Get network interface based on IP address
+        auto net_ip_address = net::IpAddress::from_string(ipv4_address);
+        auto ifa = net::NetworkInterface::for_address(net_ip_address);
+
+        // Get sysfs path of network interface
+        auto ifa_syspath = SYSFS_NET_PATH + ifa.get_name();
+
+        // Get parent device of network interface
+        udev_ifa_device = udev_device_new_from_syspath(udev_ctx, ifa_syspath.c_str());
+        udev_ifa_parent_device = udev_device_get_parent(udev_ifa_device);
+
+        if (udev_ifa_parent_device == nullptr) {
+            if (udev_ifa_device != nullptr) {
+                udev_device_unref(udev_ifa_device);
+            }
+            udev_unref(udev_ctx);
+            return false;
+        }
+
+        // Get sysfs path of parent device of network interface
+        std::string udev_ifa_parent_syspath = udev_device_get_syspath(udev_ifa_parent_device);
+
+
+        // Enumerate RDMA devices. They are NOT the same as network interfaces, but share their parents.
+        if (sysfs_interface.dir_exists(SYSFS_INFINIBAND_PATH)) {
+            auto infiniband_dir = sysfs_interface.get_dir(SYSFS_INFINIBAND_PATH);
+
+            for (const auto& infiniband_device: infiniband_dir.links) {
+                // Get sysfs path of RDMA device
+                auto dev_path = infiniband_device.to_string();
+
+                // Use sysfs path of RDMA device to find its parent and its sysfs path
+                auto udev_rdma_device = udev_device_new_from_syspath(udev_ctx, dev_path.c_str());
+
+                auto udev_rdma_parent_device = udev_device_get_parent(udev_rdma_device);
+
+                // No parent, no RDMA support (probably loopback interface)
+                if (udev_rdma_parent_device == nullptr) {
+                    udev_device_unref(udev_rdma_device);
+                    continue;
+                }
+
+                // No driver in parent, no RDMA support.
+                if (udev_device_get_driver(udev_rdma_parent_device) == nullptr) {
+                    continue;
+                }
+
+                std::string udev_rdma_parent_syspath = udev_device_get_syspath(udev_rdma_parent_device);
+
+                // Cleanup.
+                udev_device_unref(udev_rdma_device);
+                udev_device_unref(udev_rdma_parent_device);
+
+
+                // Check if parent of network interface is the same as parent of RDMA device
+                if (udev_ifa_parent_syspath == udev_rdma_parent_syspath) {
+                    result = true;
+                    break;
+                }
+            }
+        }
+    }
+    catch (const std::exception& ex) {
+        log_error("interface-discoverer", "Error when trying to check RDMA support for IP address'" << ipv4_address
+                                                                                                    << ". Assuming lack of support. ': "
+                                                                                                    << ex.what());
+        result = false;
+    }
+
+    // Cleanup
+    if (udev_ifa_device != nullptr) {
+        udev_device_unref(udev_ifa_device);
+    }
+    if (udev_ifa_device != nullptr) {
+        udev_device_unref(udev_ifa_parent_device);
+    }
+
+    udev_unref(udev_ctx);
+    return result;
 }
 
 }

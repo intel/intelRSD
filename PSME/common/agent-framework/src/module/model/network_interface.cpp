@@ -40,6 +40,8 @@ NetworkInterface::~NetworkInterface() {}
 json::Json NetworkInterface::to_json() const {
     json::Json result = json::Json();
     result[literals::NetworkInterface::STATUS] = get_status().to_json();
+    result[literals::NetworkInterface::NAME] = get_name();
+    result[literals::NetworkInterface::DESCRIPTION] = get_description();
     result[literals::NetworkInterface::FRAME_SIZE] = get_frame_size();
     result[literals::NetworkInterface::SPEED] = get_speed_mbps();
     result[literals::NetworkInterface::AUTO_SENSE] = get_autosense();
@@ -60,6 +62,8 @@ json::Json NetworkInterface::to_json() const {
 NetworkInterface NetworkInterface::from_json(const json::Json& json) {
     NetworkInterface interface{};
 
+    interface.set_name(json[literals::NetworkInterface::NAME]);
+    interface.set_description(json[literals::NetworkInterface::DESCRIPTION]);
     interface.set_status(attribute::Status::from_json(json[literals::NetworkInterface::STATUS]));
     interface.set_frame_size(json[literals::NetworkInterface::FRAME_SIZE]);
     interface.set_speed_mbps(json[literals::NetworkInterface::SPEED]);

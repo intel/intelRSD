@@ -209,6 +209,14 @@ protected:
     std::vector<agent_framework::model::TrustedModule> discover_trusted_modules(const Uuid& parent_uuid);
 
 
+    /*!
+     * @brief Discover system SEL service.
+     * @param parent_uuid Parent UUID.
+     * @return Discovered SEL log service object.
+     */
+    agent_framework::model::LogService discover_sel_service(const Uuid& parent_uuid);
+
+
     std::string connection_data_to_string() {
         return m_bmc.get_id();
     }

@@ -18,6 +18,7 @@ package com.intel.rsd.podm;
 
 import com.intel.rsd.podm.filters.AddRedfishMandatoryHeadersFilter;
 import com.intel.rsd.podm.filters.ContentTypeFilter;
+import com.intel.rsd.podm.filters.HttpMethodFilter;
 import com.intel.rsd.podm.filters.OdataResourceProvider;
 import com.intel.rsd.redfish.RedfishErrorController;
 import lombok.SneakyThrows;
@@ -41,7 +42,7 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 
 @EnableZuulProxy
 @SpringBootApplication
-@SuppressWarnings({"checkstyle:HideUtilityClassConstructor"})
+@SuppressWarnings({"checkstyle:HideUtilityClassConstructor", "checkstyle:ClassFanOutComplexity"})
 @Import(RedfishErrorController.class)
 public class PodmGatewayApplication {
 
@@ -53,6 +54,11 @@ public class PodmGatewayApplication {
     @Bean
     public ContentTypeFilter contentTypeFilter() {
         return new ContentTypeFilter();
+    }
+
+    @Bean
+    public HttpMethodFilter httpMethodFilter() {
+        return new HttpMethodFilter();
     }
 
     @Bean

@@ -103,6 +103,15 @@ protected:
                                                                 const agent::pnc::sysfs::SysfsFunction& sysfs_function) const;
 
 
+    /*!
+     * @brief Full Discovery of the device target endpoint
+     * @param[in] gas Reference to Global Address Space Register
+     * @param[in] device_uuid Uuid of the PCIe device
+     * @param[in] dsp_port_uuid Uuid of the downstream port
+     */
+    void discover_target_endpoint(const gas::GlobalAddressSpaceRegisters& gas, const Uuid& device_uuid,
+                                  const Uuid& dsp_port_uuid) const;
+
 private:
 
     /*!
@@ -129,16 +138,6 @@ private:
 
 
     /*!
-     * @brief Full discovery of the device endpoint_uuid
-     * @param[in] fabric_uuid Uuid of the parent fabric
-     * @param[in] device_uuid Uuid of the PCIe device
-     * @return Discovered entity
-     */
-    virtual agent_framework::model::Endpoint discover_endpoint(const Uuid& fabric_uuid,
-                                                               const Uuid& device_uuid) const;
-
-
-    /*!
      * @brief Handles new devices detected on a port, adds to model, adds links, sends events
      * @param[in] downstream_port_uuid UUID of the Port to perform discovery
      * @return Stabilized UUID of the device connected to Port with UUID specified in port_uuid parameter
@@ -159,8 +158,9 @@ private:
      * @param[in] device_uuid Uuid of the PCIe device
      * @param[in] sysfs decoder
      * @param[in] sysfs_device Sysfs data of the device
+     * @return UUID of the PCIe device
      */
-    virtual void sysfs_device_discovery(const Uuid& dsp_port_uuid,
+    virtual Uuid sysfs_device_discovery(const Uuid& dsp_port_uuid,
                                         const Uuid& device_uuid,
                                         const agent::pnc::sysfs::SysfsDecoder& decoder,
                                         const agent::pnc::sysfs::SysfsDevice& sysfs_device) const;
@@ -199,7 +199,8 @@ private:
      * @return Recreated endpoint entity
      */
     agent_framework::model::Endpoint recreate_target_endpoint_from_db(const Uuid& fabric_uuid,
-                                                                      const Uuid& device_uuid) const;
+                                                                      const Uuid& device_uuid,
+                                                                      const Uuid& port_uuid) const;
 
 
     /*!
@@ -207,6 +208,16 @@ private:
      * @param device_uuid UUID of the device to synchronize with database
      */
     virtual void sync_device_properties_with_db(const Uuid& device_uuid) const = 0;
+
+
+    /*!
+     * @brief Add drive or processor to model based on sysfs data (if not added earlier during oob discovery)
+     * @param[in] dsp_port_uuid Uuid of the Downstream Port
+     * @param[in] serial_number serial number which will be used to stabilize discovered PCIe device UUID
+     * @return stabilized discovered PCIe device UUID
+     */
+    virtual Uuid add_from_sysfs(const Uuid& dsp_port_uuid,
+                                const std::string& serial_number) const = 0;
 
 
 protected:

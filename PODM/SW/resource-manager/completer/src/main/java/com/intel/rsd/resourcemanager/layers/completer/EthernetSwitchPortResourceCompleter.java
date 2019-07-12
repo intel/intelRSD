@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import static com.intel.rsd.ResourcePatterns.COMPUTER_SYSTEM_ETHERNET_INTERFACE_PATTERN;
-import static com.intel.rsd.resourcemanager.common.ExtendedInfo.ExtendedInfoBuilder.newExtendedInfoBuilder;
+import static com.intel.rsd.redfish.ExtendedInfo.ExtendedInfoBuilder.newExtendedInfoBuilder;
 import static com.intel.rsd.resourcemanager.layers.completer.CollectionContentsUpdater.updateMapContents;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;

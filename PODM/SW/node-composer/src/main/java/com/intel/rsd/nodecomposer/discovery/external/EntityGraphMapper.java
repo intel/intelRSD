@@ -24,9 +24,7 @@ import com.intel.rsd.nodecomposer.discovery.external.restgraph.RestGraph;
 import com.intel.rsd.nodecomposer.externalservices.resources.ExternalServiceResource;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.Entity;
-import com.intel.rsd.nodecomposer.utils.lock.Lock;
 import com.intel.rsd.nodecomposer.utils.measures.TimeMeasured;
-import com.intel.rsd.nodecomposer.utils.retry.RetryOnRollback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -40,7 +38,6 @@ import java.util.Objects;
 import static com.intel.rsd.nodecomposer.utils.Contracts.requiresNonNull;
 import static com.intel.rsd.nodecomposer.utils.Maps.filterNonNullValues;
 import static com.intel.rsd.nodecomposer.utils.Maps.inverse;
-import static com.intel.rsd.nodecomposer.utils.lock.Lock.TEN_MINUTES_IN_MS;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
@@ -60,8 +57,6 @@ public class EntityGraphMapper {
         this.links = links;
     }
 
-    @Lock(accessTimeoutInMs = TEN_MINUTES_IN_MS)
-    @RetryOnRollback(3)
     @Transactional(REQUIRES_NEW)
     @TimeMeasured(tag = "[Discovery]")
     public void map(RestGraph graph) {

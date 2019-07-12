@@ -42,8 +42,8 @@ public class AddRedfishMandatoryHeadersFilter extends ZuulFilter {
     @Override
     public Object run() throws ZuulException {
         RequestContext context = RequestContext.getCurrentContext();
-        context.getResponse().addHeader("OData-Version", "4.0");
-        context.getResponse().addHeader("Access-Control-Allow-Origin", "*");
+        context.getResponse().setHeader("OData-Version", "4.0");
+        context.getResponse().setHeader("Access-Control-Allow-Origin", "*");
         return null;
     }
 }

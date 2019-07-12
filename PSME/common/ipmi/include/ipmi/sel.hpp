@@ -33,6 +33,8 @@ public:
     using RecordVect = std::vector<SelRecord::Ptr>;
     using RecordFilter = std::function<bool(SelRecord::Ptr)>;
 
+    static constexpr std::uint8_t MAX_RECORD_SIZE = 16;
+
     /*!
      * @brief Default constructor
      * @param controller shared pointer to the controller

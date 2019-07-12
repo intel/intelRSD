@@ -25,6 +25,7 @@
 #include "fpgaof_stabilizer.hpp"
 #include "opaepp/opae-proxy/opae_proxy_host_api.hpp"
 #include "uuid/uuid.hpp"
+#include "utils.hpp"
 
 
 
@@ -162,24 +163,6 @@ attribute::Ipv4Address get_ip_address_from_ethernet_interfaces() {
 }
 
 
-// Find ethernet interface with selected IP address
-OptionalField<Uuid> get_ethernet_interface_uuid_from_ip_address(const attribute::Ipv4Address& address_from_request) {
-    auto interfaces = get_manager<NetworkInterface>()
-        .get_keys([&address_from_request](const NetworkInterface& interface) {
-            for (const auto& ipv4 : interface.get_ipv4_addresses()) {
-                if (ipv4.get_address().has_value() && ipv4.get_address() == address_from_request.get_address()) {
-                    return true;
-                }
-            }
-            return false;
-        });
-
-    return interfaces.empty() ?
-           OptionalField<Uuid>{} :
-           OptionalField<Uuid>{interfaces.front()};
-}
-
-
 void verify_connected_entities(const AddEndpoint::Request& req) {
     throw_if_not_exactly_one_connected_entity(req);
     for (const auto& single_connected_entity : req.get_connected_entities()) {
@@ -189,14 +172,15 @@ void verify_connected_entities(const AddEndpoint::Request& req) {
 }
 
 
-void set_ip_transport_detail_with_default(attribute::IpTransportDetail& ip_transport_detail) {
-    auto first_opae_proxy_transport = FpgaofConfiguration::get_instance()->get_opae_proxy_transports().front();
+void set_ip_transport_detail_with_default(FpgaofConfiguration& configuration,
+                                          attribute::IpTransportDetail& ip_transport_detail) {
+    auto first_opae_proxy_transport = configuration.get_opae_proxy_transports().front();
 
     attribute::Ipv4Address ipv4_address{};
     ipv4_address.set_address(first_opae_proxy_transport.get_ipv4_address());
     ip_transport_detail.set_ipv4_address(ipv4_address);
     ip_transport_detail.set_port(first_opae_proxy_transport.get_port());
-    auto interface = get_ethernet_interface_uuid_from_ip_address(ipv4_address);
+    auto interface = agent::fpgaof::utils::get_ethernet_interface_uuid_from_ip_address(ipv4_address);
     if (interface.has_value()) {
         ip_transport_detail.set_interface(interface.value());
     }
@@ -204,9 +188,9 @@ void set_ip_transport_detail_with_default(attribute::IpTransportDetail& ip_trans
 }
 
 
-void throw_if_wrong_rdma_port(std::uint32_t rdma_port) {
-    if (rdma_port <= 0 || rdma_port > UINT16_MAX) {
-        THROW(exceptions::InvalidValue, "fpgaof-agent", "RDMA port is out of range, should be in <1,65535>.");
+void throw_if_wrong_port(std::uint32_t port) {
+    if (port <= 0 || port > UINT16_MAX) {
+        THROW(exceptions::InvalidValue, "fpgaof-agent", "Port is out of range, should be in <1,65535>.");
     }
 }
 
@@ -252,16 +236,18 @@ void throw_if_processor_in_use(const Processor& processor) {
 }
 
 
-void set_rdma_port(const attribute::IpTransportDetail& ip_transport_detail_req,
-                   attribute::IpTransportDetail& ip_transport_detail) {
+void set_port(FpgaofConfiguration& configuration,
+              const attribute::IpTransportDetail& ip_transport_detail_req,
+              attribute::IpTransportDetail& ip_transport_detail) {
     if (ip_transport_detail_req.get_port().has_value()) {
-        throw_if_wrong_rdma_port(ip_transport_detail_req.get_port().value());
+        throw_if_wrong_port(ip_transport_detail_req.get_port().value());
         ip_transport_detail.set_port(std::uint16_t(ip_transport_detail_req.get_port().value()));
     }
     else {
-        unsigned int rdma_port = FpgaofConfiguration::get_instance()->get_rdma_port();
-        throw_if_wrong_rdma_port(rdma_port);
-        ip_transport_detail.set_port(std::uint16_t(rdma_port));
+        // TODO: Add a way to specify default transport details
+        auto port = configuration.get_opae_proxy_transports().front().get_port();
+        throw_if_wrong_port(port);
+        ip_transport_detail.set_port(std::uint16_t(port));
     }
 }
 
@@ -302,7 +288,8 @@ void set_interface(const attribute::IpTransportDetail& ip_transport_detail_req,
     }
 
     if (ip_transport_detail_req.get_ipv4_address().get_address().has_value()) {
-        auto interface = get_ethernet_interface_uuid_from_ip_address(ip_transport_detail_req.get_ipv4_address());
+        auto interface = agent::fpgaof::utils::get_ethernet_interface_uuid_from_ip_address(
+            ip_transport_detail_req.get_ipv4_address());
 
         if (interface.has_value()) {
             log_debug("fpgaof-agent", "Setting interface " << interface.value()
@@ -314,7 +301,8 @@ void set_interface(const attribute::IpTransportDetail& ip_transport_detail_req,
     }
 
     log_debug("fpgaof-agent", "Setting default interface...");
-    auto interface = get_ethernet_interface_uuid_from_ip_address(get_ip_address_from_ethernet_interfaces());
+    auto interface = agent::fpgaof::utils::get_ethernet_interface_uuid_from_ip_address(
+        get_ip_address_from_ethernet_interfaces());
     if (interface.has_value()) {
         ip_transport_detail.set_interface(interface.value());
     }
@@ -328,7 +316,7 @@ void set_ipv4_address_and_interface_with_verification(const attribute::IpTranspo
     const auto& interface_from_request = ip_transport_detail_req.get_interface();
 
     if (ipv4_address.get_address().has_value()) {
-        auto interface = get_ethernet_interface_uuid_from_ip_address(ipv4_address);
+        auto interface = agent::fpgaof::utils::get_ethernet_interface_uuid_from_ip_address(ipv4_address);
         if (!interface.has_value()) {
             THROW(exceptions::InvalidValue, "fpgaof-agent",
                   "There is no ethernet interface with requested IPv4 address.");
@@ -393,14 +381,14 @@ void add_endpoint(AddEndpoint::ContextPtr ctx, const AddEndpoint::Request& req, 
 
         if (req.get_ip_transport_details().empty()) { // IP transport details is not provided
             log_debug("fpgaof-agent", "No IP transport details provided - using default interface");
-            set_ip_transport_detail_with_default(ip_transport_detail);
+            set_ip_transport_detail_with_default(*ctx->configuration, ip_transport_detail);
             endpoint.add_ip_transport_detail(ip_transport_detail);
         }
         else { // IP transport details is provided
             throw_if_ip_transport_details_more_than_one(req);
             const auto ip_transport_detail_req = req.get_ip_transport_details().front();
 
-            set_rdma_port(ip_transport_detail_req, ip_transport_detail);
+            set_port(*ctx->configuration, ip_transport_detail_req, ip_transport_detail);
             set_ipv4_address_and_interface_with_verification(ip_transport_detail_req, ip_transport_detail);
             set_transport_protocol(ip_transport_detail_req, ip_transport_detail);
 
@@ -412,7 +400,7 @@ void add_endpoint(AddEndpoint::ContextPtr ctx, const AddEndpoint::Request& req, 
         throw_if_processor_in_use(processor);
 
         agent_framework::database::EndpointEntity db{uuid};
-        db.put(agent_framework::database::RDMA_PORT_PROPERTY,
+        db.put(agent_framework::database::PORT_PROPERTY,
                std::to_string(static_cast<unsigned int>(ip_transport_detail.get_port())));
         db.put(agent_framework::database::ENDPOINT_ROLE_PROPERTY, model::literals::Endpoint::TARGET);
         db.put(agent_framework::database::UUID_PROPERTY, endpoint_uuid);
@@ -440,7 +428,7 @@ void add_endpoint(AddEndpoint::ContextPtr ctx, const AddEndpoint::Request& req, 
 
     rsp.set_endpoint(uuid);
     get_manager<Endpoint>().add_entry(endpoint);
-    log_debug("fpgaof-agent", "Added endpoint with UUID '" + uuid + "'");
+    log_info("fpgaof-agent", "Added endpoint, request UUID: '" + endpoint_uuid + "'" + ", stable UUID:" + uuid + ".");
 }
 }
 

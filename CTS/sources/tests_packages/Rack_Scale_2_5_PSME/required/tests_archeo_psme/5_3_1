@@ -1,0 +1,9 @@
+{
+  "name": "5.3.1",
+  "resources": {
+    "systems_members": ["ComputerSystem.ComputerSystem", "Systems"]
+  },
+  "actions": [
+    ["all_not_null_test", ["systems_members", "Systems", ["Oem/Intel_RackScale/UserModeEnabled"]]]
+  ]
+}

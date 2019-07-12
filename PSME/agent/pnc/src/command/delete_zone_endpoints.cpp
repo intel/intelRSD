@@ -85,7 +85,7 @@ void validate_request(const DeleteZoneEndpoints::Request& request) {
 
 void unbind_endpoints(const attribute::Array<Uuid>& endpoint_uuids, const Uuid& zone_uuid) {
     log_debug("pnc-gami", "Unbinding " + std::to_string(int(endpoint_uuids.size())) +
-                           " endpoints from zone on switch, zone uuid: " << zone_uuid);
+                          " endpoints from zone on switch, zone uuid: " << zone_uuid);
     // currently we support only one switch
     auto zone = get_manager<Zone>().get_entry_reference(zone_uuid);
     Switch sw = get_manager<Switch>().get_entry(zone->get_switch_uuid());
@@ -138,6 +138,8 @@ void delete_zone_endpoints(const DeleteZoneEndpoints::Request& request,
                            DeleteZoneEndpoints::Response& response) {
     log_info("pnc-gami", "Deleting endpoints from zone.");
 
+    validate_request(request);
+
     auto response_builder = []() {
         DeleteZoneEndpoints::Response res{};
         return res.to_json();
@@ -149,8 +151,6 @@ void delete_zone_endpoints(const DeleteZoneEndpoints::Request& request,
 
     agent_framework::action::TaskCreator task_creator{};
     task_creator.prepare_task();
-
-    task_creator.add_prerun_action(std::bind(validate_request, request));
 
     /*  Preparing data to analyze the request */
     attribute::Array<Uuid> request_target_endpoints{};
@@ -191,8 +191,19 @@ void delete_zone_endpoints(const DeleteZoneEndpoints::Request& request,
         log_notice("pnc-gami", "Removing only initiator endpoint");
         endpoints_to_unbind_on_switch = endpoints_in_zone;
         endpoints_to_remove_from_model_db = request_initiator_endpoints;
+
+        if (zone_target_endpoints.empty()) {
+            /* no target endpoints to unbind - take actions immediately and return */
+            remove_endpoints_from_zone_model(endpoints_to_remove_from_model_db, request.get_zone());
+            remove_endpoints_from_zone_db(endpoints_to_remove_from_model_db, request.get_zone());
+            return;
+        }
     }
     else { // no initiators to remove
+        if (!delete_targets) {
+            /* no initiators and targets to remove - return immediately */
+            return;
+        }
         if (initiator_endpoint_in_zone) {
             /* if we leave initiator and remove some targets, we unbind them and remove from model and db */
             log_notice("pnc-gami", "Removing and unbinding target endpoints");
@@ -200,9 +211,13 @@ void delete_zone_endpoints(const DeleteZoneEndpoints::Request& request,
             endpoints_to_remove_from_model_db = request_target_endpoints;
         }
         else {
-            /* if there is no initiator we only do cleanup in the db */
-            log_notice("pnc-gami", "Removing target endpoints from db");
+            /* nothing to unbind - update model and database immediately and return */
+            log_notice("pnc-gami", "Removing target endpoints from model and db");
             endpoints_to_remove_from_model_db = request_target_endpoints;
+
+            remove_endpoints_from_zone_model(endpoints_to_remove_from_model_db, request.get_zone());
+            remove_endpoints_from_zone_db(endpoints_to_remove_from_model_db, request.get_zone());
+            return;
         }
     }
 

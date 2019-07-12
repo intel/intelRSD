@@ -156,7 +156,7 @@
     "loggers" : [
         {
             "name": "pnc-agent",
-            "level" : "DEBUG",
+            "level" : "INFO",
             "timeformat" : "DATE_NS",
             "color" : true,
             "output" : true,

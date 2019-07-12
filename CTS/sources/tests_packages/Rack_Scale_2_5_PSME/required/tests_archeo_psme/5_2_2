@@ -1,0 +1,13 @@
+{
+  "name": "5.2.2",
+  "resources": {
+    "systems_members": ["ComputerSystem.ComputerSystem", "Systems"],
+    "processors_members": ["Processor.Processor", "Processors"],
+    "memory_members": ["Memory.Memory", "Memory"]
+  },
+  "actions": [
+    ["all_not_null_test", ["systems_members", "Systems", ["Oem/Intel_RackScale/PciDevices"]]],
+    ["all_not_null_test", ["processors_members", "Processors", ["Oem/Intel_RackScale/Capabilities", "InstructionSet", "Manufacturer", "Model", "MaxSpeedMHz", "TotalCores"]]],
+    ["all_not_null_test", ["memory_members", "Memory", ["Manufacturer", "MemoryDeviceType", "MemoryType", "OperatingSpeedMhz", "Oem/Intel_RackScale/VoltageVolt"]]]
+  ]
+}

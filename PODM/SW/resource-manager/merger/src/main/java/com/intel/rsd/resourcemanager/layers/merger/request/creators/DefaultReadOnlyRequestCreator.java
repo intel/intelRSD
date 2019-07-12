@@ -17,7 +17,6 @@
 package com.intel.rsd.resourcemanager.layers.merger.request.creators;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.intel.rsd.resourcemanager.common.QueryParameterType;
 import com.intel.rsd.resourcemanager.layers.Layer;
 import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.layers.ServiceId;
@@ -67,7 +66,7 @@ class DefaultReadOnlyRequestCreator implements SelectableRequestCreator {
     }
 
     @Override
-    public ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<QueryParameterType, String> requestParams) {
+    public ExecutableRequest create(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<String, String> requestParams) {
         return layer -> {
             val responses = invoke(path, method, headers, body, requestParams, layer);
             return process(responses);
@@ -88,7 +87,7 @@ class DefaultReadOnlyRequestCreator implements SelectableRequestCreator {
                                 HttpMethod method,
                                 HttpHeaders headers,
                                 JsonNode body,
-                                Map<QueryParameterType, String> requestParams,
+                                Map<String, String> requestParams,
                                 Layer layer) {
 
         return Stream.concat(
@@ -98,7 +97,7 @@ class DefaultReadOnlyRequestCreator implements SelectableRequestCreator {
     }
 
     @SneakyThrows
-    private Stream<Response> invokeRemotely(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<QueryParameterType, String> requestParams,
+    private Stream<Response> invokeRemotely(String path, HttpMethod method, HttpHeaders headers, JsonNode body, Map<String, String> requestParams,
                                             Layer layer) {
         val affectedServices = layer.getServicesExposingPath(path);
         val executor = selectExecutor(affectedServices);

@@ -22,10 +22,8 @@ import com.intel.rsd.nodecomposer.persistence.redfish.Endpoint;
 import com.intel.rsd.nodecomposer.persistence.redfish.Port;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -33,12 +31,9 @@ import java.util.Set;
 import static com.intel.rsd.nodecomposer.types.EntityRole.INITIATOR;
 import static com.intel.rsd.nodecomposer.utils.Contracts.requiresNonNull;
 import static java.util.stream.Collectors.toSet;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Slf4j
 @Component
-@Scope(SCOPE_SINGLETON)
 public class DriveDao extends Dao<Drive> {
     private final PciePortDao pciePortDao;
 
@@ -47,7 +42,6 @@ public class DriveDao extends Dao<Drive> {
         this.pciePortDao = pciePortDao;
     }
 
-    @Transactional(MANDATORY)
     public Set<Drive> getAchievablePcieDrives(ComputerSystem computerSystem) {
         requiresNonNull(computerSystem, "ComputerSystem can not be null.");
 
@@ -59,7 +53,6 @@ public class DriveDao extends Dao<Drive> {
             .collect(toSet());
     }
 
-    @Transactional(MANDATORY)
     public Endpoint getConnectedInitiatorEndpoint(ComputerSystem computerSystem) {
         requiresNonNull(computerSystem, "ComputerSystem can not be null.");
 
@@ -73,7 +66,6 @@ public class DriveDao extends Dao<Drive> {
             .orElse(null);
     }
 
-    @Transactional(MANDATORY)
     public Set<Drive> getAchievablePcieDrives(Port upstreamPort) {
 
         return tryGetDrivesThatBelongToTheSameSwitch(upstreamPort)

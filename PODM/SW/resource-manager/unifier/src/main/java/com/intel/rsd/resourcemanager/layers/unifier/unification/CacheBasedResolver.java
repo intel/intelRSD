@@ -25,6 +25,7 @@ import com.intel.rsd.resourcemanager.layers.unifier.patterns.rewriting.SegmentRe
 import com.intel.rsd.resourcemanager.layers.unifier.patterns.rewriting.transformers.Transformers;
 import com.intel.rsd.resourcemanager.layers.unifier.unification.UnifiedOdataIdResolverFactoryImpl.UnificationMappings;
 import lombok.val;
+import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -37,11 +38,13 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.concat;
+import static org.slf4j.LoggerFactory.getLogger;
 
 class CacheBasedResolver implements UnifiedOdataIdResolver {
     private final KnownPatterns knownPatterns;
     private Transformers transformers;
     private final UnificationMappings mappings;
+    private final Logger log = getLogger(getClass());
 
     CacheBasedResolver(UnificationMappings mappings,
                        KnownPatterns knownPatterns,
@@ -76,13 +79,39 @@ class CacheBasedResolver implements UnifiedOdataIdResolver {
     }
 
     @Override
+    public UnificationMappings getUnificationMappings() {
+        return mappings;
+    }
+
+    @Override
     public boolean updateMapping(Resource resource) {
         val odataId = resource.getOdataId();
         val pattern = knownPatterns.findPattern(odataId);
         val resolved = resolveMapping(pattern, asSupplier(resource));
-        resolved.ifPresent(value -> updateMappings(odataId, value));
+        resolved.ifPresent(value -> {
+            logMapping(resource, value);
+            updateMappings(odataId, value);
+        });
         tryToSetServiceScopeConstants(odataId, resource);
         return resolved.isPresent();
+    }
+
+    //TODO: remove this logging once issue with unified duplications is verified successfully.
+    private void logMapping(Resource resource, String unifiedOdataId) {
+        val odataId = resource.getOdataId();
+        val identifiers = resource.get("/Identifiers");
+        if (!identifiers.isMissingNode()) {
+            String oldUnifiedOdataId = mappings.getMapping().get(odataId);
+            if (oldUnifiedOdataId == null) {
+                log.info("Adding new mapping: {} -> {}. Identifiers: {}", odataId, unifiedOdataId, identifiers.toString());
+            } else {
+                log.info("Updating mapping: {} -> {}. Identifiers: {}", odataId, unifiedOdataId, identifiers.toString());
+                if (!oldUnifiedOdataId.equals(unifiedOdataId)) {
+                    log.warn("Found unified duplication of {}: \n1. {}, \n2. {}.\nResource identifier: {}",
+                        odataId, oldUnifiedOdataId, unifiedOdataId, identifiers.toString());
+                }
+            }
+        }
     }
 
     private void tryToSetServiceScopeConstants(String odataId, Resource resource) {
@@ -93,6 +122,13 @@ class CacheBasedResolver implements UnifiedOdataIdResolver {
     }
 
     private void updateMappings(String serviceSpecificOdataId, String unifiedOdataId) {
+        val oldUnifiedOdataId = mappings.getMapping().get(serviceSpecificOdataId);
+
+        if (oldUnifiedOdataId != null && !oldUnifiedOdataId.equals(unifiedOdataId)) {
+            mappings.getReverseMapping().remove(oldUnifiedOdataId);
+            log.info("Removed duplicate mapping for {}", serviceSpecificOdataId);
+        }
+
         mappings.getMapping().put(serviceSpecificOdataId, unifiedOdataId);
         mappings.getReverseMapping().put(unifiedOdataId, serviceSpecificOdataId);
     }

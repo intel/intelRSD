@@ -1,7 +1,7 @@
 {
   "@odata.context": "/redfish/v1/$metadata/#ServiceRoot",
   "@odata.id": "/redfish/v1",
-  "@odata.type": "#ServiceRoot.v1_3_0.ServiceRoot",
+  "@odata.type": "#ServiceRoot.v1_4_0.ServiceRoot",
   "Id": "v1",
   "Name": "Pod Manager Service Root",
   "Description": "desc",
@@ -21,6 +21,9 @@
   },
   "StorageServices": {
     "@odata.id": "/redfish/v1/StorageServices"
+  },
+  "TelemetryService": {
+    "@odata.id": "/redfish/v1/TelemetryService"
   },
   "EventService":{
     "@odata.id": "/redfish/v1/EventService"
@@ -48,12 +51,9 @@
   "Oem": {
     "Intel_RackScale": {
       "@odata.type": "#Intel.Oem.ServiceRoot",
-      "ApiVersion": "2.4.0",
+      "ApiVersion": "2.5.0",
       "EthernetSwitches": {
         "@odata.id": "/redfish/v1/EthernetSwitches"
-      },
-      "TelemetryService": {
-        "@odata.id": "/redfish/v1/Oem/Intel_RackScale/TelemetryService"
       },
       "Nodes": {
         "@odata.id": "/redfish/v1/Nodes"

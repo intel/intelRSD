@@ -81,14 +81,6 @@
             "items": {
                 "type": "object",
                 "properties": {
-                    "nic-drivers": {
-                        "description": "Driver names of the NIC cards",
-                        "name": "nic-drivers",
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
                     "locationOffset": {
                         "description": "Location identifier offset.",
                         "name": "locationOffset",
@@ -106,7 +98,6 @@
                     }
                 },
                 "required": [
-                    "nic-drivers"
                 ]
             }
         },

@@ -44,7 +44,7 @@ static void m_ignore(int signal) {
 }
 
 static void m_interrupt_handler(int signal) {
-
+    
     log_info(LOGUSR, "Signal received: " << unsigned(signal));
 
     std::unique_lock<std::mutex> lk(g_mutex);
@@ -64,6 +64,7 @@ void agent_framework::generic::wait_for_interrupt() {
         gp_cond_variable = new std::condition_variable;
         signal(SIGINT, m_interrupt_handler);
         signal(SIGHUP, m_ignore);
+        signal(SIGTERM, m_interrupt_handler);
     }
 
     ++waiters;

@@ -125,6 +125,8 @@ set(SOURCES
     model/vlan.cpp
     model/volume.cpp
     model/zone.cpp
+    model/log_service.cpp
+    model/log_entry.cpp
 
 
     loader/loader.cpp
@@ -135,6 +137,7 @@ set(SOURCES
     enum/hssi_configuration.cpp
     enum/hssi_sideband.cpp
     enum/oem_protocol.cpp
+    enum/entry_code.cpp
 
     managers/utils/manager_utils.cpp
     managers/many_to_many_manager.cpp
@@ -191,6 +194,8 @@ set(SOURCES
     requests/common/add_zone_endpoints.cpp
     requests/common/delete_zone_endpoints.cpp
     requests/common/get_network_interface_info.cpp
+    requests/common/get_log_service_info.cpp
+    requests/common/get_log_entry_info.cpp
 
     requests/compute/get_memory_info.cpp
     requests/compute/get_memory_domain_info.cpp

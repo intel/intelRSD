@@ -91,7 +91,33 @@ public class ResourceProviderConfiguration {
     @Bean
     @SneakyThrows
     public ResourceProvider managersCollectionProvider() {
-        return new ModifiableCollectionResource("/redfish/v1/Managers", "ManagerCollection");
+        return new ModifiableCollectionResource("/redfish/v1/Managers", "ManagerCollection") {
+            @Override
+            public ObjectNode getResource() {
+                val resource = super.getResource();
+                resource.withArray("Members")
+                    .addObject()
+                    .put("@odata.id", "/redfish/v1/Managers/PodManager");
+                return resource;
+            }
+        };
+    }
+
+    @Bean
+    @SneakyThrows
+    public ResourceProvider podManager(UUID serviceEntryPointUuid) {
+        return new Resource("PodManager.json") {
+            @Override
+            public boolean isGlobal() {
+                return false;
+            }
+            @Override
+            public ObjectNode getResource() {
+                val resource = super.getResource();
+                resource.put("ServiceEntryPointUUID", serviceEntryPointUuid.toString());
+                return resource;
+            }
+        };
     }
 
     @Bean
@@ -115,12 +141,24 @@ public class ResourceProviderConfiguration {
     @Bean
     @SneakyThrows
     public ResourceProvider metricReportDefinitionsCollection() {
-        return new CollectionResource("/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricReportDefinitions", "MetricReportDefinitionCollection");
+        return new CollectionResource("/redfish/v1/TelemetryService/MetricReportDefinitions", "MetricReportDefinitionCollection");
     }
 
     @Bean
     @SneakyThrows
     public ResourceProvider metricDefinitionsCollection() {
+        return new CollectionResource("/redfish/v1/TelemetryService/MetricDefinitions", "MetricDefinitionCollection");
+    }
+
+    @Bean
+    @SneakyThrows
+    public ResourceProvider oemMetricReportDefinitionsCollection() {
+        return new CollectionResource("/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricReportDefinitions", "MetricReportDefinitionCollection");
+    }
+
+    @Bean
+    @SneakyThrows
+    public ResourceProvider oemMetricDefinitionsCollection() {
         return new CollectionResource("/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricDefinitions", "MetricDefinitionCollection");
     }
 
@@ -128,6 +166,12 @@ public class ResourceProviderConfiguration {
     @SneakyThrows
     public ResourceProvider telemetryService() {
         return new Resource("TelemetryService.json");
+    }
+
+    @Bean
+    @SneakyThrows
+    public ResourceProvider oemTelemetryService() {
+        return new Resource("OemTelemetryService.json");
     }
 
     @Bean

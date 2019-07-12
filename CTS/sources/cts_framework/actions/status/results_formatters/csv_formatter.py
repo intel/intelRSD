@@ -64,7 +64,7 @@ class CsvFormatter(Formatter):
             horizontal_separator=HORIZONTAL_SEPARATOR,
             run_id=run_details.id)
 
-        print "CTS version\t%s\n%s%s" % (BuildInformation.BUILD_VERSION, results_header, VERTICAL_SEPARATOR)
+        print "CTS version\t%s\n%s%s" % (BuildInformation.get_version(), results_header, VERTICAL_SEPARATOR)
 
         script_executions_results = (self.format_script_results(script_execution_id) for script_execution_id in
                                      ScriptDAO.get_scripts_execution_ids_for_run(run_id))

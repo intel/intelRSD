@@ -17,14 +17,15 @@
 package com.intel.rsd.nodecomposer.composition.assembly.tasks;
 
 import com.hazelcast.spring.context.SpringAware;
+import com.intel.rsd.nodecomposer.business.BusinessApiException;
 import com.intel.rsd.nodecomposer.business.redfish.services.EndpointService;
 import com.intel.rsd.nodecomposer.business.redfish.services.helpers.VolumeHelper;
 import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.persistence.dao.GenericDao;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
-import com.intel.rsd.nodecomposer.persistence.redfish.Fabric;
 import com.intel.rsd.nodecomposer.persistence.redfish.Volume;
 import lombok.Setter;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -42,10 +43,12 @@ public class TargetEndpointAssemblyTask extends NodeTask {
 
     @Autowired
     private transient GenericDao genericDao;
-    @Autowired
-    private transient EndpointService endpointService;
+
     @Autowired
     private transient VolumeHelper volumeHelper;
+
+    @Autowired
+    private transient EndpointService endpointService;
 
     @Setter
     private ODataId volumeOdataId;
@@ -53,12 +56,19 @@ public class TargetEndpointAssemblyTask extends NodeTask {
     @Override
     @Transactional(REQUIRES_NEW)
     public void run() {
-        Volume volume = genericDao.find(Volume.class, volumeOdataId);
-        Fabric fabric = volumeHelper.retrieveFabricFromVolume(volume);
-        endpointService.createTargetEndpoint(volumeOdataId, getComposedNode(), fabric);
-    }
+        val volume = genericDao.find(Volume.class, volumeOdataId);
+        val fabric = volumeHelper.retrieveFabricFromVolume(volume);
 
-    private ComposedNode getComposedNode() {
-        return genericDao.find(ComposedNode.class, composedNodeODataId);
+        try {
+            val createdEndpointOdataId = endpointService.createTargetEndpoint(fabric.getUri(), fabric.getFabricType(), volumeOdataId);
+            endpointService.discoverEndpoint(
+                fabric.getUri(),
+                createdEndpointOdataId,
+                endpoint -> genericDao.find(ComposedNode.class, composedNodeODataId).attachAsset(endpoint)
+            );
+        } catch (BusinessApiException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

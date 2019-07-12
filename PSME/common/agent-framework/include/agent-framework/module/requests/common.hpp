@@ -52,4 +52,6 @@
 #include "agent-framework/module/requests/common/add_endpoint.hpp"
 #include "agent-framework/module/requests/common/delete_endpoint.hpp"
 #include "agent-framework/module/requests/common/get_network_interface_info.hpp"
+#include "agent-framework/module/requests/common/get_log_service_info.hpp"
+#include "agent-framework/module/requests/common/get_log_entry_info.hpp"
 #include "agent-framework/module/utils/is_requested_metric.hpp"

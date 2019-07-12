@@ -1,0 +1,11 @@
+{
+  "name": "5.5.1",
+  "resources": {
+    "systems_members": ["ComputerSystem.ComputerSystem", "Systems"]
+  },
+  "actions": [
+    ["string_logical_test", ["systems_members", "Systems", ["Status/State"], "Enabled"]],
+    ["string_logical_test", ["systems_members", "Systems", ["Status/Health"], "OK"]],
+    ["string_logical_test", ["systems_members", "Systems", ["SystemType"], "Physical"]]
+  ]
+}

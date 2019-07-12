@@ -49,7 +49,7 @@ public class AssemblyActionService {
     }
 
     @RetryOnRollback(3)
-    @Transactional(REQUIRES_NEW)
+    @Transactional(value = REQUIRES_NEW, rollbackOn = BusinessApiException.class)
     public void perform(ODataId composedNodeODataId) throws BusinessApiException {
         ComposedNode composedNode = traverser.traverseComposedNode(composedNodeODataId);
         try {

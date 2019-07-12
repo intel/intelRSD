@@ -51,7 +51,7 @@ add_library(agent-framework STATIC
     src/version.cpp
     src/logger_loader.cpp
     src/signal.cpp
-    )
+)
 
 target_link_libraries(agent-framework
     PUBLIC

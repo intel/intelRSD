@@ -46,7 +46,7 @@
     "eventing" : {
         "address": "localhost",
         "port" : 5567,
-        "poll-interval-sec" : 20
+        "poll-interval-sec" : 200
     },
     "rest" : {
         "service-root-name" : "PSME Service Root"

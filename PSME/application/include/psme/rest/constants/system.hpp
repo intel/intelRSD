@@ -231,28 +231,25 @@ extern const char MEMORY_TYPE[];
 extern const char MEMORY_CAPACITY_MB[];
 extern const char SPEED_MHZ[];
 extern const char EXTENDED_IDENTIFICATION_REGISTERS[];
+extern const char PCIE_DEVICE[];
+extern const char PCIE_FUNCTIONS[];
 
 }
 
 /*!
- * @brief Constant literals for Processor endpoint, OEM/FPGA property.
+ * @brief Constant literals for Processor endpoint, FPGA property.
  */
 namespace Fpga {
-extern const char FPGA_TYPE[];
-extern const char BIT_STREAM_VERSION[];
-extern const char HSSI_CONFIGURATION[];
-extern const char HSSI_SIDEBAND[];
+extern const char TYPE[];
 extern const char MODEL[];
-extern const char FW_ID[];
-extern const char FW_MANUFACTURER[];
-extern const char FW_VERSION[];
+extern const char FIRMWARE_ID[];
+extern const char FIRMWARE_MANUFACTURER[];
+extern const char FIRMWARE_VERSION[];
 extern const char HOST_INTERFACE[];
 extern const char EXTERNAL_INTERFACES[];
-extern const char SIDEBAND_INTERFACE[];
 extern const char PCIE_VIRTUAL_FUNCTIONS[];
 extern const char PROGRAMMABLE_FROM_HOST[];
 extern const char RECONFIGURATION_SLOTS[];
-extern const char RECONFIGURATION_SLOTS_DETAILS[];
 extern const char ERASED[];
 extern const char SECURE_ERASE[];
 extern const char HASH_SECURE_ERASE[];

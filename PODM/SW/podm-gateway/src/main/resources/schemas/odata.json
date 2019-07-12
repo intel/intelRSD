@@ -54,6 +54,11 @@
     {
       "name": "TelemetryService",
       "kind": "Singleton",
+      "url": "/redfish/v1/TelemetryService"
+    },
+    {
+      "name": "Oem/Intel_RackScale/TelemetryService",
+      "kind": "Singleton",
       "url": "/redfish/v1/Oem/Intel_RackScale/TelemetryService"
     },
     {

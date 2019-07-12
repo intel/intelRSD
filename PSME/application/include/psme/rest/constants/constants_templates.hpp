@@ -128,6 +128,12 @@ constexpr const char* RESOURCE_ID<agent_framework::model::PcieDevice> = PathPara
 template<>
 constexpr const char* RESOURCE_ID<agent_framework::model::PcieFunction> = PathParam::FUNCTION_ID;
 
+template<>
+constexpr const char* RESOURCE_ID<agent_framework::model::LogService> = PathParam::LOG_SERVICE_ID;
+
+template<>
+constexpr const char* RESOURCE_ID<agent_framework::model::LogEntry> = PathParam::LOG_ENTRY_ID;
+
 template <typename T>
 constexpr const char* get_resource_id() {
     static_assert(RESOURCE_ID<T> != nullptr, "RESOURCE_ID<T> for T template type is not defined.");

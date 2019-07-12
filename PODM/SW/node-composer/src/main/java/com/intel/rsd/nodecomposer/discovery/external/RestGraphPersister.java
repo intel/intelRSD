@@ -18,16 +18,15 @@ package com.intel.rsd.nodecomposer.discovery.external;
 
 import com.intel.rsd.nodecomposer.ModelState;
 import com.intel.rsd.nodecomposer.discovery.external.restgraph.RestGraph;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
-
 import static com.intel.rsd.nodecomposer.discovery.external.DiscoveryEvent.EventType.RETRY_REQUESTED;
-import static javax.transaction.Transactional.TxType.REQUIRED;
 
 @Component
+@Slf4j
 public class RestGraphPersister {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final EntityGraphMapper mapper;
@@ -40,9 +39,9 @@ public class RestGraphPersister {
         this.modelState = modelState;
     }
 
-    @Transactional(REQUIRED)
     public void persist(RestGraph restGraph) {
-        if (modelState.getAndResetIfDirty()) {
+        if (modelState.isNewerThan(restGraph.getCaptureTime())) {
+            log.info("Model has been changed in the meantime, rescheduling discovery...");
             applicationEventPublisher.publishEvent(new DiscoveryEvent(RETRY_REQUESTED));
         } else {
             mapper.map(restGraph);

@@ -62,20 +62,17 @@ void HostedStorageServices::get(const server::Request& request, server::Response
     r[Common::ODATA_ID] = PathBuilder(request).build();
 
     auto system = psme::rest::model::find<agent_framework::model::System>(request.params).get();
-    const auto& hosted_services_ids = agent_framework::module::get_m2m_manager<agent_framework::model::System, agent_framework::model::StorageService>().get_children(
-        system.get_uuid());
+    const auto& hosted_services_uuids = agent_framework::module::get_m2m_manager<agent_framework::model::System, agent_framework::model::StorageService>()
+        .get_children(system.get_uuid());
 
-    r[Collection::ODATA_COUNT] = std::uint32_t(hosted_services_ids.size());
-
-    if (!hosted_services_ids.empty()) {
-
-        for (const auto& id : hosted_services_ids) {
-            json::Json link = json::Json();
-            link[Common::ODATA_ID] = PathBuilder(constants::Routes::ROOT_PATH).append(
-                constants::Common::STORAGE_SERVICES).append(id).build();
-
-            r[Collection::MEMBERS].push_back(std::move(link));
-        }
+    r[Collection::ODATA_COUNT] = std::uint32_t(hosted_services_uuids.size());
+    for (const auto& uuid : hosted_services_uuids) {
+        auto storage_service = agent_framework::module::get_manager<agent_framework::model::StorageService>().get_entry(uuid);
+        json::Json link = json::Json();
+        link[Common::ODATA_ID] = PathBuilder(constants::Routes::ROOT_PATH)
+            .append(constants::Common::STORAGE_SERVICES)
+            .append(storage_service.get_id()).build();
+        r[Collection::MEMBERS].emplace_back(std::move(link));
     }
     set_response(response, r);
 }

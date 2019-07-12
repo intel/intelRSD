@@ -24,6 +24,11 @@ target_link_libraries(fpgaof-utils
     PUBLIC
     agent-framework
     agent-framework-database
+
+    PRIVATE
+    net
+    udev
+    sysfsref
 )
 
 target_include_directories(fpgaof-utils

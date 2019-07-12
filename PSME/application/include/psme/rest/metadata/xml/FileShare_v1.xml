@@ -34,7 +34,7 @@
 
   <edmx:DataServices>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileShare">
-
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="FileShare" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="A shared set of files."/>
         <Annotation Term="OData.LongDescription" String="This resource shall be used to represent a shared set of files."/>
@@ -42,7 +42,7 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileShare.v1_0_0">
-
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="FileShare" BaseType="FileShare.FileShare">
         <Annotation Term="OData.Description" String="An instance of a shared set of files with a common directory structure."/>
         <Annotation Term="OData.LongDescription" String="This resource shall be used to represent a shared set of files with a common directory structure."/>
@@ -162,7 +162,14 @@
       </EnumType>
     </Schema>
 
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileShare.v1_0_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="FileShare" BaseType="FileShare.v1_0_0.FileShare"/>
+    </Schema>
+
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileShare.v1_1_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.Description" String="This version adds the RemainingCapacityPercent property."/>
       <EntityType Name="FileShare" BaseType="FileShare.v1_0_0.FileShare">
         <Property Name="RemainingCapacityPercent" Type="Edm.Int64">
@@ -191,7 +198,15 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileShare.v1_1_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.Description" String="Change references to unversioned. "/>
+      <EntityType Name="FileShare" BaseType="FileShare.v1_1_0.FileShare"/>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="FileShare.v1_1_2">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="FileShare" BaseType="FileShare.v1_1_1.FileShare"/>
     </Schema>
 
   </edmx:DataServices>

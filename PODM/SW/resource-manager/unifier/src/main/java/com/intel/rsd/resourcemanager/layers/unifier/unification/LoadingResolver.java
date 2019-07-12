@@ -18,6 +18,7 @@ package com.intel.rsd.resourcemanager.layers.unifier.unification;
 
 import com.intel.rsd.crawler.Crawler;
 import com.intel.rsd.crawler.Resource;
+import com.intel.rsd.resourcemanager.layers.unifier.unification.UnifiedOdataIdResolverFactoryImpl.UnificationMappings;
 import lombok.NonNull;
 import lombok.val;
 
@@ -76,5 +77,10 @@ class LoadingResolver implements UnifiedOdataIdResolver {
     @Override
     public void updateMapping(Collection<Resource> resources) {
         delegate.updateMapping(resources);
+    }
+
+    @Override
+    public UnificationMappings getUnificationMappings() {
+        return delegate.getUnificationMappings();
     }
 }

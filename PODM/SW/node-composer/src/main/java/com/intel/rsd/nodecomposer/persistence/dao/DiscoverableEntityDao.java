@@ -18,7 +18,6 @@ package com.intel.rsd.nodecomposer.persistence.dao;
 
 import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.TypedQuery;
@@ -29,12 +28,10 @@ import static com.intel.rsd.collections.IterableHelper.singleOrNull;
 import static com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId.oDataIdFromUri;
 import static com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity.GET_DISCOVERABLE_ENTITY_BY_URI;
 import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class DiscoverableEntityDao extends Dao<DiscoverableEntity> {
-    @Transactional(MANDATORY)
+
     public DiscoverableEntity findEntityOrNull(URI uri) {
         TypedQuery<DiscoverableEntity> query = entityManager.createNamedQuery(GET_DISCOVERABLE_ENTITY_BY_URI, DiscoverableEntity.class);
         ODataId resourceODataId = oDataIdFromUri(uri);

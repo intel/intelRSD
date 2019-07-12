@@ -139,7 +139,9 @@ PartitionData MbrPartitionTable::get_partition(unsigned id) const {
         // we do not really care about other types
         pd.type = PartitionType::UNKNOWN;
     }
+
     // uuid/name not available in MBR
+
     return pd;
 }
 

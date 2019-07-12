@@ -16,6 +16,7 @@
  * @file network_device_functions_collection.cpp
  */
 
+#include "psme/rest/constants/constants.hpp"
 #include "psme/rest/endpoints/system/network_device_functions_collection.hpp"
 #include "agent-framework/module/compute_components.hpp"
 
@@ -52,8 +53,9 @@ void NetworkDeviceFunctionsCollection::get(const server::Request& req, server::R
     auto json = ::make_prototype();
 
     json[Common::ODATA_ID] = PathBuilder(req).build();
+
     auto device_uuid = psme::rest::model::find<agent_framework::model::System, agent_framework::model::NetworkDevice>(
-        req.params).get_uuid();
+        utils::get_network_device_request_parameters(req.params)).get_uuid();
 
     auto keys = ComputeComponents::get_instance()->
         get_network_device_function_manager().get_ids(device_uuid);
@@ -67,3 +69,4 @@ void NetworkDeviceFunctionsCollection::get(const server::Request& req, server::R
     }
     set_response(res, json);
 }
+

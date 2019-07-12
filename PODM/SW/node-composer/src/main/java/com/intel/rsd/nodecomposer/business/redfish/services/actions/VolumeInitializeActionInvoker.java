@@ -21,19 +21,14 @@ import com.intel.rsd.nodecomposer.business.dto.actions.InitializeActionDto;
 import com.intel.rsd.nodecomposer.persistence.redfish.Volume;
 import com.intel.rsd.nodecomposer.types.InitializeType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.net.URI;
 
 import static com.intel.rsd.nodecomposer.types.redfish.ActionsResourceNames.ACTIONS_VOLUME_INITIALIZE;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 import static org.springframework.web.util.UriComponentsBuilder.fromUri;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class VolumeInitializeActionInvoker {
     private final RestRequestInvoker restRequestInvoker;
 
@@ -42,7 +37,6 @@ public class VolumeInitializeActionInvoker {
         this.restRequestInvoker = restRequestInvoker;
     }
 
-    @Transactional(MANDATORY)
     public void initialize(Volume volume, InitializeType initializeType) throws EntityOperationException {
         URI initializeUri = fromUri(volume.getUri().toUri()).pathSegment(ACTIONS_VOLUME_INITIALIZE).build().toUri();
 

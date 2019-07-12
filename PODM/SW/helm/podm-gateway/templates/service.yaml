@@ -10,17 +10,19 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    {{- if .Values.northbound_security.enabled  }}
+    {{- if .Values.global.northbound_security.enabled  }}
     - port: {{ .Values.service.httpsPort }}
+      name: https
+      targetPort: https
     {{ else }}
     - port: {{ .Values.service.port }}
-    {{ end }}
+      name: http
       targetPort: http
+    {{ end }}
       {{ if eq .Values.service.type "NodePort" }}
       nodePort: 30000
       {{ end }}
       protocol: TCP
-      name: http
   selector:
     app: {{ template "podm-gateway.name" . }}
     release: {{ .Release.Name }}

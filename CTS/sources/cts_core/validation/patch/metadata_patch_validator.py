@@ -88,7 +88,8 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
             context = Context(api_resource)
             resource_status = self._validate_resource(context)
             self._print_resource_footer(api_resource, context, resource_status)
-            status = ValidationStatus.join_statuses(status, resource_status)
+            redfish_uri_compliance = discovery_container.validate_redfish_uris_consistency(api_resource, self._metadata_container)
+            status = ValidationStatus.join_statuses(status, resource_status, redfish_uri_compliance)
 
         print "SCREEN::Overall status: %s" % status
         return status
@@ -189,7 +190,8 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
                     return self._validate_property_list(context,
                                                         list(),
                                                         properties_list,
-                                                        properties_to_skip[0].split('->'))
+                                                        properties_to_skip)
+
                 return self._validate_property_list(context,
                                                     list(),
                                                     properties_list)
@@ -218,19 +220,29 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
         status = ValidationStatus.PASSED
         # use local copy - api resource will be modified while test is executed
         local_property_list = list(property_list)
+
         for property_description in local_property_list:
-            if not len(ignore_list):
-                status = ValidationStatus.join_statuses(self._validate_property(context,
-                                                                                variable_path,
-                                                                                property_description),
-                                                        status)
-                continue
-            if str(property_description) == ignore_list[0] and len(ignore_list) > 1:
+
+            if not len(ignore_list) or (len(ignore_list) and str(property_description) not in sum([ignored_property.split("->") for ignored_property in ignore_list], [])):
                 status = ValidationStatus.join_statuses(self._validate_property(context,
                                                                                 variable_path,
                                                                                 property_description,
-                                                                                ignore_list=ignore_list[1:]),
+                                                                                ignore_list=[ignored_property for ignored_property in ignore_list]),
                                                         status)
+                continue
+            else:
+                if len([ignored_subproperty for ignored_subproperty in ignored_property.split("->") for ignored_property in ignore_list]) > 1:
+                   status = ValidationStatus.join_statuses(self._validate_property(context,
+                                                                                   variable_path,
+                                                                                   property_description,
+                                                                                   ignore_list=[ignored_property.split("->")[1] for ignored_property in ignore_list]),
+                                                           status)
+                else:
+                    status = ValidationStatus.join_statuses(self._validate_property(context,
+                                                                                    variable_path,
+                                                                                    property_description,
+                                                                                    ignore_list=[ignored_property for ignored_property in ignore_list]),
+                                                            status)
 
         # validate additional properties
         try:
@@ -296,7 +308,6 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
                 cts_message("This property {ignore_element} is marked in IgnoredElement list as element to skip".format(
                     ignore_element=ignore_list[0]
                 ))
-                return ValidationStatus.PASSED_WITH_WARNINGS
         except KeyError as error:
             if property_description.is_required:
                 path_s = "->".join([str(segment) for segment in variable_path])
@@ -318,7 +329,8 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
                                                    self._validate_property(context,
                                                                            variable_path + [path_element],
                                                                            property_description,
-                                                                           skip_collection=True))
+                                                                           skip_collection=True,
+                                                                           ignore_list=ignore_list))
             return status
         else:
             try:
@@ -327,8 +339,11 @@ class MetadataPatchValidator(SkipListMixin, PatchNontrivialPropertyMixin):
                     return self._validate_property_list(context,
                                                         variable_path,
                                                         self._metadata_container.types[property_description.type].
-                                                        properties.itervalues())
+                                                        properties.itervalues(),
+                                                        ignore_list)
                 else:
+                    if str(property_description) in ignore_list:
+                        return ValidationStatus.PASSED
                     return self._validate_leaf_property(context,
                                                         variable_path,
                                                         property_description)

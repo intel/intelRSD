@@ -55,9 +55,10 @@ public class Storage extends DiscoverableEntity {
         drives.add(drive);
         if (!this.equals(drive.getStorage())) {
             drive.setStorage(this);
-            if (chassis != null) {
-                drive.setChassis(chassis);
-            }
+        }
+
+        if (chassis != null) {
+            drive.setChassis(chassis);
         }
     }
 

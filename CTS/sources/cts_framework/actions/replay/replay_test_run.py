@@ -67,7 +67,7 @@ class ReplayTestRunAction(Action):
     def process_action(self, configuration):
         replay_id = configuration.replay_id[0]
         print "Using CTS in version %s to replay execution %s" \
-              % (ColorPrinter.format_text(BuildInformation.BUILD_VERSION, bold=True), replay_id)
+              % (ColorPrinter.format_text(BuildInformation.get_version(), bold=True), replay_id)
 
         error, script_execution_id = split_replay_id(replay_id)
         if error:

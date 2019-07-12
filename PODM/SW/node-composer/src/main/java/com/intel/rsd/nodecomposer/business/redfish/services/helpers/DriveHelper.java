@@ -20,10 +20,8 @@ import com.intel.rsd.nodecomposer.persistence.redfish.Drive;
 import com.intel.rsd.nodecomposer.persistence.redfish.Fabric;
 import com.intel.rsd.nodecomposer.persistence.redfish.Switch;
 import com.intel.rsd.nodecomposer.types.Protocol;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,15 +29,11 @@ import static com.intel.rsd.nodecomposer.types.Protocol.NVME;
 import static com.intel.rsd.nodecomposer.types.Protocol.PCIE;
 import static com.intel.rsd.nodecomposer.utils.Collector.toSingle;
 import static java.util.Arrays.asList;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class DriveHelper {
     private static final List<Protocol> REMOTE_DRIVE_PROTOCOLS = asList(PCIE, NVME);
 
-    @Transactional(MANDATORY)
     public Fabric retrieveFabricFromDrive(Drive drive) {
         return getFabricFromDrive(drive);
     }

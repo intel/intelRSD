@@ -15,17 +15,17 @@
  */
 
 dependencies {
-    compileOnly project(":common")
-    compileOnly project(":layer")
-    compileOnly("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
+    implementation project(":common")
+    implementation project(":layer")
+    implementation("com.intel.rsd:podm-spring-hazelcast:${podmSpringHazelcastVersion}")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
-    testCompile project(":layer")
-    testCompile project(":common")
-    testCompile("org.testng:testng")
-    testCompile("org.mockito:mockito-all:${mockitoVersion}")
-    testCompile("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    testImplementation project(":layer")
+    testImplementation project(":common")
+    testImplementation("org.testng:testng:${testNGVersion}")
+    testImplementation("org.mockito:mockito-all:${mockitoVersion}")
+    testImplementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
 }

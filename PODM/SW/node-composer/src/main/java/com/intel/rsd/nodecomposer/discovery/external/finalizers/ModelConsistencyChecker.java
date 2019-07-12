@@ -22,12 +22,10 @@ import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.function.Predicate;
 
 import static java.util.Arrays.asList;
-import static javax.transaction.Transactional.TxType.MANDATORY;
 
 @Component
 public class ModelConsistencyChecker {
@@ -43,7 +41,6 @@ public class ModelConsistencyChecker {
         this.genericDao = genericDao;
     }
 
-    @Transactional(MANDATORY)
     public void check() {
         for (Checker<? extends DiscoverableEntity> checker : checkers) {
             checker.check();

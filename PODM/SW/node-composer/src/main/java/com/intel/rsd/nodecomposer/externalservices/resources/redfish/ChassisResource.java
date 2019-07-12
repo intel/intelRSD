@@ -39,6 +39,9 @@ public class ChassisResource extends ExternalServiceResourceImpl {
     @JsonProperty("Status")
     private Status status;
 
+    @JsonProperty("NetworkAdapters")
+    private ODataId networkAdapters;
+
     @JsonProperty("Links")
     private Links links = new Links();
 
@@ -65,6 +68,11 @@ public class ChassisResource extends ExternalServiceResourceImpl {
     @LinkName("storage")
     public Iterable<ResourceSupplier> getStorage() throws WebClientRequestException {
         return toSuppliers(links.storage);
+    }
+
+    @LinkName("networkAdapters")
+    public Iterable<ResourceSupplier> getNetworkAdapters() throws WebClientRequestException {
+        return processMembersListResource(networkAdapters);
     }
 
     public class Links {

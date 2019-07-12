@@ -35,6 +35,8 @@
 
 #include <chrono>
 
+
+
 using namespace agent::pnc;
 using namespace agent::pnc::state_machine;
 using namespace agent::pnc::gas;
@@ -56,12 +58,14 @@ bool get_is_link_up(const Port& port) {
     return port.get_status().get_state() == enums::State::Enabled;
 }
 
+
 bool get_is_being_erased(const Drive& drive) {
     return drive.get_is_being_erased();
 }
 
+
 std::tuple<bool, bool> get_is_bound(const GlobalAddressSpaceRegisters& gas, const PortBindingInfo& pbi,
-        uint8_t port_id) {
+                                    uint8_t port_id) {
     for (unsigned i = 0; i <= pbi.output.fields.info_count; ++i) {
         if (pbi.output.fields.port_binding_info[i].phy_port_id == port_id) {
             return std::make_tuple(
@@ -73,6 +77,7 @@ std::tuple<bool, bool> get_is_bound(const GlobalAddressSpaceRegisters& gas, cons
 
 }
 
+
 bool get_is_present(const uint64_t bitmask, const uint64_t phys_port_id) {
     // phys_port_id has values [0, 2, ..., 14] and [32, 34, ..., 46] that have to be converted into [0, 1, ..., 15]
     // divide by 2: [0, 2, ..., 14] and [32, 34, ... 46] are now [0, 1, ..., 7] and [16, 17, ... 23]
@@ -82,50 +87,53 @@ bool get_is_present(const uint64_t bitmask, const uint64_t phys_port_id) {
     return (bitmask & uint64_t(uint64_t(0x1) << phys_port_bit)) != 0x0;
 }
 
-std::tuple< StringVector, PsmVector> initialize_port_vectors(const DiscoveryManager& dm, const Toolset& t,
-        const std::string& switch_uuid, const StringVector& port_uuids) {
+
+std::tuple<StringVector, PsmVector> initialize_port_vectors(const DiscoveryManager& dm, const Toolset& t,
+                                                            const std::string& switch_uuid,
+                                                            const StringVector& port_uuids) {
     StringVector usps_uuid{};
     PsmVector psms{};
     for (const auto& port_uuid : port_uuids) {
         Port port = get_manager<Port>().get_entry(port_uuid);
         switch (port.get_port_type().value()) {
-        // for USP port we will be updating its status
-        case enums::PciePortType::UpstreamPort:
-            log_debug("port-monitor", "PortMonitorThread: initializing upstream port "
-                << port.get_port_id());
-            usps_uuid.push_back(port_uuid);
-            break;
-        // for DSP port we will be have to monitor its state to control discovery of devices connected to it
-        case enums::PciePortType::DownstreamPort:
-            log_debug("port-monitor", "PortMonitorThread: initializing downstream port "
-                << port.get_port_id());
-            {   // braces required to keep this variable in the scope of single 'case'
-                std::shared_ptr<PortStateWorker> psw{new PortStateWorker(dm, t)};
-                std::unique_ptr<PortStateManager> psm{new PortStateManager(psw, port.get_port_id(), switch_uuid,
-                    port_uuid)};
-                psms.emplace_back(std::move(psm));
-            }
-            break;
-        // we ignore Management ports
-        case enums::PciePortType::ManagementPort:
-            log_debug("port-monitor", "PortMonitorThread: ignoring management port "
-                << port.get_port_id());
-            break;
-        case enums::PciePortType::InterswitchPort:
-        case enums::PciePortType::BidirectionalPort:
-        case enums::PciePortType::UnconfiguredPort:
-        default:
-            log_debug("port-monitor", "PortMonitorThread: ignoring unsupported port type "
-                << port.get_port_id());
-            log_warning("port-monitor", "Port of unsupported type found");
-            break;
+            // for USP port we will be updating its status
+            case enums::PciePortType::UpstreamPort:
+                log_debug("port-monitor", "PortMonitorThread: initializing upstream port "
+                    << port.get_port_id());
+                usps_uuid.push_back(port_uuid);
+                break;
+                // for DSP port we will be have to monitor its state to control discovery of devices connected to it
+            case enums::PciePortType::DownstreamPort:
+                log_debug("port-monitor", "PortMonitorThread: initializing downstream port "
+                    << port.get_port_id());
+                {   // braces required to keep this variable in the scope of single 'case'
+                    std::shared_ptr<PortStateWorker> psw{new PortStateWorker(dm, t)};
+                    std::unique_ptr<PortStateManager> psm{new PortStateManager(psw, port.get_port_id(), switch_uuid,
+                                                                               port_uuid)};
+                    psms.emplace_back(std::move(psm));
+                }
+                break;
+                // we ignore Management ports
+            case enums::PciePortType::ManagementPort:
+                log_debug("port-monitor", "PortMonitorThread: ignoring management port "
+                    << port.get_port_id());
+                break;
+            case enums::PciePortType::InterswitchPort:
+            case enums::PciePortType::BidirectionalPort:
+            case enums::PciePortType::UnconfiguredPort:
+            default:
+                log_debug("port-monitor", "PortMonitorThread: ignoring unsupported port type "
+                    << port.get_port_id());
+                log_warning("port-monitor", "Port of unsupported type found");
+                break;
         }
     }
     return std::make_tuple(std::move(usps_uuid), std::move(psms));
 }
 
+
 uint64_t initialize_dsps(const PsmVector& psms, const DiscoveryManager& dm, const GlobalAddressSpaceRegisters& gas,
-        const Toolset& tools) {
+                         const Toolset& tools) {
     uint64_t presence_mask{0u};
     auto pbi = tools.gas_tool->get_all_port_binding_info(gas);
     for (auto& psm : psms) {
@@ -133,7 +141,7 @@ uint64_t initialize_dsps(const PsmVector& psms, const DiscoveryManager& dm, cons
         Port port = get_manager<Port>().get_entry(port_uuid);
         bool is_bound{false};
         bool is_bound_to_host{false};
-        std::tie(is_bound, is_bound_to_host) =  get_is_bound(gas, pbi, uint8_t(port.get_phys_port_id()));
+        std::tie(is_bound, is_bound_to_host) = get_is_bound(gas, pbi, uint8_t(port.get_phys_port_id()));
         psm->init_binding(is_bound, is_bound_to_host);
         dm.update_port_status(gas, port_uuid);
         // model was updated - get new status
@@ -146,34 +154,32 @@ uint64_t initialize_dsps(const PsmVector& psms, const DiscoveryManager& dm, cons
     return presence_mask;
 }
 
+
 void update_downstream_ports(const PsmVector& psms, const DiscoveryManager& dm, const GlobalAddressSpaceRegisters& gas,
-        const Toolset&, uint64_t presence_bitmask, const PortBindingInfo& pbi) {
+                             const Toolset&, uint64_t presence_bitmask, const PortBindingInfo& pbi) {
 
     for (auto& psm : psms) {
 
         Port port = get_manager<Port>().get_entry(psm->get_port_uuid());
         log_debug("port-monitor", "PortMonitorThread: checking port " << port.get_port_id());
 
-        // gather states
+        // gather state variables
         bool is_device_present = get_is_present(presence_bitmask, port.get_phys_port_id());
         bool is_drive_present = (is_device_present ? psm->is_device_present() : false)
                                 && get_manager<Drive>().entry_exists(psm->get_device_uuid());
         bool is_bound{false};
         bool is_bound_to_host{false};
-        std::tie(is_bound, is_bound_to_host) =  get_is_bound(gas, pbi, uint8_t(port.get_phys_port_id()));
+        std::tie(is_bound, is_bound_to_host) = get_is_bound(gas, pbi, uint8_t(port.get_phys_port_id()));
         bool is_being_erased =
-            (is_drive_present ?  get_is_being_erased(get_manager<Drive>().get_entry(psm->get_device_uuid())) : false);
+            (is_drive_present ? get_is_being_erased(get_manager<Drive>().get_entry(psm->get_device_uuid())) : false);
 
-        // update state machine
-        psm->update(is_device_present, is_bound, is_bound_to_host, is_being_erased);
-
-        // update status
+        // update status, state variables must not change
         dm.update_port_status(gas, psm->get_port_uuid());
         if (is_drive_present) {
             auto drive_ref = get_manager<Drive>().get_entry_reference(psm->get_device_uuid());
             // we only 'touch' drives that have no state overrides
             if (!(drive_ref->get_is_being_erased() || drive_ref->get_is_in_warning_state()
-                || drive_ref->get_is_in_critical_discovery_state() || drive_ref->get_is_being_discovered())) {
+                  || drive_ref->get_is_in_critical_discovery_state() || drive_ref->get_is_being_discovered())) {
 
                 if (is_bound) {
                     // drive is present and bound -> read smart
@@ -188,16 +194,23 @@ void update_downstream_ports(const PsmVector& psms, const DiscoveryManager& dm, 
                 }
             }
         }
+
+        // update state machine
+        psm->update(is_device_present, is_bound, is_bound_to_host, is_being_erased);
+
         log_debug("port-monitor", "PortMonitorThread: finished checking port " << port.get_port_id());
     }
 }
 
-void update_upstream_ports(const StringVector& uuids, const DiscoveryManager& dm, const GlobalAddressSpaceRegisters& gas,
-        const Toolset&) {
+
+void
+update_upstream_ports(const StringVector& uuids, const DiscoveryManager& dm, const GlobalAddressSpaceRegisters& gas,
+                      const Toolset&) {
     for (const auto& uuid : uuids) {
         dm.update_port_status(gas, uuid);
     }
 }
+
 
 uint64_t get_presence(const Toolset& tools, const GlobalAddressSpaceRegisters& gas, uint64_t edk_mask) {
     auto chassis_uuid = tools.model_tool->get_chassis_uuid();
@@ -215,6 +228,7 @@ uint64_t get_presence(const Toolset& tools, const GlobalAddressSpaceRegisters& g
 
 }
 
+
 PortMonitorThread::~PortMonitorThread() {
     m_is_running = false;
     m_condition.notify_one();
@@ -222,6 +236,7 @@ PortMonitorThread::~PortMonitorThread() {
         m_thread.join();
     }
 }
+
 
 void PortMonitorThread::task() {
     log_info("port-monitor", "PortMonitorThread: starting");
@@ -240,7 +255,7 @@ void PortMonitorThread::task() {
     StringVector usps;
     PsmVector dsps;
 
-    std::tie ( usps, dsps ) = initialize_port_vectors(dm, m_tools, m_switch_uuid, port_uuids);
+    std::tie(usps, dsps) = initialize_port_vectors(dm, m_tools, m_switch_uuid, port_uuids);
 
     uint64_t presence_bitmask{};
     PortBindingInfo pbi{gas.get_interface()};
@@ -274,6 +289,7 @@ void PortMonitorThread::task() {
 
     log_debug("port-monitor", "PortMonitorThread stopped");
 }
+
 
 void PortMonitorThread::start() {
     m_is_running = true;

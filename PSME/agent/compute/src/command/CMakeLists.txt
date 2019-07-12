@@ -52,6 +52,8 @@ add_library(compute-command-sdv OBJECT
     get_pcie_function_info.cpp
     set_performance_configuration.cpp
     delete_drive.cpp
+    get_log_service_info.cpp
+    get_log_entry_info.cpp
 )
 
 set_psme_command_target_properties(compute-command-sdv)

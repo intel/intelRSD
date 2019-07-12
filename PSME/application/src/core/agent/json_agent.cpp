@@ -24,12 +24,14 @@
 #include "psme/rest/eventing/manager/subscription_manager.hpp"
 #include "psme/rest/endpoints/utils.hpp"
 #include "psme/rest/model/handlers/handler_manager.hpp"
+#include "psme/rest/server/error/error_factory.hpp"
 #include "json-rpc/connectors/http_client_connector.hpp"
 
 
 
 using namespace agent_framework;
 using namespace psme::core::agent;
+using namespace psme::rest::error;
 
 
 JsonAgent::JsonAgent(const std::string& gami_id,
@@ -80,8 +82,8 @@ void JsonAgent::execute_in_transaction(const std::string& transaction_type, cons
     auto transaction_name = transaction_type + "@" + std::to_string(transaction_id);
     auto success = lock.try_lock();
     if (!success) {
-        log_info("rest", "Transaction '" << transaction_name << "' is waiting until agent " << m_gami_id << " is available.");
-        lock.lock();
+        auto message = "Service is busy now, another action is running.";
+        throw ServerException(ErrorFactory::create_agent_unreachable_error(message));
     }
 
     log_info("rest", "Starting transaction '" << transaction_name << "' with agent " << m_gami_id << ".");

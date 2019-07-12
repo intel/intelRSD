@@ -38,7 +38,7 @@ json::Json make_prototype() {
 
     r[Common::ODATA_CONTEXT] = "/redfish/v1/$metadata#ServiceRoot.ServiceRoot";
     r[Common::ODATA_ID] = "/redfish/v1";
-    r[Common::ODATA_TYPE] = "#ServiceRoot.v1_1_1.ServiceRoot";
+    r[Common::ODATA_TYPE] = "#ServiceRoot.v1_4_0.ServiceRoot";
     r[Common::ID] = "RootService";
     r[Common::NAME] = "PSME Service Root";
     r[Common::DESCRIPTION] = "Service Root description";
@@ -58,7 +58,7 @@ json::Json make_prototype() {
     r[Common::OEM][Common::RACKSCALE][Common::ODATA_TYPE] = "#Intel.Oem.ServiceRoot";
     r[Common::OEM][Common::RACKSCALE][Common::API_VERSION] = psme::app::Version::to_string();
     r[Common::OEM][Common::RACKSCALE][Root::ETHERNET_SWITCHES][Common::ODATA_ID] = "/redfish/v1/EthernetSwitches";
-    r[Common::OEM][Common::RACKSCALE][Root::TELEMETRY_SERVICE][Common::ODATA_ID] = "/redfish/v1/Oem/Intel_RackScale/TelemetryService";
+    r[Root::TELEMETRY_SERVICE][Common::ODATA_ID] = "/redfish/v1/TelemetryService";
     r[Common::LINKS][SessionService::SESSIONS][Common::ODATA_ID] = "/redfish/v1/SessionService/Sessions";
     return r;
 }

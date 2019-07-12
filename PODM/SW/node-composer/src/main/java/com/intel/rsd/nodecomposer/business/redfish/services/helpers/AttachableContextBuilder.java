@@ -18,40 +18,31 @@ package com.intel.rsd.nodecomposer.business.redfish.services.helpers;
 
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
 import com.intel.rsd.nodecomposer.persistence.redfish.Fabric;
-import com.intel.rsd.nodecomposer.persistence.redfish.base.AttachableAsset;
-import com.intel.rsd.nodecomposer.persistence.redfish.base.ComposableAsset;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
 import lombok.NonNull;
 
-public final class AttachableContextBuilder<T extends DiscoverableEntity & AttachableAsset & ComposableAsset> {
-    private ComposedNode composedNode;
-    private T assetToAttach;
-    private Fabric fabric;
+public final class AttachableContextBuilder {
 
-    private AttachableContextBuilder(ComposedNode composedNode) {
-        this.composedNode = composedNode;
+    public static <T extends DiscoverableEntity> AttachDetachOperationContext createDetachOperationContext(@NonNull Fabric fabric,
+                                                                                                           @NonNull ComposedNode composedNode,
+                                                                                                           @NonNull T asset) {
+        return createOperationContext(fabric, composedNode, asset);
     }
 
-    public AttachableContextBuilder withFabric(@NonNull Fabric fabric) {
-        this.fabric = fabric;
-        return this;
+    public static <T extends DiscoverableEntity> AttachDetachOperationContext createAttachOperationContext(@NonNull Fabric fabric,
+                                                                                                           @NonNull ComposedNode composedNode,
+                                                                                                           @NonNull T asset) {
+        return createOperationContext(fabric, composedNode, asset);
     }
 
-    public AttachableContextBuilder withAsset(@NonNull T assetToAttach) {
-        this.assetToAttach = assetToAttach;
-        return this;
-    }
-
-    public static AttachableContextBuilder newAttachableContextBuilder(@NonNull ComposedNode composedNode) {
-        return new AttachableContextBuilder(composedNode);
-    }
-
-    public AttachableContext build() {
-        return AttachableContext.builder().
+    private static <T extends DiscoverableEntity> AttachDetachOperationContext createOperationContext(@NonNull Fabric fabric,
+                                                                                                      @NonNull ComposedNode composedNode,
+                                                                                                      @NonNull T asset) {
+        return AttachDetachOperationContext.builder().
             fabricODataId(fabric.getUri()).
             fabricType(fabric.getFabricType()).
             nodeODataId(composedNode.getUri()).
-            assetODataId(assetToAttach.getUri()).
+            assetODataId(asset.getUri()).
             build();
     }
 }

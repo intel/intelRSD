@@ -26,23 +26,23 @@
 using agent_framework::generic::Version;
 
 namespace {
-const char* version_string = "2.1.2.100.10";
+const char* version_string = "2019.13";
 }
 
 TEST(VersionTest, CorrectMajorComponent) {
-    ASSERT_EQ(2, agent_framework::generic::get_version_component(version_string, Version::MAJOR_INDEX));
-}
-
-TEST(VersionTest, CorrectMinorComponent) {
-    ASSERT_EQ(1, agent_framework::generic::get_version_component(version_string, Version::MINOR_INDEX));
+    ASSERT_EQ(2019, agent_framework::generic::get_version_component(version_string, Version::MAJOR_INDEX));
 }
 
 TEST(VersionTest, CorrectBuildComponent) {
-    ASSERT_EQ(100, agent_framework::generic::get_version_component(version_string, Version::BUILD_INDEX));
+    ASSERT_EQ(13, agent_framework::generic::get_version_component(version_string, Version::BUILD_INDEX));
+}
+
+TEST(VersionTest, CorrectMinorComponent) {
+    ASSERT_EQ(0, agent_framework::generic::get_version_component(version_string, Version::MINOR_INDEX));
 }
 
 TEST(VersionTest, CorrectHotfixComponent) {
-    ASSERT_EQ(10, agent_framework::generic::get_version_component(version_string, 4));
+    ASSERT_EQ(0, agent_framework::generic::get_version_component(version_string, 4));
 }
 
 TEST(VersionTest, InvalidComponentIndex) {

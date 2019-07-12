@@ -39,7 +39,7 @@ public class ResourcePatternsTest {
             {ETHERNET_SWITCH_PORT_PATTERN, true, "/redfish/v1/EthernetSwitches/547ca796-ee50-11e8-addc-6b3291d8f5b5_1/Ports/Ethernet23/4"},
             {COMPUTER_SYSTEM_ETHERNET_INTERFACE_PATTERN, true, "/redfish/v1/Systems/db046a90-d610-11e7-9661-419a3eff5c1a/EthernetInterfaces/87:5B:1B:11:28:F9"},
             {ACTION_PATTERN, true, "/redfish/v1/Systems/1/Actions/ComputerSystem.Reset"},
-            {ACTION_PATTERN, true, "/redfish/v1/Systems/1/Actions/Oem/Intel.Oem.StartDeepDiscovery"}
+            {ACTION_PATTERN, true, "/redfish/v1/Systems/1/Actions/Oem/Intel.Oem.EraseOptaneDCPersistentMemory"}
         };
     }
 

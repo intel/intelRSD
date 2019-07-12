@@ -43,6 +43,10 @@ public class NetworkDeviceFunction extends DiscoverableEntity {
     @JoinColumn(name = "network_interface_id")
     private NetworkInterface networkInterface;
 
+    @ManyToOne(fetch = LAZY, cascade = {MERGE, PERSIST})
+    @JoinColumn(name = "network_adapter_id")
+    private NetworkAdapter networkAdapter;
+
     public NetworkInterface getNetworkInterface() {
         return networkInterface;
     }
@@ -60,8 +64,26 @@ public class NetworkDeviceFunction extends DiscoverableEntity {
         }
     }
 
+    public NetworkAdapter getNetworkAdapter() {
+        return networkAdapter;
+    }
+
+    public void setNetworkAdapter(NetworkAdapter networkAdapter) {
+        this.networkAdapter = networkAdapter;
+    }
+
+    public void unlinkNetworkAdapter(NetworkAdapter networkAdapter) {
+        if (Objects.equals(this.networkAdapter, networkAdapter)) {
+            this.networkAdapter = null;
+            if (networkAdapter != null) {
+                networkAdapter.unlinkNetworkDeviceFunction(this);
+            }
+        }
+    }
+
     @Override
     public void preRemove() {
+        unlinkNetworkAdapter(networkAdapter);
         unlinkNetworkInterface(networkInterface);
     }
 }

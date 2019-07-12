@@ -16,12 +16,13 @@
 
 package com.intel.rsd.resourcemanager.layers.completer;
 
+import lombok.experimental.UtilityClass;
+
 import java.util.Map;
 import java.util.Set;
 
-public final class CollectionContentsUpdater {
-    private CollectionContentsUpdater() {
-    }
+@UtilityClass
+class CollectionContentsUpdater {
 
     public static <K, V> void updateMapContents(Map<K, V> target, Map<K, V> freshContent) {
         target.clear();

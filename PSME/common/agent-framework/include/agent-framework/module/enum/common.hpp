@@ -79,7 +79,7 @@ ENUM(CollectionType, uint32_t,
      Managers, Ports, PCIeDevices,
      Zones, PCIeFunctions, Switches, Acls, Rules, StaticMacs,
      StorageSubsystems, Tasks, Fabrics, Endpoints, ChassisSensors, MetricDefinitions, Metrics, TrustedModules,
-     StoragePools, Volumes, ReconfigurationSlotsDetails, MemoryChunks, MemoryDomains
+     StoragePools, Volumes, ReconfigurationSlots, MemoryChunks, MemoryDomains, LogServices, LogEntries
 );
 
 /*!
@@ -95,7 +95,7 @@ ENUM(CollectionName, uint32_t,
      NeighborSwitches, Ports, PcieDevices, Zones, PcieFunctions, Switches, PortAcls,
      Acls, AclRules, AclPorts, StaticMacs, StorageSubsystems, Tasks, Fabrics,
      Endpoints, ChassisSensors, MetricDefinitions, Metrics, TrustedModules, StoragePools, Volumes,
-     ReconfigurationSlotsDetails, MemoryChunks, MemoryDomains
+     ReconfigurationSlots, MemoryChunks, MemoryDomains, LogServices, LogEntries
 );
 
 /*!
@@ -154,7 +154,7 @@ ENUM(Component, uint32_t,
      ThermalZone, Vlan, EthernetSwitchPortVlan, PortMember, NeighborSwitch,
      Switch, PcieDevice, Zone, PcieFunction, Port,
      Acl, AclRule, StaticMac, StorageSubsystem, Task, Fabric, Endpoint, ChassisSensor, Metric, MetricDefinition,
-     TrustedModule, StoragePool, Volume);
+     TrustedModule, StoragePool, Volume, LogService, LogEntry);
 
 /*!
  * @brief ENUM IdentifierType for Identifier attribute durableNameFormat field
@@ -311,6 +311,26 @@ ENUM(EntityRole, uint32_t, Initiator, Target, Both);
  */
 ENUM(TransportProtocol, uint32_t, PCIe, AHCI, UHCI, SAS, SATA, USB, NVMe, FC, iSCSI, FCoE, FCP, FICON, NVMeOverFabrics,
      SMB, NFSv3, NFSv4, HTTP, HTTPS, FTP, SFTP, iWARP, RoCE, RoCEv2, OEM);
+
+/*!
+ * @brief ENUM LogEntryType types as specified by Redfish "LogEntryType"
+ */
+ENUM(LogEntryType, uint32_t, Event, Multiple, OEM, SEL);
+
+/*!
+ * @brief ENUM OverWritePolicy types as specified by Redfish "OverWritePolicy"
+ */
+ENUM(OverWritePolicy, uint32_t, NeverOverWrites, Unknown, WrapsWhenFull);
+
+/*!
+ * @brief ENUM EntryType types as specified by Redfish "EntryType"
+ */
+ENUM(EntryType, uint32_t, Event, Oem, SEL);
+
+/*!
+ * @brief ENUM EventType types as specified by Redfish "EventType"
+ */
+ENUM(EventType, uint32_t, Alert, ResourceAdded, ResourceRemoved, ResourceUpdated, StatusChange);
 
 }
 }

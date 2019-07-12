@@ -36,8 +36,9 @@ public:
     static const std::string CHASSIS_ASSET_TAG;
     static const std::string ROLE;
     static const std::string IPV4;
-    static const std::string RDMA_PORT;
+    static const std::string PORT;
     static const std::string UUID;
+    static const std::string TRANSPORT_PROTOCOL;
 
     /*!
      * @brief Constructor

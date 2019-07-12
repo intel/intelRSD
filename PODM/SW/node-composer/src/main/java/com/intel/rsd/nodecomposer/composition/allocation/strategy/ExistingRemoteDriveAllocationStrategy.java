@@ -25,7 +25,7 @@ import com.intel.rsd.nodecomposer.composition.assembly.IscsiAssemblyTasksProvide
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.InitiatorEndpointAssemblyTaskFactory;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.NodeTask;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.ZoneTaskFactory;
-import com.intel.rsd.nodecomposer.discovery.external.partial.EndpointObtainer;
+import com.intel.rsd.nodecomposer.persistence.dao.EndpointDao;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComputerSystem;
 import com.intel.rsd.nodecomposer.persistence.redfish.Fabric;
@@ -50,10 +50,10 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 public class ExistingRemoteDriveAllocationStrategy implements AllocationStrategy {
     private final InitiatorEndpointAssemblyTaskFactory initiatorEndpointAssemblyTaskFactory;
     private final ZoneTaskFactory zoneTaskFactory;
-    private final EndpointObtainer endpointObtainer;
     private final IscsiAssemblyTasksProvider iscsiAssemblyTasksProvider;
     private final VolumeHelper volumeHelper;
     private final ExistingRemoteDriveValidator existingRemoteDriveValidator;
+    private final EndpointDao endpointDao;
 
     private RemoteDrive drive;
     private ResourceAllocationStrategy resourceAllocationStrategy;
@@ -61,16 +61,16 @@ public class ExistingRemoteDriveAllocationStrategy implements AllocationStrategy
 
     @Autowired
     @SuppressWarnings({"checkstyle:ParameterNumber"})
-    public ExistingRemoteDriveAllocationStrategy(InitiatorEndpointAssemblyTaskFactory initiatorEndpointAssemblyTaskFactory,
-                                                 ZoneTaskFactory zoneTaskFactory, EndpointObtainer endpointObtainer,
+    public ExistingRemoteDriveAllocationStrategy(ZoneTaskFactory zoneTaskFactory,
+                                                 InitiatorEndpointAssemblyTaskFactory initiatorEndpointAssemblyTaskFactory,
                                                  IscsiAssemblyTasksProvider iscsiAssemblyTasksProvider, VolumeHelper volumeHelper,
-                                                 ExistingRemoteDriveValidator existingRemoteDriveValidator) {
-        this.initiatorEndpointAssemblyTaskFactory = initiatorEndpointAssemblyTaskFactory;
-        this.zoneTaskFactory = zoneTaskFactory;
-        this.endpointObtainer = endpointObtainer;
-        this.iscsiAssemblyTasksProvider = iscsiAssemblyTasksProvider;
+                                                 ExistingRemoteDriveValidator existingRemoteDriveValidator, EndpointDao endpointDao) {
+        this.endpointDao = endpointDao;
         this.volumeHelper = volumeHelper;
+        this.zoneTaskFactory = zoneTaskFactory;
+        this.iscsiAssemblyTasksProvider = iscsiAssemblyTasksProvider;
         this.existingRemoteDriveValidator = existingRemoteDriveValidator;
+        this.initiatorEndpointAssemblyTaskFactory = initiatorEndpointAssemblyTaskFactory;
     }
 
     public void setResourceAllocationStrategy(ResourceAllocationStrategy resourceAllocationStrategy) {
@@ -98,13 +98,13 @@ public class ExistingRemoteDriveAllocationStrategy implements AllocationStrategy
         Volume volume = any(composedNode.getVolumes());
         Fabric fabric = volumeHelper.retrieveFabricFromVolume(volume);
 
-        if (endpointObtainer.getInitiatorEndpoint(computerSystem, fabric) == null) {
+        if (endpointDao.findInitiatorEndpointBySystemAndFabric(computerSystem.getUri(), fabric.getUri()) == null) {
             tasks.add(initiatorEndpointAssemblyTaskFactory.create(fabric.getUri()));
         }
         if (computerSystem.hasNetworkInterfaceWithNetworkDeviceFunction() && ISCSI.equals(fabric.getFabricType())) {
-            tasks.addAll(iscsiAssemblyTasksProvider.createTasks());
+            tasks.addAll(iscsiAssemblyTasksProvider.createTasks(volume.getBootable()));
         }
-        tasks.add(zoneTaskFactory.create());
+        tasks.add(zoneTaskFactory.create(fabric.getUri()));
     }
 
     @Override

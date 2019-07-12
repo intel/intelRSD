@@ -33,11 +33,9 @@ public:
     explicit SecurityCapabilities();
 
     SecurityCapabilities(const bool passphrase_capable,
-                         const std::uint32_t max_passphrase_count,
-                         const Array<enums::SecurityStates>& security_states):
+                         const std::uint32_t max_passphrase_count):
         m_passphrase_capable{passphrase_capable},
-        m_max_passphrase_count{max_passphrase_count},
-        m_security_states{security_states}
+        m_max_passphrase_count{max_passphrase_count}
     {}
 
     ~SecurityCapabilities();
@@ -81,23 +79,6 @@ public:
     }
 
     /*!
-     * @brief Sets security states
-     * @param[in] security_states Security states
-     * */
-
-    void set_security_states(const Array<enums::SecurityStates>& security_states) {
-        m_security_states = security_states;
-    }
-
-    /*!
-     * @brief Gets security states
-     * @return Security states
-     * */
-    const Array<enums::SecurityStates>& get_security_states() const {
-        return m_security_states;
-    }
-
-    /*!
      * @brief Converts this to json representation.
      * @return json representation of this class.
      * */
@@ -113,7 +94,6 @@ public:
 private:
     OptionalField<bool> m_passphrase_capable{};
     OptionalField<std::uint32_t> m_max_passphrase_count{};
-    Array<enums::SecurityStates> m_security_states{};
 };
 
 }

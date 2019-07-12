@@ -38,13 +38,13 @@ public final class RedfishError {
     @JsonIgnore
     private HttpStatus httpStatus;
 
-    public RedfishError(HttpStatus httpStatus, String code, String message) {
-        this.error = new Error(code, message);
+    public RedfishError(HttpStatus httpStatus, RedfishErrorCode redfishErrorCode, String errorMessage) {
+        this.error = new Error(redfishErrorCode, errorMessage);
         this.httpStatus = httpStatus;
     }
 
-    public RedfishError(HttpStatus httpStatus, String code, String message, String... extendedInfo) {
-        this.error = new Error(code, message, extendedInfo);
+    public RedfishError(HttpStatus httpStatus, RedfishErrorCode redfishErrorCode, String errorMessage, String... extendedInfo) {
+        this.error = new Error(redfishErrorCode, errorMessage, extendedInfo);
         this.httpStatus = httpStatus;
     }
 
@@ -52,20 +52,20 @@ public final class RedfishError {
     @ToString
     public static class Error {
         @JsonProperty("code")
-        private String code;
+        private RedfishErrorCode redfishErrorCode;
         @JsonProperty("message")
         private String message;
         @JsonProperty("@Message.ExtendedInfo")
         private List<ExtendedInfo> extendedInfo = Collections.emptyList();
 
-        Error(String code, String message) {
-            this.code = code;
-            this.message = message;
+        Error(RedfishErrorCode redfishErrorCode, String errorMessage) {
+            this.redfishErrorCode = redfishErrorCode;
+            this.message = errorMessage;
         }
 
-        Error(String code, String message, String... extendedInfo) {
-            this.code = code;
-            this.message = message;
+        Error(RedfishErrorCode redfishErrorCode, String errorMessage, String... extendedInfo) {
+            this.redfishErrorCode = redfishErrorCode;
+            this.message = errorMessage;
             this.extendedInfo = Stream.of(extendedInfo).map(ExtendedInfo::new).collect(toList());
         }
     }

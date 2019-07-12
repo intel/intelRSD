@@ -1,0 +1,26 @@
+{
+  "@odata.context": "/redfish/v1/$metadata#Manager.Manager",
+  "@odata.id": "/redfish/v1/Managers/PodManager",
+  "@odata.type": "#Manager.v1_5_0.Manager",
+  "Id": "PodManager",
+  "ManagerType": "Service",
+  "Name": "Pod Manager",
+  "Description": "Manager that represents Pod Manager",
+  "ServiceEntryPointUUID": null,
+  "Status": {
+    "State": "Enabled",
+    "Health": "OK",
+    "HealthRollup": null
+  },
+  "Links": {
+    "@odata.type": "#Manager.v1_4_0.Links",
+    "ManagerForChassis": [
+      {
+        "@odata.id": "/redfish/v1/Chassis/pod"
+      }
+    ],
+    "ManagerForServers": [],
+    "ManagerForSwitches": [],
+    "ManagerInChassis": null
+  }
+}

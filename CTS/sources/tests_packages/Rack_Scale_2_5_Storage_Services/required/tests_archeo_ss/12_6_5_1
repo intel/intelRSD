@@ -1,0 +1,10 @@
+{
+  "name": "12.6.5.1",
+  "resources": {
+    "volumes_members": ["Volume.v1_0_0.Volume", "Volumes"]
+  },
+  "actions": [
+    ["all_not_null_test", ["volumes_members", "Volumes", ["CapacityBytes"]]],
+    ["numeric_logical_test", ["volumes_members", "Volumes", ["CapacityBytes"]]]
+  ]
+}

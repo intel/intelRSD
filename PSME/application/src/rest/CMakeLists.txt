@@ -81,6 +81,10 @@ set(SOURCES
     endpoints/manager/manager_network_interface.cpp
     endpoints/manager/manager_vlan_network_interface_collection.cpp
     endpoints/manager/manager_vlan_network_interface.cpp
+    endpoints/manager/log_services_collection.cpp
+    endpoints/manager/log_service.cpp
+    endpoints/manager/log_entry_collection.cpp
+    endpoints/manager/log_entry.cpp
     endpoints/update_service.cpp
     endpoints/simple_update.cpp
     endpoints/simple_update_action_info.cpp
@@ -170,6 +174,8 @@ set(SOURCES
     endpoints/chassis/pcie_devices_collection.cpp
     endpoints/chassis/pcie_function.cpp
     endpoints/chassis/pcie_functions_collection.cpp
+    endpoints/chassis/network_adapter_collection.cpp
+    endpoints/chassis/network_adapter.cpp
 
     endpoints/fabric/fabric.cpp
     endpoints/fabric/fabrics_collection.cpp
@@ -340,7 +346,10 @@ set_source_files_properties(
         PROPERTIES COMPILE_FLAGS "-Wno-exit-time-destructors -Wno-global-constructors"
 )
 
-add_library(application-rest ${SOURCES} ${EXTRA_SOURCES})
+add_library(application-rest STATIC
+    ${SOURCES}
+    ${EXTRA_SOURCES}
+)
 
 # Since app also uses generated metadata, it should wait for the headers
 # to be generated
@@ -348,3 +357,8 @@ add_dependencies(application-rest metadata_generate_headers)
 
 # Add directory for storing database files (during install)
 install(DIRECTORY DESTINATION /var/opt/psme)
+
+target_link_libraries(application-rest
+    PRIVATE
+    agent-framework-discovery
+)

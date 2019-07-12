@@ -19,8 +19,28 @@ package com.intel.tools.coverage
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-class CoverageLevelVerification {
+class CoverageLimits {
     Float lineCoverageMinThreshold
+
+    /* how much can overall code coverage exceed the minThreshold until we consider threshold too low */
+    Float lineCoverageExcessMax = 0.025
+
+    protected CoverageLimits() { }
+
+    @Override
+    String toString() {
+        return """{minThreshold: ${lineCoverageMinThreshold}, excessMax: ${lineCoverageExcessMax}}"""
+    }
+}
+
+class CoverageLevelVerification extends CoverageLimits {
+    Map<String, CoverageLimits> packages
+
+    static CoverageLimits limits(Closure configureClosure) {
+        def res = new CoverageLimits()
+        res.with configureClosure
+        return res
+    }
 }
 
 class CoverageLevelPlugin implements Plugin<Project> {

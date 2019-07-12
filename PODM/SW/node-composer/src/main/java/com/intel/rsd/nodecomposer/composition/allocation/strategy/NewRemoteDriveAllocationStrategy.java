@@ -17,6 +17,7 @@
 package com.intel.rsd.nodecomposer.composition.allocation.strategy;
 
 import com.intel.rsd.nodecomposer.business.Violations;
+import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.business.services.redfish.requests.RequestedNode;
 import com.intel.rsd.nodecomposer.composition.allocation.AllocationStrategy;
 import com.intel.rsd.nodecomposer.composition.allocation.strategy.matcher.NewDriveAllocationContextDescriber;
@@ -26,11 +27,12 @@ import com.intel.rsd.nodecomposer.composition.assembly.tasks.InitiatorEndpointAs
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.NewVolumeTaskFactory;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.NodeTask;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.ZoneTaskFactory;
-import com.intel.rsd.nodecomposer.discovery.external.partial.EndpointObtainer;
+import com.intel.rsd.nodecomposer.persistence.dao.EndpointDao;
 import com.intel.rsd.nodecomposer.persistence.dao.GenericDao;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComputerSystem;
 import com.intel.rsd.nodecomposer.persistence.redfish.StoragePool;
+import com.intel.rsd.nodecomposer.persistence.redfish.Volume;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.val;
@@ -43,10 +45,10 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId.oDataIdFromUri;
 import static com.intel.rsd.nodecomposer.types.Protocol.ISCSI;
 import static javax.transaction.Transactional.TxType.MANDATORY;
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
 @Scope(SCOPE_PROTOTYPE)
@@ -57,10 +59,10 @@ public class NewRemoteDriveAllocationStrategy implements AllocationStrategy {
     private final NewVolumeTaskFactory newVolumeTaskFactory;
     private final InitiatorEndpointAssemblyTaskFactory initiatorEndpointAssemblyTaskFactory;
     private final ZoneTaskFactory zoneTaskFactory;
-    private final EndpointObtainer endpointObtainer;
     private final IscsiAssemblyTasksProvider iscsiAssemblyTasksProvider;
     private final GenericDao genericDao;
     private final DelegatingDescriber driveDescriptorFinder;
+    private final EndpointDao endpointDao;
 
     @Setter
     private RequestedNode.RemoteDrive drive;
@@ -72,17 +74,17 @@ public class NewRemoteDriveAllocationStrategy implements AllocationStrategy {
     @SuppressWarnings({"checkstyle:ParameterNumber"})
     public NewRemoteDriveAllocationStrategy(NewRemoteDriveValidator validator, NewVolumeTaskFactory newVolumeTaskFactory,
                                             InitiatorEndpointAssemblyTaskFactory initiatorEndpointAssemblyTaskFactory,
-                                            ZoneTaskFactory zoneTaskFactory, EndpointObtainer endpointObtainer,
+                                            ZoneTaskFactory zoneTaskFactory,
                                             IscsiAssemblyTasksProvider iscsiAssemblyTasksProvider, GenericDao genericDao,
-                                            DelegatingDescriber driveDescriptorFinder) {
+                                            DelegatingDescriber driveDescriptorFinder, EndpointDao endpointDao) {
         this.validator = validator;
         this.newVolumeTaskFactory = newVolumeTaskFactory;
         this.initiatorEndpointAssemblyTaskFactory = initiatorEndpointAssemblyTaskFactory;
         this.zoneTaskFactory = zoneTaskFactory;
-        this.endpointObtainer = endpointObtainer;
         this.iscsiAssemblyTasksProvider = iscsiAssemblyTasksProvider;
         this.genericDao = genericDao;
         this.driveDescriptorFinder = driveDescriptorFinder;
+        this.endpointDao = endpointDao;
     }
 
     @Override
@@ -99,15 +101,25 @@ public class NewRemoteDriveAllocationStrategy implements AllocationStrategy {
         descriptor.setStorageServiceODataId(storagePool.getStorageService().getUri());
         tasks.add(newVolumeTaskFactory.createTask(descriptor));
 
+        ODataId fabricOdataId = storagePool.getStorageService().getFabric().getUri();
         ComputerSystem computerSystem = composedNode.getComputerSystem();
-        if (endpointObtainer.getInitiatorEndpoint(computerSystem, storagePool.getStorageService()) == null) {
-            tasks.add(initiatorEndpointAssemblyTaskFactory.create(storagePool.getStorageService().getFabric().getUri()));
+        if (endpointDao.findInitiatorEndpointBySystemAndStorageService(computerSystem.getUri(), storagePool.getStorageService().getUri()) == null) {
+            tasks.add(initiatorEndpointAssemblyTaskFactory.create(fabricOdataId));
         }
-
         if (computerSystem.hasNetworkInterfaceWithNetworkDeviceFunction() && ISCSI.equals(descriptor.getProtocol())) {
-            tasks.addAll(iscsiAssemblyTasksProvider.createTasks());
+            tasks.addAll(iscsiAssemblyTasksProvider.createTasks(isMasterVolumeBootable(descriptor)));
         }
-        tasks.add(zoneTaskFactory.create());
+        tasks.add(zoneTaskFactory.create(fabricOdataId));
+    }
+
+    private boolean isMasterVolumeBootable(RemoteDriveAllocationContextDescriptor descriptor) {
+        if (descriptor != null
+            && descriptor.getMasterUri() != null
+            && descriptor.getReplicaType() != null) {
+            Volume masterVolume = genericDao.find(Volume.class, oDataIdFromUri(descriptor.getMasterUri()));
+            return masterVolume.getBootable();
+        }
+        return false;
     }
 
     private RemoteDriveAllocationContextDescriptor initialize() throws ResourceFinderException {
@@ -120,7 +132,6 @@ public class NewRemoteDriveAllocationStrategy implements AllocationStrategy {
     }
 
     @Component
-    @Scope(SCOPE_SINGLETON)
     static class DelegatingDescriber implements RemoteDriveAllocationContextDescriber {
         private final NewDriveAllocationContextDescriber newDriveAllocationContextDescriber;
         private final MasterBasedNewDriveAllocationContextDescriber masterBasedNewDriveAllocationContextDescriber;
@@ -133,7 +144,6 @@ public class NewRemoteDriveAllocationStrategy implements AllocationStrategy {
         }
 
         @Override
-        @Transactional(MANDATORY)
         public RemoteDriveAllocationContextDescriptor describe(RequestedNode.RemoteDrive remoteDrive) throws ResourceFinderException {
             if (remoteDrive.getMaster() != null) {
                 return masterBasedNewDriveAllocationContextDescriber.describe(remoteDrive);

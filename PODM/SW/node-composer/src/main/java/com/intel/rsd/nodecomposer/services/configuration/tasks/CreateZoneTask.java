@@ -44,14 +44,14 @@ public class CreateZoneTask extends DiscoveryServiceTask {
 
         Set<URI> createdEndpoints = createEndpoints(endpoints, fabricUri);
         URI zoneCollectionUri = fromUri(fabricUri).pathSegment(ZONES_RESOURCE_NAME).build().toUri();
-        restActionInvoker.post(discoveryServiceUri, zoneCollectionUri, new ZoneActionJson(createdEndpoints));
+        discoveryServiceWebClient.post(discoveryServiceUri, zoneCollectionUri, new ZoneActionJson(createdEndpoints));
     }
 
     private Set<URI> createEndpoints(Collection<Endpoint> endpoints, URI fabricUri) {
         URI endpointCollectionUri = fromUri(fabricUri).pathSegment(ENDPOINTS_RESOURCE_NAME).build().toUri();
         return endpoints.stream()
             .map(endpoint -> {
-                URI createdEndpointUri = restActionInvoker.post(discoveryServiceUri, endpointCollectionUri, toEndpointCreationRequest(endpoint));
+                URI createdEndpointUri = discoveryServiceWebClient.post(discoveryServiceUri, endpointCollectionUri, toEndpointCreationRequest(endpoint));
                 return URI.create(createdEndpointUri.getPath());
             })
             .collect(toSet());

@@ -20,19 +20,13 @@ import com.intel.rsd.nodecomposer.business.Violations;
 import com.intel.rsd.nodecomposer.composition.allocation.AllocationStrategy;
 import com.intel.rsd.nodecomposer.composition.assembly.tasks.NodeTask;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
-@Transactional(MANDATORY)
 public class NoRemoteDriveStrategy implements AllocationStrategy {
     @Override
     public Violations validate() {

@@ -12,8 +12,13 @@
   <edmx:Reference Uri="EndpointCollection_v1.xml">
     <edmx:Include Namespace="EndpointCollection"/>
   </edmx:Reference>
+  <edmx:Reference Uri="RedfishExtensions_v1.xml">
+    <edmx:Include Namespace="RedfishExtensions.v1_0_0" Alias="Redfish"/>
+  </edmx:Reference>
+
   <edmx:DataServices>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EndpointGroup">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="EndpointGroup" BaseType="Resource.v1_0_0.Resource" Abstract="true">
         <Annotation Term="OData.Description" String="A group of endpoints that are managed as a unit."/>
         <Annotation Term="OData.LongDescription" String="A group of endpoints that shall be managed as a unit."/>
@@ -46,6 +51,7 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EndpointGroup.v1_0_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="EndpointGroup" BaseType="EndpointGroup.EndpointGroup">
         <Annotation Term="OData.Description" String="A group of endpoints that are managed as a unit."/>
         <Annotation Term="OData.LongDescription" String="A group of endpoints that shall be managed as a unit."/>
@@ -103,10 +109,16 @@
           <Annotation Term="OData.Description" String="The group contains the server (target) endpoints."/>
         </Member>
       </EnumType>
+    </Schema>
 
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EndpointGroup.v1_0_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="EndpointGroup" BaseType="EndpointGroup.v1_0_0.EndpointGroup"/>
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EndpointGroup.v1_1_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <EntityType Name="EndpointGroup" BaseType="EndpointGroup.v1_0_0.EndpointGroup">
         <Property Name="Actions" Type="EndpointGroup.v1_1_0.Actions" Nullable="false">
           <Annotation Term="OData.Description" String="The available actions for this resource."/>
@@ -129,7 +141,14 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EndpointGroup.v1_1_1">
-      <Annotation Term="OData.Description" String="Move enums to unversioned namespace.  Change references to unversioned. "/>
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="Move enums to unversioned namespace.  Change references to unversioned. "/>      <EntityType Name="EndpointGroup" BaseType="EndpointGroup.v1_1_0.EndpointGroup"/>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="EndpointGroup.v1_1_2">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="EndpointGroup" BaseType="EndpointGroup.v1_1_1.EndpointGroup"/>
     </Schema>
 
   </edmx:DataServices>

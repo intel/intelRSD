@@ -17,13 +17,16 @@
 package com.intel.rsd.nodecomposer.business.redfish.services.attach;
 
 import com.intel.rsd.nodecomposer.business.Violations;
+import com.intel.rsd.nodecomposer.business.redfish.services.helpers.AttachActionValidator;
 import com.intel.rsd.nodecomposer.business.redfish.services.helpers.ProcessorHelper;
+import com.intel.rsd.nodecomposer.business.redfish.services.helpers.TargetEndpointFinder;
 import com.intel.rsd.nodecomposer.persistence.dao.ProcessorDao;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
 import com.intel.rsd.nodecomposer.persistence.redfish.Endpoint;
 import com.intel.rsd.nodecomposer.persistence.redfish.Fabric;
 import com.intel.rsd.nodecomposer.persistence.redfish.Processor;
 import com.intel.rsd.nodecomposer.types.Protocol;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -33,13 +36,19 @@ import static com.intel.rsd.nodecomposer.types.AttachableType.Types.PROCESSOR;
 import static com.intel.rsd.nodecomposer.types.ProcessorType.FPGA;
 import static com.intel.rsd.nodecomposer.types.Protocol.FPGA_OVER_FABRICS;
 
+@SuppressWarnings("checkstyle:ClassFanOutComplexity")
 @Component(ATTACHER_BEAN_PREFIX + PROCESSOR)
 public class ProcessorAttacher extends Attacher<Processor> {
 
     private final ProcessorDao processorDao;
     private final ProcessorHelper processorHelper;
 
-    public ProcessorAttacher(ProcessorDao processorDao, ProcessorHelper processorHelper) {
+    @Autowired
+    public ProcessorAttacher(AttachActionValidator<Processor> attachActionValidator, TargetEndpointFinder targetEndpointFinder,
+                             RemoteAttacher remoteAttacher, LocalAttacher localAttacher,
+                             ProcessorDao processorDao, ProcessorHelper processorHelper) {
+
+        super(attachActionValidator, targetEndpointFinder, remoteAttacher, localAttacher);
         this.processorDao = processorDao;
         this.processorHelper = processorHelper;
     }

@@ -23,25 +23,19 @@ import com.intel.rsd.nodecomposer.composition.allocation.strategy.RemoteDriveAll
 import com.intel.rsd.nodecomposer.composition.allocation.strategy.ResourceFinderException;
 import com.intel.rsd.nodecomposer.persistence.dao.GenericDao;
 import com.intel.rsd.nodecomposer.persistence.redfish.StoragePool;
-import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.Optional;
 
 import static com.intel.rsd.nodecomposer.utils.Converters.convertGibToBytes;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class NewDriveAllocationContextDescriber implements RemoteDriveAllocationContextDescriber {
-    @Inject
+    @Autowired
     private GenericDao genericDao;
 
-    @Transactional(MANDATORY)
     public RemoteDriveAllocationContextDescriptor describe(RemoteDrive remoteDrive) throws ResourceFinderException {
         RemoteDriveAllocationContextDescriptor resource = new RemoteDriveAllocationContextDescriptor();
 

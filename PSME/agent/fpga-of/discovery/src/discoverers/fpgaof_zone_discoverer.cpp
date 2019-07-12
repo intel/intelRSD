@@ -39,7 +39,7 @@ namespace {
 
 void add_endpoint_to_zone(const Uuid& zone, const Uuid& endpoint) {
     if (!get_manager<Endpoint>().entry_exists(endpoint)) {
-        log_error("nvme-agent", "No endpoint found in manager with given UUID '" + endpoint + "'");
+        log_error("fpgaof-discovery", "No endpoint found in manager with given UUID '" + endpoint + "'");
         return;
     }
     get_m2m_manager<Zone, Endpoint>().add_entry(zone, endpoint);
@@ -74,7 +74,7 @@ void bind_endpoints_in_zone(AgentContext::SPtr ctx, const Zone& zone) {
             auto device_uuid = get_manager<Endpoint>().get_entry(
                 target).get_connected_entities().front().get_entity().value();
             OpaeProxyHostApi::set_device_ownership(*ctx->opae_proxy_context, host_uuid, device_uuid);
-            log_debug("opae-proxy", "Host '" + host_uuid + "' became the owner of device '" + device_uuid + "'");
+            log_info("opae-proxy", "Host '" + host_uuid + "' became the owner of device '" + device_uuid + "'");
         }
     }
 }
@@ -89,14 +89,14 @@ std::vector<agent_framework::model::Zone> FpgaofZoneDiscoverer::discover(const U
 
     for (const auto& zone_uuid : zone_uuids) {
         Zone zone{fabric_uuid};
-        log_debug("fpgaof-discovery", "Discovering zone " + zone_uuid + " from database");
+        log_info("fpgaof-discovery", "Discovering zone " + zone_uuid + " from database");
         try {
             add_zone(zone, zone_uuid);
             bind_endpoints_in_zone(m_context, zone);
             zones.push_back(zone);
         }
-        catch (const std::exception&) {
-            log_error("fpgaof-discovery", "Unable to read zone " + zone_uuid + " from database");
+        catch (const std::exception& e) {
+            log_error("fpgaof-discovery", "Unable to read zone " + zone_uuid + " from database. " + e.what());
         }
     }
     return zones;

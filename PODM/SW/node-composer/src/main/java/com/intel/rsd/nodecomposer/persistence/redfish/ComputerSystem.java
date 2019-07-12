@@ -30,6 +30,7 @@ import com.intel.rsd.nodecomposer.types.SystemType;
 import com.intel.rsd.nodecomposer.types.actions.ResetType;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.val;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -53,12 +54,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.intel.rsd.nodecomposer.utils.Collector.toSingle;
-import static com.intel.rsd.nodecomposer.utils.Collector.toSingleOrNull;
+import static com.intel.rsd.collections.IterableHelper.optionalSingle;
 import static com.intel.rsd.nodecomposer.utils.Contracts.requiresNonNull;
+import static java.util.stream.Collectors.toList;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.CascadeType.REMOVE;
@@ -502,18 +504,36 @@ public class ComputerSystem extends DiscoverableEntity implements ComposableAsse
         return new MemoryModuleFromMemorySummary(this);
     }
 
-    public NetworkDeviceFunction getNetworkDeviceFunctionOrNull() {
-        return networkInterfaces.stream()
-            .map(NetworkInterface::getNetworkDeviceFunctions)
-            .flatMap(Collection::stream)
-            .collect(toSingleOrNull());
+    public Optional<NetworkDeviceFunction> getNetworkDeviceFunction() {
+        val networkDeviceFunctionFromNetworkAdapters = getNetworkDeviceFunctionFromNetworkAdapters();
+
+        if (networkDeviceFunctionFromNetworkAdapters.isPresent()) {
+            return networkDeviceFunctionFromNetworkAdapters;
+        } else {
+            return getNetworkDeviceFunctionFromNetworkInterfaces();
+        }
     }
 
-    public NetworkDeviceFunction getNetworkDeviceFunction() {
-        return networkInterfaces.stream()
+    private Optional<NetworkDeviceFunction> getNetworkDeviceFunctionFromNetworkInterfaces() {
+        return optionalSingle(networkInterfaces.stream()
             .map(NetworkInterface::getNetworkDeviceFunctions)
             .flatMap(Collection::stream)
-            .collect(toSingle());
+            .collect(toList()));
+    }
+
+    private Optional<NetworkDeviceFunction> getNetworkDeviceFunctionFromNetworkAdapters() {
+        val chassis = optionalSingle(getChassis());
+
+        if (chassis.isPresent()) {
+            val networkAdapters = chassis.get().getNetworkAdapters();
+
+            return optionalSingle(networkAdapters.stream()
+                .map(NetworkAdapter::getNetworkDeviceFunctions)
+                .flatMap(Collection::stream)
+                .collect(toList()));
+        }
+
+        return Optional.empty();
     }
 
     @Override
@@ -555,7 +575,8 @@ public class ComputerSystem extends DiscoverableEntity implements ComposableAsse
     }
 
     public boolean hasNetworkInterfaceWithNetworkDeviceFunction() {
-        return getNetworkInterfaces().stream().map(NetworkInterface::getNetworkDeviceFunctions).mapToLong(Collection::size).sum() != 0;
+        return getNetworkDeviceFunctionFromNetworkAdapters().isPresent()
+            || getNetworkDeviceFunctionFromNetworkInterfaces().isPresent();
     }
 
     @Override

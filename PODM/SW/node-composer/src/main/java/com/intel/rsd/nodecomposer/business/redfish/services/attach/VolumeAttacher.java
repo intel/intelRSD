@@ -17,12 +17,15 @@
 package com.intel.rsd.nodecomposer.business.redfish.services.attach;
 
 import com.intel.rsd.nodecomposer.business.Violations;
+import com.intel.rsd.nodecomposer.business.redfish.services.helpers.AttachActionValidator;
+import com.intel.rsd.nodecomposer.business.redfish.services.helpers.TargetEndpointFinder;
 import com.intel.rsd.nodecomposer.business.redfish.services.helpers.VolumeHelper;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
 import com.intel.rsd.nodecomposer.persistence.redfish.Endpoint;
 import com.intel.rsd.nodecomposer.persistence.redfish.Fabric;
 import com.intel.rsd.nodecomposer.persistence.redfish.Volume;
 import com.intel.rsd.nodecomposer.types.Protocol;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.intel.rsd.nodecomposer.business.redfish.services.attach.Attacher.ATTACHER_BEAN_PREFIX;
@@ -30,9 +33,15 @@ import static com.intel.rsd.nodecomposer.types.AttachableType.Types.VOLUME;
 
 @Component(ATTACHER_BEAN_PREFIX + VOLUME)
 public class VolumeAttacher extends Attacher<Volume> {
+
     private final VolumeHelper volumeHelper;
 
-    public VolumeAttacher(VolumeHelper volumeHelper) {
+    @Autowired
+    public VolumeAttacher(AttachActionValidator<Volume> attachActionValidator, TargetEndpointFinder targetEndpointFinder,
+                          RemoteAttacher remoteAttacher, LocalAttacher localAttacher,
+                          VolumeHelper volumeHelper) {
+
+        super(attachActionValidator, targetEndpointFinder, remoteAttacher, localAttacher);
         this.volumeHelper = volumeHelper;
     }
 

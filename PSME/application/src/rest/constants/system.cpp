@@ -218,25 +218,22 @@ const char MEMORY_TYPE[] = "Type";
 const char MEMORY_CAPACITY_MB[] = "CapacityMB";
 const char SPEED_MHZ[] = "SpeedMHz";
 const char EXTENDED_IDENTIFICATION_REGISTERS[] = "ExtendedIdentificationRegisters";
+const char PCIE_DEVICE[] = "PCIeDevice";
+const char PCIE_FUNCTIONS[] = "PCIeFunctions";
 
 }
 
 namespace Fpga {
-const char BIT_STREAM_VERSION[] = "BitStreamVersion";
-const char HSSI_CONFIGURATION[] = "HSSIConfiguration";
-const char HSSI_SIDEBAND[] = "HSSISideband";
-const char FPGA_TYPE[] = "Type";
+const char TYPE[] = "Type";
 const char MODEL[] = "Model";
-const char FW_ID[] = "FwId";
-const char FW_MANUFACTURER[] = "FwManufacturer";
-const char FW_VERSION[] = "FwVersion";
+const char FIRMWARE_ID[] = "FirmwareId";
+const char FIRMWARE_MANUFACTURER[] = "FirmwareManufacturer";
+const char FIRMWARE_VERSION[] = "FirmwareVersion";
 const char HOST_INTERFACE[] = "HostInterface";
 const char EXTERNAL_INTERFACES[] = "ExternalInterfaces";
-const char SIDEBAND_INTERFACE[] = "SidebandInterface";
 const char PCIE_VIRTUAL_FUNCTIONS[] = "PCIeVirtualFunctions";
 const char PROGRAMMABLE_FROM_HOST[] = "ProgrammableFromHost";
 const char RECONFIGURATION_SLOTS[] = "ReconfigurationSlots";
-const char RECONFIGURATION_SLOTS_DETAILS[] = "ReconfigurationSlotsDetails";
 const char ERASED[] = "Erased";
 const char SECURE_ERASE[] = "Intel.Oem.SecureErase";
 const char HASH_SECURE_ERASE[] = "#Intel.Oem.SecureErase";

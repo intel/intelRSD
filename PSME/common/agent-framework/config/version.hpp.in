@@ -39,8 +39,8 @@ public:
     };
 
     static constexpr int MAJOR_INDEX = 0;
-    static constexpr int MINOR_INDEX = 1;
-    static constexpr int BUILD_INDEX = 3;
+    static constexpr int BUILD_INDEX = 1;
+    static constexpr int MINOR_INDEX = 2;
     static constexpr const char* BUILD_TIME = "@BUILD_TIME@";
     static constexpr const build_type BUILD_TYPE = build_type::@BUILD_BRANCH@;
     static constexpr const char* VERSION_STRING = "@VER_STRING@";
@@ -51,13 +51,14 @@ public:
 /*!
  * Returns version string component as integer value.
  *
- * Version string consists of parts separated with period, ex. "2.1.2.123.0"
- * Calling get_version_part("2.1.2.123.0", 3) returns 123 integer value.
+ * Version string consists of parts separated with period, ex. "2.1.2.123.0" in old naming syntax and "2019.123" in new naming syntax
+ * For ensuring safety we should use only defined indexs from Version class to call get_version_component function.
+ *
  *
  * @param version_string version string.
  * @param index Index of version string component to be converted to integer value (0 indexed).
  * @return Integer representaion of version string part at index position,
- *         zero value if conversion is not possible or invalid index is given.
+ *         when index is value of Version::MAJOR_INDEX or Version::BUILD_INDEX function returns value, else returns 0.
  */
 int get_version_component(const char* version_string, int index);
 

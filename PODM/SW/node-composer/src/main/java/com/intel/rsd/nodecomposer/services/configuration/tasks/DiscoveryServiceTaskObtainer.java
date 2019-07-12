@@ -23,10 +23,10 @@ import com.intel.rsd.nodecomposer.externalservices.resources.redfish.FabricResou
 import com.intel.rsd.nodecomposer.externalservices.resources.redfish.ZoneResource;
 import com.intel.rsd.nodecomposer.persistence.redfish.Endpoint;
 import com.intel.rsd.nodecomposer.services.configuration.difference.EndpointCollectionsDifferenceExtractor;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -50,11 +50,10 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Slf4j
 @Component
-@Scope(SCOPE_SINGLETON)
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:MethodCount"})
 public class DiscoveryServiceTaskObtainer {
     private final EndpointCollectionsDifferenceExtractor differenceExtractor;
 
@@ -65,13 +64,11 @@ public class DiscoveryServiceTaskObtainer {
 
     public List<DiscoveryServiceTask> getListOfTasks(Map<UUID, Collection<Endpoint>> expectedEndpointsMap,
                                                      Map<UUID, ZoneResource> existingZonesMap,
-                                                     FabricResource fabricResource) {
+                                                     @NonNull FabricResource fabricResource) {
 
         val tasks = new ArrayList<DiscoveryServiceTask>();
-        if (fabricResource != null) {
-            tasks.addAll(prepareDeleteOrphanInitiatorEndpointTasks(fabricResource));
-            tasks.addAll(prepareZoneReconfigurationTasks(expectedEndpointsMap, existingZonesMap, fabricResource));
-        }
+        tasks.addAll(prepareDeleteOrphanInitiatorEndpointTasks(fabricResource));
+        tasks.addAll(prepareZoneReconfigurationTasks(expectedEndpointsMap, existingZonesMap, fabricResource));
         return tasks;
     }
 

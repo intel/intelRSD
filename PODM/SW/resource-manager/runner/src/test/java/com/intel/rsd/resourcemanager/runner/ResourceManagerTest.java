@@ -65,6 +65,12 @@ public class ResourceManagerTest extends AbstractTestNGSpringContextTests {
         assertThat(response.getStatusCode()).isEqualTo(OK);
     }
 
+    @Test
+    public void resourceManagerExposesPodManager() {
+        val response = restTemplate.getForEntity("/redfish/v1/Managers/PodManager", String.class);
+        assertThat(response.getStatusCode()).isEqualTo(OK);
+    }
+
     @Test(suiteName = "tagger", testName = "PATCH tagger-managed AssetTag", dependsOnGroups = "idempotent")
     public void assetTagOfPodChassisCanBePatched() {
         String podUrl = "/redfish/v1/Chassis/pod";

@@ -19,6 +19,7 @@ package com.intel.rsd.resourcemanager.layers.merger.response;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.layers.merger.ResourceMerger;
+import lombok.val;
 import org.mockito.Mock;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -26,9 +27,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
-
-import static com.intel.rsd.resourcemanager.layers.merger.response.ErrorResponseFactory.createNotFoundResponse;
+import static com.intel.rsd.redfish.RedfishErrors.createRedfishError;
+import static com.intel.rsd.resourcemanager.layers.merger.response.ErrorResponseFactory.createErrorResponse;
+import static java.util.Arrays.stream;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -57,8 +58,8 @@ public class ResponseConverterTest {
 
     @Test
     public void whenThereIsNoResponseProvided_notFoundResponseShouldBeReturned() throws Exception {
-        Response expectedResponse = createNotFoundResponse();
-        Response result = sut.merge();
+        val expectedResponse = createErrorResponse(createRedfishError(NOT_FOUND));
+        val result = sut.merge();
         assertEquals(result.getBody(), expectedResponse.getBody());
         assertEquals(result.getHttpHeaders(), expectedResponse.getHttpHeaders());
         assertEquals(result.getHttpStatus(), expectedResponse.getHttpStatus());
@@ -87,7 +88,7 @@ public class ResponseConverterTest {
 
     @DataProvider
     private Object[][] httpStatuses() {
-        return Arrays.stream(HttpStatus.values()).map(status -> new Object[]{status}).toArray(Object[][]::new);
+        return stream(HttpStatus.values()).map(status -> new Object[]{status}).toArray(Object[][]::new);
     }
 
     @Test

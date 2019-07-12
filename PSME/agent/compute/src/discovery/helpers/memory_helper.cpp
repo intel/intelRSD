@@ -73,6 +73,8 @@ OptionalField<DeviceType> get_device_type(const MEMORY_DEVICE& device) {
             return DeviceType::ROM;
         case MemoryTypeEnum::SDRAM:
             return DeviceType::SDRAM;
+        case MemoryTypeEnum::LOGICAL_NON_VOLATILE_DEVICE:
+            return DeviceType::Logical;
 
         case MemoryTypeEnum::DRAM:
         case MemoryTypeEnum::OTHER:
@@ -132,6 +134,8 @@ OptionalField<Media> get_media(const smbios::parser::MemoryDeviceExtendedMedia& 
             return Media::DRAM;
         case MemoryDeviceExtendedMedia::NAND:
             return Media::NAND;
+        case MemoryDeviceExtendedMedia::INTEL3DXPOINT:
+            return Media::Intel3DXPoint;
         case MemoryDeviceExtendedMedia::PROPRIETARY:
             return Media::Proprietary;
         default:
@@ -150,6 +154,8 @@ OptionalField<MemoryType> get_memory_type(const smbios::parser::MemoryDeviceExte
             return MemoryType::NVDIMM_N;
         case MemoryDeviceExtendedType::NVDIMM_P:
             return MemoryType::NVDIMM_P;
+        case MemoryDeviceExtendedType::INTEL_PERSISTENT_MEMORY:
+            return MemoryType::IntelOptane;
         default:
             return {};
     }

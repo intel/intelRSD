@@ -65,6 +65,7 @@ extern const char DRIVE_ID[];
 extern const char MANAGER_ID[];
 extern const char NIC_ID[];
 extern const char NETWORK_INTERFACE_ID[];
+extern const char NETWORK_ADAPTER_ID[];
 extern const char NETWORK_DEVICE_FUNCTION_ID[];
 extern const char NODE_ID[];
 extern const char ETHERNET_SWITCH_ID[];
@@ -95,6 +96,8 @@ extern const char SESSION_ID[];
 extern const char ACCOUNT_ID[];
 extern const char ROLE_ID[];
 extern const char INTEL_RACKSCALE_REGISTRY_URL[];
+extern const char LOG_SERVICE_ID[];
+extern const char LOG_ENTRY_ID[];
 
 
 extern const char PATH_SEP;
@@ -159,6 +162,8 @@ extern const char ADMINISTRATOR[];
 extern const char PERFORMANCE_CONFIGURATION[];
 extern const char CURRENT_CONFIGURATION_ID[];
 extern const char CONFIGURATIONS[];
+extern const char LOG_SERVICES[];
+extern const char SERVICE_ENABLED[];
 }
 
 namespace ErrorMessage {
@@ -240,7 +245,6 @@ extern const char GRAPHICAL_CONSOLE[];
 extern const char MAX_CONCURRENT_SESSIONS[];
 extern const char CONNECT_TYPES_SUPPORTED[];
 extern const char ENABLED[];
-extern const char SERVICE_ENABLED[];
 extern const char SERIAL_CONSOLE[];
 extern const char COMMAND_SHELL[];
 extern const char MANAGER_FOR_CHASSIS[];
@@ -340,7 +344,6 @@ extern const char ALLOWABLE_VALUES[];
  * @brief Constant literals for UpdateService endpoint.
  */
 namespace UpdateService {
-extern const char SERVICE_ENABLED[];
 extern const char HTTP_PUSH_URI[];
 extern const char HASH_UPDATE_SERVICE_SIMPLE_UPDATE[];
 extern const char SIMPLE_UPDATE[];
@@ -354,7 +357,6 @@ extern const char TARGETS[];
  * @brief Constant literals for EventService endpoint.
  */
 namespace EventService {
-extern const char SERVICE_ENABLED[];
 extern const char DELIVERY_RETRY_ATTEMPTS[];
 extern const char DELIVERY_RETRY_INTERVAL_SECONDS[];
 extern const char EVENT_TYPES_FOR_SUBSCRIPTION[];
@@ -414,7 +416,6 @@ extern const char FPGAOF[];
  */
 namespace TaskService {
 extern const char TASK_SERVICE[];
-extern const char SERVICE_ENABLED[];
 extern const char DATETIME[];
 extern const char COMPLETED_TASK_OVERWRITE_POLICY[];
 extern const char LIFE_CYCLE_EVENT_ON_TASK_STATE_CHANGE[];
@@ -465,7 +466,6 @@ extern const char REGISTRY_VERSION[];
  * @brief Constant literals for SessionService endpoint
  * */
 namespace SessionService {
-extern const char SERVICE_ENABLED[];
 extern const char SESSION_TIMEOUT[];
 extern const char SESSIONS[];
 }
@@ -484,7 +484,6 @@ extern const char OEM[];
  * */
 namespace AccountService {
 extern const char ACCOUNT_SERVICE[];
-extern const char SERVICE_ENABLED[];
 extern const char AUTH_FAILURE_LOGGING_THRESHOLD[];
 extern const char MIN_PASSWORD_LENGTH[];
 extern const char LOCAL_ACCOUNT_AUTH[];
@@ -512,6 +511,31 @@ extern const char IS_PREDEFINED[];
 extern const char ASSIGNED_PRIVILEGES[];
 extern const char OEM_PRIVILEGES[];
 extern const char ROLE_ID[];
+}
+
+/*!
+ * @brief Constant literals for LogService endpoint.
+ * */
+namespace LogService {
+extern const char LOG_ENTRY_TYPE[];
+extern const char OVERWRITE_POLICY[];
+extern const char ENTRIES[];
+}
+
+/*!
+ * @brief Constant literals for LogEntry endpoint.
+ * */
+namespace LogEntry {
+extern const char ENTRY_TYPE[];
+extern const char ENTRY_CODE[];
+extern const char EVENT_TIMESTAMP[];
+extern const char LINKS[];
+extern const char ORIGIN_OF_CONDITION[];
+extern const char SENSOR_TYPE[];
+extern const char SENSOR_NUMBER[];
+extern const char MESSAGE[];
+extern const char MESSAGE_ID[];
+extern const char RECORD_ID[];
 }
 
 }

@@ -78,7 +78,7 @@ ENUM(PowerSupplyType, uint32_t, AC, DC, ACorDC);
 /*!
  * @brief ENUM LineInputVoltageType for Psu subclass member
  */
-ENUM(LineInputVoltageType, uint32_t, Unknown, ACLowLine, ACMidLine, ACHighLine, DCNeg48V, DC380V, AC120V, AC240V,
+ENUM(LineInputVoltageType, uint32_t, Unknown, DCNeg48V, DC380V, AC120V, AC240V,
      AC277V, ACandDCWideRange, ACWideRange, DC240V);
 
 /*!

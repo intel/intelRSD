@@ -20,9 +20,9 @@ import com.intel.rsd.nodecomposer.business.dto.EndpointDto;
 import com.intel.rsd.nodecomposer.business.dto.EndpointDto.ConnectedEntityDto;
 import com.intel.rsd.nodecomposer.business.dto.EndpointDto.IdentifierDto;
 import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
-import com.intel.rsd.nodecomposer.persistence.redfish.Fabric;
 import com.intel.rsd.nodecomposer.types.DurableNameFormat;
 import com.intel.rsd.nodecomposer.types.Protocol;
+import lombok.val;
 
 import static com.intel.rsd.nodecomposer.business.redfish.services.helpers.DurableNameProducer.createDurableName;
 import static com.intel.rsd.nodecomposer.types.DurableNameFormat.findByProtocol;
@@ -33,12 +33,8 @@ public final class TargetEndpointCreateRequestBuilder {
     private TargetEndpointCreateRequestBuilder() {
     }
 
-    public static EndpointDto buildTargetEndpointCreationRequest(Fabric fabric, ODataId oDataId) {
-        return buildTargetEndpointCreationRequest(fabric.getFabricType(), oDataId);
-    }
-
     public static EndpointDto buildTargetEndpointCreationRequest(Protocol fabricType, ODataId oDataId) {
-        EndpointDto endpointDto = new EndpointDto();
+        val endpointDto = new EndpointDto();
         endpointDto.addIdentifier(buildIdentifierDto(getDurableNameFormat(fabricType)));
         endpointDto.addConnectedEntity(buildConnectedEntityDto(oDataId));
 
@@ -46,7 +42,7 @@ public final class TargetEndpointCreateRequestBuilder {
     }
 
     private static IdentifierDto buildIdentifierDto(DurableNameFormat durableNameFormat) {
-        IdentifierDto identifierDto = new IdentifierDto();
+        val identifierDto = new IdentifierDto();
         identifierDto.setDurableNameFormat(durableNameFormat);
         identifierDto.setDurableName(createDurableName(durableNameFormat, randomUUID()));
 
@@ -54,7 +50,7 @@ public final class TargetEndpointCreateRequestBuilder {
     }
 
     private static ConnectedEntityDto buildConnectedEntityDto(ODataId oDataId) {
-        ConnectedEntityDto connectedEntityDto = new ConnectedEntityDto();
+        val connectedEntityDto = new ConnectedEntityDto();
         connectedEntityDto.setEntityLink(oDataId);
         connectedEntityDto.setEntityRole(TARGET);
 

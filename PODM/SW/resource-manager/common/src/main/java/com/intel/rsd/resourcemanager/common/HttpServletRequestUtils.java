@@ -35,10 +35,11 @@ public class HttpServletRequestUtils {
     private static final JsonFactory JSON_FACTORY = new JsonFactory();
 
     public static JsonNode readBody(HttpServletRequest httpServletRequest) throws IOException {
-        JsonParser parser = JSON_FACTORY.createParser(httpServletRequest.getReader());
-        return parser.nextToken() == null
-            ? null
-            : MAPPER.readValue(parser, JsonNode.class);
+        try (JsonParser parser = JSON_FACTORY.createParser(httpServletRequest.getReader())) {
+            return parser.nextToken() == null
+                ? null
+                : MAPPER.readValue(parser, JsonNode.class);
+        }
     }
 
     public static HttpHeaders getHttpHeaders(HttpServletRequest httpServletRequest) {

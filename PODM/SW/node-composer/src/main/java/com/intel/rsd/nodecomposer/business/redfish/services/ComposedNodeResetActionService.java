@@ -28,25 +28,19 @@ import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComputerSystem;
 import com.intel.rsd.nodecomposer.types.actions.ResetType;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import javax.transaction.Transactional;
-import java.util.List;
 
 import static com.intel.rsd.nodecomposer.business.Violations.createWithViolations;
 import static com.intel.rsd.nodecomposer.business.Violations.ofValueNotAllowedViolation;
 import static com.intel.rsd.nodecomposer.types.ComposedNodeState.ASSEMBLED;
 import static com.intel.rsd.nodecomposer.types.ComposedNodeState.FAILED;
 import static java.lang.String.format;
-import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Slf4j
 @Component
-@Scope(SCOPE_SINGLETON)
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public class ComposedNodeResetActionService {
     private final ComputerSystemResetActionInvoker invoker;
@@ -58,21 +52,20 @@ public class ComposedNodeResetActionService {
         this.traverser = traverser;
     }
 
-    @Transactional(REQUIRES_NEW)
     public void perform(ODataId composedNodeODataId, ResetRequest request) throws BusinessApiException {
-        ResetType resetType = validateResetRequest(request);
-        ComposedNode composedNode = traverser.traverseComposedNode(composedNodeODataId);
+        val resetType = validateResetRequest(request);
+        val composedNode = traverser.traverseComposedNode(composedNodeODataId);
         validateComposedNodeState(composedNode);
-        ComputerSystem computerSystem = getComputerSystem(composedNode);
+        val computerSystem = getComputerSystem(composedNode);
 
         validateResettableStatus(computerSystem);
         validateResetType(computerSystem, resetType);
 
-        invoker.reset(computerSystem, resetType);
+        invoker.reset(computerSystem.getUri(), resetType);
     }
 
     private ResetType validateResetRequest(ResetRequest request) throws RequestValidationException {
-        ResetType resetType = request.getResetType();
+        val resetType = request.getResetType();
         if (resetType == null) {
             Violations violations = new Violations();
             violations.addMissingPropertyViolation("ResetType");
@@ -82,7 +75,7 @@ public class ComposedNodeResetActionService {
     }
 
     private ComputerSystem getComputerSystem(ComposedNode composedNode) throws ResourceStateMismatchException {
-        ComputerSystem computerSystem = composedNode.getComputerSystem();
+        val computerSystem = composedNode.getComputerSystem();
         if (computerSystem == null) {
             throw new ResourceStateMismatchException("No ComputerSystem is associated with ComposedNode. Action aborted!");
         }
@@ -96,10 +89,10 @@ public class ComposedNodeResetActionService {
     }
 
     private void validateResetType(ComputerSystem computerSystem, ResetType resetType) throws BusinessApiException {
-        List<ResetType> supportedResetTypes = computerSystem.getAllowableResetTypes();
+        val supportedResetTypes = computerSystem.getAllowableResetTypes();
 
         if (isEmpty(supportedResetTypes)) {
-            String violation = format("Reset action not allowed on resource %s. There are no allowable reset types.", computerSystem.getUri());
+            val violation = format("Reset action not allowed on resource %s. There are no allowable reset types.", computerSystem.getUri());
             throw new RequestValidationException(createWithViolations(violation));
         }
 

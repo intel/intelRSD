@@ -25,8 +25,8 @@
 #include "discovery/discoverers/fpgaof_chassis_discoverer.hpp"
 #include "discovery/discoverers/fpgaof_manager_discoverer.hpp"
 #include "discovery/discoverers/fpgaof_processor_discoverer.hpp"
+#include "discovery/discoverers/fpgaof_opaeproxy_interface_discoverer.hpp"
 
-#include "agent-framework/discovery/discoverers/ethernet_interface_discoverer.hpp"
 #include "agent-framework/module/managers/utils/manager_utils.hpp"
 #include "utils.hpp"
 
@@ -106,7 +106,7 @@ Manager DiscoveryManager::discover_manager() {
     log_debug("fpgaof-discovery", "Starting discovery of a manager.");
     auto manager = FpgaofManagerDiscoverer{}.discover();
     m_stabilizer.stabilize(manager);
-    log_debug("fpgaof-discovery", "Finished discovery of a manager.");
+    log_info("fpgaof-discovery", "Finished discovery of a manager: " << manager.get_uuid());
     return manager;
 }
 
@@ -117,7 +117,7 @@ Chassis DiscoveryManager::discover_chassis(const Manager& manager) {
     auto chassis = discoverer.discover(manager.get_uuid());
     m_stabilizer.stabilize(chassis);
     discoverer.discover_database(chassis);
-    log_debug("fpgaof-discovery", "Finished discovery of a chassis.");
+    log_info("fpgaof-discovery", "Finished discovery of a chassis: " << chassis.get_uuid());
     return chassis;
 }
 
@@ -126,7 +126,7 @@ Fabric DiscoveryManager::discover_fabric(const Manager& manager) {
     log_debug("fpgaof-discovery", "Starting discovery of a fabric.");
     auto fabric = FpgaofFabricDiscoverer{}.discover(manager.get_uuid());
     m_stabilizer.stabilize(fabric);
-    log_debug("fpgaof-discovery", "Finished discovery of a fabric.");
+    log_info("fpgaof-discovery", "Finished discovery of a fabric: " << fabric.get_uuid());
     return fabric;
 }
 
@@ -135,19 +135,22 @@ System DiscoveryManager::discover_system(const Manager& manager, const Chassis& 
     log_debug("fpgaof-discovery", "Starting discovery of system.");
     auto system = FpgaofSystemDiscoverer{m_context->sysfs_interface}.discover(manager.get_uuid(), chassis.get_uuid());
     m_stabilizer.stabilize(system);
-    log_debug("fpgaof-discovery", "Finished discovery of system.");
+    log_info("fpgaof-discovery", "Finished discovery of system: " << system.get_uuid());
     return system;
 }
 
 
 std::vector<NetworkInterface> DiscoveryManager::discover_ethernet_interfaces(const System& system) {
     log_debug("fpgaof-discovery", "Starting discovery of interfaces.");
-    auto interface_names = m_context->interface_reader->get_interfaces();
-    auto interfaces = EthernetInterfaceDiscoverer{interface_names}.discover(system.get_uuid());
+    auto interfaces = OpaeproxyNetworkInterfaceDiscoverer{m_context}.discover(system.get_uuid());
     for (auto& interface : interfaces) {
         m_stabilizer.stabilize(interface);
+        log_info("fpgaof-discovery", "Finished discovery of interface: " << interface.get_uuid());
     }
-    log_debug("fpgaof-discovery", "Finished discovery of interfaces.");
+    if(interfaces.empty()) {
+        log_error("fpgaof-discovery", "No ethernet interfaces found.");
+    }
+    log_info("fpgaof-discovery", "Finished discovery of interfaces.");
     return interfaces;
 }
 
@@ -160,15 +163,15 @@ std::vector<Processor> DiscoveryManager::discover_processors(const Uuid& system_
         processors = FpgaofProcessorDiscoverer{m_context}.discover(system_uuid);
         std::for_each(processors.begin(), processors.end(), [this](Processor& processor) {
             m_stabilizer.stabilize(processor);
+            log_info("fpgaof-discovery", "Finished discovery of processor: " << processor.get_uuid());
         });
         utils::sync_processors_with_db(system_uuid, processors);
-        log_debug("fpgaof-discovery", "Processors synchronized with database.");
     }
     catch (const opaepp::OpaeppError& ex) {
         log_error("fpgaof-discovery", "processors discovering failed: " + std::string(ex.what()));
     }
 
-    log_debug("fpgaof-discovery", "Finished discovery of FPGA devices.");
+    log_info("fpgaof-discovery", "Finished discovery of FPGA devices.");
     return processors;
 }
 
@@ -178,8 +181,9 @@ std::vector<Endpoint> DiscoveryManager::discover_endpoints(const Fabric& fabric)
     auto endpoints = FpgaofEndpointDiscoverer{m_context}.discover(fabric.get_uuid());
     std::for_each(endpoints.begin(), endpoints.end(), [this](Endpoint& endpoint) {
         m_stabilizer.stabilize(endpoint);
+        log_info("fpgaof-discovery", "Finished discovery of endpoint: " << endpoint.get_uuid());
     });
-    log_debug("fpgaof-discovery", "Finished discovery of endpoints.");
+    log_info("fpgaof-discovery", "Finished discovery of endpoints.");
     return endpoints;
 }
 
@@ -187,7 +191,7 @@ std::vector<Endpoint> DiscoveryManager::discover_endpoints(const Fabric& fabric)
 std::vector<Zone> DiscoveryManager::discover_zones(const Fabric& fabric) {
     log_debug("fpgaof-discovery", "Starting discovery of zones.");
     auto zones = FpgaofZoneDiscoverer{m_context}.discover(fabric.get_uuid());
-    log_debug("fpgaof-discovery", "Finished discovery of zones.");
+    log_info("fpgaof-discovery", "Finished discovery of zones.");
     return zones;
 }
 

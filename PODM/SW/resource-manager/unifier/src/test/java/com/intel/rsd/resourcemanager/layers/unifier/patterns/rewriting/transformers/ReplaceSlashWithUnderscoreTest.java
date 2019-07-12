@@ -38,7 +38,7 @@ public class ReplaceSlashWithUnderscoreTest {
     }
 
     @Test
-    public void whenJsonNodeContainingSlashIsGiven_slashShouldbeReplacedWithUnderscore() {
+    public void whenJsonNodeContainingSlashIsGiven_slashShouldBeReplacedWithUnderscore() {
         val jsonNode = new TextNode("something/somewhere");
         assertThat(sut.invoke(jsonNode)).isEqualTo("something_somewhere");
     }

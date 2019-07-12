@@ -17,19 +17,16 @@
 apply plugin: 'jacoco'
 
 dependencies {
-    compileOnly project(":layer")
-    compileOnly("org.springframework.boot:spring-boot-starter-web")
-    compileOnly project(":common")
+    implementation project(":layer")
+    implementation project(":common")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
-    testCompile("org.testng:testng")
-    testCompile("org.mockito:mockito-all:${mockitoVersion}")
-    testCompile("org.assertj:assertj-core:${assertjVersion}")
-    testCompile("org.projectlombok:lombok")
+    testImplementation project(":common")
+    testImplementation project(":layer")
+    testImplementation("org.testng:testng:${testNGVersion}")
+    testImplementation("org.mockito:mockito-all:${mockitoVersion}")
+    testImplementation("org.assertj:assertj-core:${assertjVersion}")
+    testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
-
-    testCompile project(":common")
-    testCompile project(":layer")
-
 }

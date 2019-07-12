@@ -1,0 +1,11 @@
+{
+  "name": "6.2.7",
+  "resources": {
+    "ports_pnc_members": ["Port.Port", "PNC Ports"]
+  },
+  "actions": [
+    ["reduceby_string", ["ports_pnc_selected_members", "ports_pnc_members", ["PortType"], ["DownstreamPort"]]],
+    ["string_logical_test", ["ports_pnc_selected_members", "Ports PNC (selected)", ["Status/State"], "Enabled"]],
+    ["all_not_null_test", ["ports_pnc_selected_members", "Ports PNC (selected)", ["Width", "CurrentSpeedGbps"]]]
+  ]
+}

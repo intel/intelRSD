@@ -25,13 +25,13 @@ import com.intel.rsd.resourcemanager.layers.ServiceId;
 import org.mockito.Mock;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static com.fasterxml.jackson.databind.node.JsonNodeType.STRING;
 import static com.intel.rsd.json.JsonUtils.stringToJsonNode;
+import static com.intel.rsd.redfish.RedfishErrorCode.GeneralError;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -47,6 +47,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.PATCH;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -147,9 +148,9 @@ public class TaggerTest {
         JsonNode requestBody = stringToJsonNode("{\"HandledProperty\": {\"An OBJECT Encountered\": \"When STRING expected\"}}");
         Response response = tagger.invoke(SERVICE_ID, testPath, PATCH, new HttpHeaders(), requestBody);
 
-        assertEquals(response.getHttpStatus(), HttpStatus.BAD_REQUEST);
+        assertEquals(response.getHttpStatus(), BAD_REQUEST);
         String responseBodyAsString = response.getBody().toString();
-        assertTrue(responseBodyAsString.contains("Base.1.0.GeneralError"));
+        assertTrue(responseBodyAsString.contains(GeneralError.asString()));
         assertTrue(responseBodyAsString.contains("@Message.ExtendedInfo"));
         assertTrue(responseBodyAsString.contains("MessageId"));
         verify(tagsRepository, never()).setTagValues(any(), any(), any());

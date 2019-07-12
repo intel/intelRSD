@@ -96,6 +96,10 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.secretName }}
                   key: database-password
+            - name: SERVER_ADDRESS
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
           volumeMounts:
             - name: node-composer-config
               mountPath: /app/config

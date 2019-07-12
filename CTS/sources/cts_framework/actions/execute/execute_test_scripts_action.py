@@ -60,7 +60,7 @@ class ExecuteTestScriptsAction(Action):
         # self.parser.add_argument("-m", "--metadata", help="Choose metadata", choices=['RSD', 'redfish'], default='RSD')
 
     def process_action(self, configuration):
-        print "Using CTS in version %s" % (ColorPrinter.format_text(BuildInformation.BUILD_VERSION, bold=True))
+        print "Using CTS in version %s" % (ColorPrinter.format_text(BuildInformation.get_version(), bold=True))
         tests_manager = TestsManager()
 
         configuration_files = configuration.config_files

@@ -17,40 +17,29 @@
 package com.intel.rsd.nodecomposer.business.redfish.services.helpers;
 
 import com.intel.rsd.nodecomposer.business.EntityOperationException;
-import com.intel.rsd.nodecomposer.business.redfish.services.EndpointCreationService;
+import com.intel.rsd.nodecomposer.business.redfish.services.RemoteEndpointAccessService;
 import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
-import com.intel.rsd.nodecomposer.discovery.external.partial.EndpointObtainer;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.AttachableAsset;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
 import com.intel.rsd.nodecomposer.types.Protocol;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
-
 import static com.intel.rsd.collections.IterableHelper.optionalSingle;
-import static com.intel.rsd.nodecomposer.business.redfish.services.helpers.TargetEndpointCreateRequestBuilder.buildTargetEndpointCreationRequest;
 import static com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId.oDataIdFromUri;
 import static com.intel.rsd.nodecomposer.externalservices.WebClientExceptionUtils.badRequestInTheRootCause;
-import static com.intel.rsd.nodecomposer.types.redfish.ResourceNames.ENDPOINTS_RESOURCE_NAME;
-import static javax.ws.rs.core.UriBuilder.fromUri;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
+import static java.lang.String.format;
 
 @Component
-@Scope(SCOPE_SINGLETON)
-@Slf4j
 public class TargetEndpointFinder {
-    private final EndpointCreationService endpointCreationService;
-    private final EndpointObtainer endpointObtainer;
+
+    private final RemoteEndpointAccessService remoteEndpointAccessService;
 
     @Autowired
-    public TargetEndpointFinder(EndpointCreationService endpointCreationService, EndpointObtainer endpointObtainer) {
-        this.endpointCreationService = endpointCreationService;
-        this.endpointObtainer = endpointObtainer;
+    public TargetEndpointFinder(RemoteEndpointAccessService remoteEndpointAccessService) {
+        this.remoteEndpointAccessService = remoteEndpointAccessService;
     }
 
     public <T extends DiscoverableEntity & AttachableAsset> ODataId findOrCreateTargetEndpoint(T assetToAttach, ODataId fabricODataId, Protocol fabricType) {
@@ -60,21 +49,15 @@ public class TargetEndpointFinder {
 
     @SneakyThrows
     private ODataId createOrObtainTargetEndpoint(ODataId fabricODataId, Protocol fabricType, ODataId assetToAttachUri) {
-        val endpointsCollectionUri = fromUri(fabricODataId.toUri()).path(ENDPOINTS_RESOURCE_NAME).build();
-        val targetEndpointCreationRequest = buildTargetEndpointCreationRequest(fabricType, assetToAttachUri);
         try {
-            return endpointCreationService.createEndpointWithRetry(endpointsCollectionUri, targetEndpointCreationRequest);
+            return remoteEndpointAccessService.createTargetEndpoint(fabricODataId, fabricType, assetToAttachUri);
         } catch (EntityOperationException e) {
-            return tryToFindTargetEndpointOnError(assetToAttachUri, endpointsCollectionUri, e);
+            if (badRequestInTheRootCause(e)) {
+                return oDataIdFromUri(remoteEndpointAccessService.getTargetEndpointUriByRelatedAssetUri(fabricODataId, assetToAttachUri));
+            }
+            throw new EntityOperationException(
+                format("Cannot find target endpoint on fabric(%s) which is related with requested asset(%s)", fabricODataId, assetToAttachUri), e
+            );
         }
-    }
-
-    private ODataId tryToFindTargetEndpointOnError(ODataId assetToAttachUri, URI endpointsCollectionUri, EntityOperationException e)
-        throws EntityOperationException {
-        if (badRequestInTheRootCause(e)) {
-            return oDataIdFromUri(endpointObtainer.getTargetEndpointUriByRelatedAssetUri(assetToAttachUri, endpointsCollectionUri));
-        }
-        log.warn("Cannot find existing target endpoint, received bad request when creating target endpoint.");
-        throw new EntityOperationException(e.getMessage(), e);
     }
 }

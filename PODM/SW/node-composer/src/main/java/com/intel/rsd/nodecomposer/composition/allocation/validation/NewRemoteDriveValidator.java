@@ -24,11 +24,9 @@ import com.intel.rsd.nodecomposer.persistence.EntityNotFoundException;
 import com.intel.rsd.nodecomposer.persistence.dao.GenericDao;
 import com.intel.rsd.nodecomposer.persistence.redfish.Volume;
 import com.intel.rsd.nodecomposer.types.Protocol;
-import org.springframework.context.annotation.Scope;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.Optional;
 
@@ -40,24 +38,20 @@ import static com.intel.rsd.nodecomposer.utils.Converters.convertBytesToGib;
 import static com.intel.rsd.nodecomposer.utils.Converters.convertGibToBytes;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class NewRemoteDriveValidator {
     private final GenericDao genericDao;
     private final RequestedProtocolValidator requestedProtocolValidator;
     private final VolumeHelper volumeHelper;
 
-    @Inject
+    @Autowired
     public NewRemoteDriveValidator(GenericDao genericDao, RequestedProtocolValidator requestedProtocolValidator, VolumeHelper volumeHelper) {
         this.genericDao = genericDao;
         this.requestedProtocolValidator = requestedProtocolValidator;
         this.volumeHelper = volumeHelper;
     }
 
-    @Transactional(MANDATORY)
     public Violations validate(RemoteDrive drive) {
         Violations violations = new Violations();
 

@@ -3,30 +3,39 @@
 /redfish/v1/AccountService -> /redfish/v1/AccountService
 /redfish/v1/AccountService/Accounts -> /redfish/v1/AccountService/Accounts
 /redfish/v1/AccountService/Roles -> /redfish/v1/AccountService/Roles
-/redfish/v1/SessionService -> /redfish/v1/SessionService
-/redfish/v1/JsonSchemas -> /redfish/v1/JsonSchemas
-/redfish/v1/SessionService/Sessions -> /redfish/v1/SessionService/Sessions
 /redfish/v1/Chassis -> /redfish/v1/Chassis
-/redfish/v1/Managers -> /redfish/v1/Managers
 /redfish/v1/EthernetSwitches -> /redfish/v1/EthernetSwitches
-/redfish/v1/StorageServices -> /redfish/v1/StorageServices
-/redfish/v1/Nodes -> /redfish/v1/Nodes
-/redfish/v1/Services -> /redfish/v1/Services
-/redfish/v1/Oem/Intel_RackScale/TelemetryService -> /redfish/v1/Oem/Intel_RackScale/TelemetryService
-/redfish/v1/Fabrics -> /redfish/v1/Fabrics
 /redfish/v1/EventService -> /redfish/v1/EventService
-/redfish/v1/Systems -> /redfish/v1/Systems
-/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricDefinitions -> /redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricDefinitions
+/redfish/v1/EventService/Actions/EventService.SubmitTestEvent -> /redfish/v1/EventService/Actions/EventService.SubmitTestEvent
+/redfish/v1/EventService/Subscriptions -> /redfish/v1/EventService/Subscriptions
+/redfish/v1/Fabrics -> /redfish/v1/Fabrics
+/redfish/v1/JsonSchemas -> /redfish/v1/JsonSchemas
+/redfish/v1/Managers -> /redfish/v1/Managers
+/redfish/v1/Manifests -> /redfish/v1/Manifests
 /redfish/v1/MessageRegistry -> /redfish/v1/MessageRegistry
+/redfish/v1/Nodes -> /redfish/v1/Nodes
+/redfish/v1/Nodes/Actions/Allocate -> /redfish/v1/Nodes/Actions/Allocate
+/redfish/v1/Oem/Intel_RackScale/TelemetryService -> /redfish/v1/Oem/Intel_RackScale/TelemetryService
+/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricDefinitions -> /redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricDefinitions
+/redfish/v1/Oem/Intel_RackScale/TelemetryService/Triggers -> /redfish/v1/Oem/Intel_RackScale/TelemetryService/Triggers
 /redfish/v1/Registries -> /redfish/v1/Registries
+/redfish/v1/Services -> /redfish/v1/Services
+/redfish/v1/SessionService -> /redfish/v1/SessionService
+/redfish/v1/SessionService/Sessions -> /redfish/v1/SessionService/Sessions
+/redfish/v1/StorageServices -> /redfish/v1/StorageServices
+/redfish/v1/Systems -> /redfish/v1/Systems
 /redfish/v1/TaskService -> /redfish/v1/TaskService
 /redfish/v1/TaskService/Tasks -> /redfish/v1/TaskService/Tasks
+/redfish/v1/TelemetryService -> /redfish/v1/TelemetryService
+/redfish/v1/TelemetryService/MetricDefinitions -> /redfish/v1/TelemetryService/MetricDefinitions
+/redfish/v1/TelemetryService/MetricReportDefinitions -> /redfish/v1/TelemetryService/MetricReportDefinitions
+/redfish/v1/TelemetryService/MetricReports -> /redfish/v1/TelemetryService/MetricReports
+/redfish/v1/TelemetryService/Triggers -> /redfish/v1/TelemetryService/Triggers
 /redfish/v1/UpdateService -> /redfish/v1/UpdateService
-/redfish/v1/UpdateService/SSLCert -> /redfish/v1/UpdateService/SSLCert
-/redfish/v1/UpdateService/SSLCert/Actions/SSLCert.Upload -> /redfish/v1/UpdateService/SSLCert/Actions/SSLCert.Upload
 /redfish/v1/UpdateService/Actions/SimpleUpdate -> /redfish/v1/UpdateService/Actions/SimpleUpdate
 /redfish/v1/UpdateService/FirmwareInventory -> /redfish/v1/UpdateService/FirmwareInventory
-/redfish/v1/Manifests -> /redfish/v1/Manifests
+/redfish/v1/UpdateService/SSLCert -> /redfish/v1/UpdateService/SSLCert
+/redfish/v1/UpdateService/SSLCert/Actions/SSLCert.Upload -> /redfish/v1/UpdateService/SSLCert/Actions/SSLCert.Upload
 
 [/redfish/v1/Manifests]/{} -> []/{#/Id}
 [/redfish/v1/AccountService/Accounts]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
@@ -67,6 +76,10 @@
 [/redfish/v1/Chassis/{}]/Drives/{} -> []/Drives/{#/Id}
 [/redfish/v1/Chassis/{}/Drives/{}]/Metrics -> []/Metrics
 [/redfish/v1/Chassis/{}/Drives/{}]/Actions/Drive.SecureErase -> []/Actions/Drive.SecureErase
+[/redfish/v1/Chassis/{}]/NetworkAdapters -> []/NetworkAdapters
+[/redfish/v1/Chassis/{}/NetworkAdapters]/{} -> []/{#/Id}
+[/redfish/v1/Chassis/{}/NetworkAdapters/{}]/NetworkDeviceFunctions -> []/NetworkDeviceFunctions
+[/redfish/v1/Chassis/{}/NetworkAdapters/{}/NetworkDeviceFunctions]/{} -> []/{#/Id}
 [/redfish/v1/Chassis/{}]/PCIeDevices -> []/PCIeDevices
 [/redfish/v1/Chassis/{}/PCIeDevices]/{} -> []/{#/Id}
 [/redfish/v1/Chassis/{}/PCIeDevices/{}]/Functions/{} -> []/Functions/{#/Id}
@@ -90,8 +103,6 @@
 [/redfish/v1/EthernetSwitches/{}/Ports/{}/VLANs]/{} -> []/{#/VLANId}
 [/redfish/v1/EthernetSwitches/{}/Ports/{}]/StaticMACs -> []/StaticMACs
 [/redfish/v1/EthernetSwitches/{}/Ports/{}/StaticMACs]/{} -> []/{#/StaticMACId}
-/redfish/v1/EventService/Subscriptions -> /redfish/v1/EventService/Subscriptions
-/redfish/v1/EventService/Actions/EventService.SubmitTestEvent -> /redfish/v1/EventService/Actions/EventService.SubmitTestEvent
 [/redfish/v1/EventService/Subscriptions]/{} -> []/{#/Id}
 [/redfish/v1/Fabrics]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
 [/redfish/v1/Fabrics/{}]/Endpoints -> []/Endpoints
@@ -143,10 +154,8 @@
 [/redfish/v1/Managers/{}]/SNMP/SNMPv3 -> []/SNMP/SNMPv3
 [/redfish/v1/Managers/{}]/SerialInterfaces -> []/SerialInterfaces
 [/redfish/v1/Managers/{}/SerialInterfaces]/{} -> []/{#/Id}
-/redfish/v1/Nodes/Actions/Allocate -> /redfish/v1/Nodes/Actions/Allocate
 [/redfish/v1/Systems]/{} -> []/{#/UUID}
 [/redfish/v1/Systems/{}]/Actions/ComputerSystem.Reset -> []/Actions/ComputerSystem.Reset
-[/redfish/v1/Systems/{}]/Actions/Oem/Intel.Oem.StartDeepDiscovery -> []/Actions/Oem/Intel.Oem.StartDeepDiscovery
 [/redfish/v1/Systems/{}]/Actions/Oem/Intel.Oem.ChangeTPMState -> []/Actions/Oem/Intel.Oem.ChangeTPMState
 [/redfish/v1/Systems/{}]/Actions/Oem/Intel.Oem.EraseOptaneDCPersistentMemory -> []/Actions/Oem/Intel.Oem.EraseOptaneDCPersistentMemory
 [/redfish/v1/Systems/{}]/EthernetInterfaces -> []/EthernetInterfaces
@@ -178,7 +187,7 @@
 [/redfish/v1/Systems/{}/StorageServices]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
 [/redfish/v1/Systems/{}]/Processors -> []/Processors
 [/redfish/v1/Systems/{}/Processors]/{} -> []/{#/Id}
-[/redfish/v1/Systems/{}/Processors/{}]/Oem/Intel_RackScale/Metrics -> []/Oem/Intel_RackScale/Metrics
+[/redfish/v1/Systems/{}/Processors/{}]/Metrics -> []/Metrics
 [/redfish/v1/Systems/{}/Processors/{}]/Functions -> []/Functions
 [/redfish/v1/Systems/{}/Processors/{}/Functions]/{} -> []/{#/Id}
 [/redfish/v1/Systems/{}/Processors/{}]/Actions/Oem/Intel.Oem.SecureErase -> []/Actions/Oem/Intel.Oem.SecureErase
@@ -186,13 +195,15 @@
 [/redfish/v1/Systems/{}/SimpleStorage]/{} -> []/{#/Id}
 [/redfish/v1/Systems/{}]/Storage -> []/Storage
 [/redfish/v1/Systems/{}/Storage]/{} -> []/{#/Id}
-[/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricDefinitions]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
+[/redfish/v1/TelemetryService/MetricDefinitions]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
 [/redfish/v1/Systems/{}/Storage/{}]/Volumes -> []/Volumes
 [/redfish/v1/Systems/{}/Storage/{}/Volumes]/{} -> []/{#/Id}
-/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricReportDefinitions -> /redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricReportDefinitions
-[/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricReportDefinitions]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
-/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricReports -> /redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricReports
-[/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricReports]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
-/redfish/v1/Oem/Intel_RackScale/TelemetryService/Triggers -> /redfish/v1/Oem/Intel_RackScale/TelemetryService/Triggers
-[/redfish/v1/Oem/Intel_RackScale/TelemetryService/Triggers]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
+[/redfish/v1/TelemetryService/MetricReportDefinitions]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
+[/redfish/v1/TelemetryService/MetricReports]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
+[/redfish/v1/TelemetryService/Triggers]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
 [/redfish/v1/TaskService/Tasks/{}]/Monitor -> []/Monitor
+[/redfish/v1/Systems/{}/Processors/{}]/Oem/Intel_RackScale/Metrics -> []/Oem/Intel_RackScale/Metrics
+[/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricDefinitions]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
+[/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricReportDefinitions]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
+[/redfish/v1/Oem/Intel_RackScale/TelemetryService/MetricReports]/{} -> []/{/redfish/v1#/UUID '_' #/Id}
+[/redfish/v1/Oem/Intel_RackScale/TelemetryService/Triggers]/{} -> []/{/redfish/v1#/UUID '_' #/Id}

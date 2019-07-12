@@ -485,3 +485,12 @@ OptionalField<std::uint8_t> GasTool::get_partition_id_by_zone(const gas::GlobalA
 
     return OptionalField<std::uint8_t>();
 }
+
+
+GlobalAddressSpaceRegisters GasTool::get_gas(const Uuid& switch_uuid) {
+    auto pcie_switch = get_manager<Switch>().get_entry(switch_uuid);
+    GlobalAddressSpaceRegisters gas = GlobalAddressSpaceRegisters::get_default(pcie_switch.get_memory_path());
+    gas.read_top();
+    gas.read_partition(gas.top.output.fields.current_partition_id);
+    return gas;
+}

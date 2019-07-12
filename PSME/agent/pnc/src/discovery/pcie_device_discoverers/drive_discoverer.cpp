@@ -105,21 +105,13 @@ Drive DriveDiscoverer::discover_oob(const Uuid& downstream_port_uuid) const {
 
 
 Uuid DriveDiscoverer::discover_oob_add_and_stabilize(const Uuid& downstream_port_uuid) const {
-    Uuid system_uuid = m_tools.model_tool->get_system_uuid();
-    Uuid storage_uuid = m_tools.model_tool->get_storage_uuid();
-    Uuid chassis_uuid = m_tools.model_tool->get_chassis_uuid();
     auto port = agent_framework::module::get_manager<agent_framework::model::Port>().get_entry(downstream_port_uuid);
 
     Drive drive = discover_oob(downstream_port_uuid);
 
     log_debug("pnc-discovery", "Drive has been found on a physical port " << port.get_port_id());
-    log_and_add(drive);
-    Uuid drive_uuid = ::agent::pnc::PncTreeStabilizer().stabilize_drive(drive.get_uuid());
-    agent_framework::module::get_m2m_manager<StorageSubsystem, Drive>().add_entry(storage_uuid, drive_uuid);
-    agent_framework::eventing::send_event(storage_uuid, enums::Component::StorageSubsystem, Notification::Update,
-                                          system_uuid);
-    agent_framework::eventing::send_event(drive_uuid, enums::Component::Drive, Notification::Add, chassis_uuid);
-    return drive_uuid;
+
+    return stabilize_drive_update_model(drive);
 }
 
 
@@ -159,18 +151,18 @@ void DriveDiscoverer::set_functional_device(agent_framework::model::PcieFunction
 }
 
 
-void DriveDiscoverer::sysfs_device_discovery(const Uuid& dsp_port_uuid,
+Uuid DriveDiscoverer::sysfs_device_discovery(const Uuid& dsp_port_uuid,
                                              const Uuid& device_uuid,
                                              const agent::pnc::sysfs::SysfsDecoder& decoder,
                                              const agent::pnc::sysfs::SysfsDevice& sysfs_device) const {
 
-    log_debug("pnc-discovery", "Begin sysfs device discovery");
+    log_debug("pnc-discovery", "Begin sysfs device discovery for drive: " << device_uuid);
 
     std::string manager_uuid = m_tools.model_tool->get_manager_uuid();
     std::string chassis_uuid = m_tools.model_tool->get_chassis_uuid();
 
     // discover pcie device and functions
-    PcieDevice device = BaseClass::discover_pcie_device(manager_uuid, chassis_uuid, sysfs_device);
+    PcieDevice pcie_device = BaseClass::discover_pcie_device(manager_uuid, chassis_uuid, sysfs_device);
     std::vector<agent::pnc::sysfs::SysfsFunction> sysfs_functions = decoder.get_functions(sysfs_device);
 
     // get all drives
@@ -186,28 +178,53 @@ void DriveDiscoverer::sysfs_device_discovery(const Uuid& dsp_port_uuid,
 
     if (sysfs_drives.empty()) {
 
-        log_debug("pnc-discovery",
-                  "Drive was detected but no sysfs drives were discovered or discovered device is not a drive");
+        log_warning("pnc-discovery",
+                    "Drive was detected but no sysfs drives "
+                    "were discovered or discovered device is not a drive");
 
-        PncDiscoveryExceptionDeviceNotFound dnf{};
-        throw dnf;
+        throw PncDiscoveryExceptionDeviceNotFound();
     }
 
-    log_and_add(device);
+    log_and_add(pcie_device);
+
+    Drive drive{};
+    std::string serial_number{};
+    Uuid drive_uuid{};
+
+    if (get_manager<Drive>().entry_exists(device_uuid)) {
+
+        drive = get_manager<Drive>().get_entry(device_uuid);
+        serial_number = drive.get_fru_info().get_serial_number();
+        drive_uuid = device_uuid;
+    }
+    else {
+
+        serial_number = pcie_device.get_fru_info().get_serial_number();
+        drive_uuid = add_from_sysfs(dsp_port_uuid, serial_number);
+        sync_device_properties_with_db(drive_uuid);
+    }
 
     for (const auto& sysfs_function : sysfs_functions) {
 
-        PcieFunction function = BaseClass::discover_pcie_function(device.get_uuid(), dsp_port_uuid, sysfs_function);
+        PcieFunction function = BaseClass::discover_pcie_function(pcie_device.get_uuid(), dsp_port_uuid,
+                                                                  sysfs_function);
 
-        set_functional_device(function, device_uuid);
+        set_functional_device(function, drive_uuid);
 
         log_and_add(function);
     }
 
-    agent_framework::eventing::send_event(::agent::pnc::PncTreeStabilizer().stabilize_pcie_device(device.get_uuid()),
+    const auto& persistent_pcie_device_uuid = ::agent::pnc::PncTreeStabilizer().stabilize_pcie_device(
+        pcie_device.get_uuid());
+
+    agent_framework::eventing::send_event(persistent_pcie_device_uuid,
                                           enums::Component::PcieDevice,
                                           agent_framework::model::enums::Notification::Add,
                                           manager_uuid);
+
+    log_debug("pnc-discovery", "End sysfs device discovery for drive: " << drive_uuid);
+
+    return drive_uuid;
 }
 
 
@@ -266,4 +283,48 @@ void DriveDiscoverer::sync_device_properties_with_db(const Uuid& device_uuid) co
     m_tools.model_tool->sync_device_with_db<agent_framework::model::Drive, agent_framework::model::Chassis>(
         m_tools.model_tool->get_dry_stabilized_chassis_uuid(), drive.get_raw_ref());
     log_debug("pnc-discovery", "Drive [UUID = " + device_uuid + "] properties synchronized with database");
+}
+
+
+Uuid DriveDiscoverer::add_from_sysfs(const Uuid& dsp_port_uuid,
+                                     const std::string& serial_number) const {
+
+    log_debug("pnc-discovery", "Add sysfs device: drive");
+
+    Uuid chassis_uuid = m_tools.model_tool->get_chassis_uuid();
+
+    auto builder = m_factory->init_builder(m_factory->get_drive_builder(), chassis_uuid);
+
+    builder->init(chassis_uuid);
+    builder->add_dsp_port_uuid(dsp_port_uuid);
+
+    attribute::FruInfo fru_info({serial_number,
+                                 OptionalField<std::string>(),
+                                 OptionalField<std::string>(),
+                                 OptionalField<std::string>()});
+
+    builder->update_fru_info(fru_info);
+
+    Drive drive = builder->build();
+
+    log_debug("pnc-discovery", "Drive was created based on sysfs data, dsp port uuid: " << dsp_port_uuid);
+
+    return stabilize_drive_update_model(drive);
+}
+
+
+const Uuid DriveDiscoverer::stabilize_drive_update_model(const Drive& drive) const {
+    Uuid system_uuid = m_tools.model_tool->get_system_uuid();
+    Uuid storage_uuid = m_tools.model_tool->get_storage_uuid();
+    Uuid chassis_uuid = m_tools.model_tool->get_chassis_uuid();
+
+    log_and_add(drive);
+
+    auto drive_uuid = ::agent::pnc::PncTreeStabilizer().stabilize_drive(drive.get_uuid());
+    agent_framework::module::get_m2m_manager<StorageSubsystem, Drive>().add_entry(storage_uuid, drive_uuid);
+    agent_framework::eventing::send_event(storage_uuid, enums::Component::StorageSubsystem, Notification::Update,
+                                          system_uuid);
+    agent_framework::eventing::send_event(drive_uuid, enums::Component::Drive, Notification::Add, chassis_uuid);
+
+    return drive_uuid;
 }

@@ -34,7 +34,7 @@ configurations {
 dependencies {
     compile gradleApi()
     compile localGroovy()
-    compile("com.bmuschko:gradle-docker-plugin:3.2.5")
+    compile("com.bmuschko:gradle-docker-plugin:3.6.2")
 }
 
 publishing {

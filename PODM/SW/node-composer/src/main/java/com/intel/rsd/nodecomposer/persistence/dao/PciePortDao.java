@@ -21,11 +21,9 @@ import com.intel.rsd.nodecomposer.persistence.redfish.Port;
 import com.intel.rsd.nodecomposer.persistence.redfish.Zone;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.ConnectedEntity;
 import com.intel.rsd.nodecomposer.persistence.redfish.base.DiscoverableEntity;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.TypedQuery;
-import javax.transaction.Transactional;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -36,13 +34,10 @@ import static com.intel.rsd.nodecomposer.persistence.redfish.Port.GET_PORTS_BY_P
 import static com.intel.rsd.nodecomposer.types.EntityRole.INITIATOR;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
-import static javax.transaction.Transactional.TxType.MANDATORY;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_SINGLETON;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class PciePortDao extends Dao<Port> {
-    @Transactional(MANDATORY)
+
     public Set<Port> getUpstreamPortsByCableIds(List<String> pcieConnectionIds) {
         if (pcieConnectionIds.isEmpty()) {
             return emptySet();
@@ -58,7 +53,6 @@ public class PciePortDao extends Dao<Port> {
         return ports;
     }
 
-    @Transactional(MANDATORY)
     public Collection<Port> getUpstreamPortsByDiscoverableEntity(DiscoverableEntity entity) {
         return entity.getEntityConnections().stream()
             .filter(Objects::nonNull)

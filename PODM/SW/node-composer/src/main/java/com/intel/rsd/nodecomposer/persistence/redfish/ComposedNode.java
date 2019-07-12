@@ -31,6 +31,7 @@ import com.intel.rsd.nodecomposer.types.Status;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Generated;
+import org.springframework.lang.Nullable;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -352,6 +353,7 @@ public class ComposedNode extends Entity {
         }
     }
 
+    @Nullable
     public ComputerSystem getComputerSystem() {
         return computerSystem;
     }
@@ -441,7 +443,7 @@ public class ComposedNode extends Entity {
     }
 
     @SuppressWarnings({"checkstyle:MethodLength"})
-    public void detachAsset(AttachableAsset asset) {
+    public void deallocate(AttachableAsset asset) {
         AttachableType type = asset.getAttachableType();
         asset.setAllocated(false);
         switch (type) {
@@ -494,7 +496,6 @@ public class ComposedNode extends Entity {
                 Endpoint endpoint = (Endpoint) asset;
                 this.addEndpoint(endpoint);
                 addAssociatedEndpointUri(endpoint.getUri().toUri());
-                break;
             default:
                 break;
         }

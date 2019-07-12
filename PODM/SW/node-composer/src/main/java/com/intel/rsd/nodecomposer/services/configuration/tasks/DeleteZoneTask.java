@@ -45,11 +45,11 @@ public class DeleteZoneTask extends DiscoveryServiceTask {
     }
 
     private void deleteResources(URI serviceUri, Set<URI> resourcesUris) {
-        resourcesUris.forEach(resourceUri -> restActionInvoker.delete(serviceUri, resourceUri));
+        resourcesUris.forEach(resourceUri -> discoveryServiceWebClient.delete(serviceUri, resourceUri));
     }
 
     private void detachEndpointsFromZone(URI serviceBaseUri, URI zoneUri) {
-        restActionInvoker.patch(serviceBaseUri, zoneUri, new ZoneActionJson(emptySet()));
+        discoveryServiceWebClient.patch(serviceBaseUri, zoneUri, new ZoneActionJson(emptySet()));
     }
 
 

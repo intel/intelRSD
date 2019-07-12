@@ -38,11 +38,24 @@ class TestSuiteManager:
         :type test_suite_path: str
         :return:
         """
+        def _is_test_case(list_of_tests):
+            non_test_files_to_skip = ["__init__.py", ]
+            non_test_extensions_to_skip = ["action", "json"]
+
+            verified_object = list_of_tests.split("/")[-1]
+            if verified_object in non_test_files_to_skip:
+                return False
+            elif verified_object.split(".")[-1] in non_test_extensions_to_skip:
+                return False
+            elif path.isdir(list_of_tests):
+                return False
+            return True
+
         test_suite = TestSuite()
         test_suite.name = test_suite_path.split(path.sep)[-1]
         test_suite.path = test_suite_path
         test_scripts_paths_list = [test_script for test_script in glob.glob("%s%s*" % (test_suite_path, path.sep)) if
-                                   access(test_script, X_OK)]
+                                   access(test_script, X_OK) and _is_test_case(test_script)]
 
         test_suite.scripts = []
         for test_script_path in test_scripts_paths_list:

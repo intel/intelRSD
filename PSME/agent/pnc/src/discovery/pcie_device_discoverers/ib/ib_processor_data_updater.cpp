@@ -17,10 +17,9 @@
  */
 
 
+#include "agent-framework/module/utils/to_hex_string.hpp"
 #include "discovery/device_discoverers//ib/ib_processor_data_updater.hpp"
 #include "uuid/uuid.hpp"
-
-
 
 
 
@@ -33,6 +32,7 @@ namespace data_updater {
 using namespace agent::pnc::sysfs;
 using namespace agent_framework::model;
 using namespace agent_framework::model::attribute;
+using namespace agent_framework::model::utils;
 
 
 IBProcessorDataUpdater::IBProcessorDataUpdater(const SysfsDevice& sysfs_device,
@@ -46,7 +46,7 @@ IBProcessorDataUpdater::IBProcessorDataUpdater(const SysfsDevice& sysfs_device,
                                                       sysfs_device.id.device_num,
                                                       sysfs_device.id.function_num};
 
-        m_opae_devices = opaepp::OpaeCppDeviceReader().read_devices(pcie_device_address).get_devices();
+        m_opae_devices = opaepp::OpaeCppDeviceReader().get_devices(pcie_device_address);
     }
     catch (const std::exception& ex) {
         log_error("pnc-discovery", "IB OPAE Updater - Reader error: " << ex.what());
@@ -76,8 +76,6 @@ IBProcessorDataUpdater::update_processor_data() {
 
     set_reconfiguration_slots_details();
 
-    set_sideband_interface();
-
     set_type();
 
     set_vendor_id_and_fw_manufacturer();
@@ -103,12 +101,11 @@ IBProcessorDataUpdater::set_fw_id() {
 
             Fpga fpga = get_processor().get_fpga();
 
-            uint64_t bbs_id = opae_device.get_blue_bitstream_id().value();
+            if (opae_device.get_blue_bitstream_id().has_value()) {
+                auto bbs_id = to_hex_string<8, true>(opae_device.get_blue_bitstream_id().value());
 
-            std::stringstream bbs_id_ss;
-            bbs_id_ss << std::hex << bbs_id;
-
-            fpga.set_fw_id(bbs_id_ss.str());
+                fpga.set_firmware_id(bbs_id);
+            }
 
             get_processor().set_fpga(fpga);
 
@@ -134,7 +131,7 @@ IBProcessorDataUpdater::set_fw_version() {
                            << static_cast<uint32_t>(bbs_version.minor) << "."
                            << static_cast<uint32_t>(bbs_version.patch);
 
-            fpga.set_fw_version(bbs_version_ss.str());
+            fpga.set_firmware_version(bbs_version_ss.str());
 
             get_processor().set_fpga(fpga);
 
@@ -201,24 +198,13 @@ IBProcessorDataUpdater::set_reconfiguration_slots_details() {
 
             Array<FpgaReconfigurationSlot> array{slot};
 
-            fpga.set_reconfiguration_slots_details(array);
+            fpga.set_reconfiguration_slots(array);
 
             get_processor().set_fpga(fpga);
 
             return;
         }
     }
-}
-
-
-void
-IBProcessorDataUpdater::set_sideband_interface() {
-
-    Fpga fpga = get_processor().get_fpga();
-
-    fpga.set_sideband_interface(enums::FpgaInterface::I2C);
-
-    get_processor().set_fpga(fpga);
 }
 
 
@@ -243,14 +229,16 @@ IBProcessorDataUpdater::set_vendor_id_and_fw_manufacturer() {
             CpuId cpu_id = get_processor().get_cpu_id();
             Fpga fpga = get_processor().get_fpga();
 
-            int vendor_id = opae_device.get_vendor_id().value();
-            std::stringstream vendor_id_ss;
-            vendor_id_ss << std::hex << vendor_id;
+            if (opae_device.get_vendor_id().has_value()) {
+                auto vendor_id = to_hex_string<2, true>(
+                    opae_device.get_vendor_id().value());
 
-            cpu_id.set_vendor_id(vendor_id_ss.str());
-            get_processor().set_cpu_id(cpu_id);
+                cpu_id.set_vendor_id(vendor_id);
+                get_processor().set_cpu_id(cpu_id);
 
-            fpga.set_fw_manufacturer(vendor_id_ss.str());
+                fpga.set_firmware_manufacturer(vendor_id);
+            }
+
             get_processor().set_fpga(fpga);
 
             return;

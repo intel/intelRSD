@@ -55,7 +55,7 @@ class ExecuteRunningListAction(Action):
                                  help="When flag set CTS framework will return calculate exit code basing on tests results.")
 
     def process_action(self, configuration):
-        print "Using CTS in version %s" % (ColorPrinter.format_text(BuildInformation.BUILD_VERSION, bold=True))
+        print "Using CTS in version %s" % (ColorPrinter.format_text(BuildInformation.get_version(), bold=True))
 
         running_list = ConfigParser.ConfigParser()
         running_list.optionxform = str

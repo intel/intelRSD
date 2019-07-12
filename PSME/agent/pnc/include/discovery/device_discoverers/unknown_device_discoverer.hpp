@@ -48,6 +48,30 @@ public:
     }
 
 
+    /*!
+     * @brief Performs out-of-band discovery of device on a specific port
+     * @param[in] gas Instance of GAS registers
+     * @param[in] dsp_port_uuid Uuid of the Downstream Port
+     * @return True if discovery was successful
+     * */
+    bool oob_port_device_discovery(const gas::GlobalAddressSpaceRegisters& gas,
+                                   const Uuid& dsp_port_uuid) const override;
+
+
+    /*!
+     * @brief Performs in-band discovery of device on a specific port
+     * @param[in] switch_uuid Uuid of the Pcie Switch
+     * @param[in] dsp_port_uuid Uuid of the Downstream Port
+     * @param[in] bridge_id Id of the bridge that should be used during discovery (as visible on pcie switch)
+     * @param[in] device_uuid Uuid of the device created during out-of-band discovery
+     * @return True if discovery was successful
+     * */
+    bool ib_port_device_discovery(const Uuid& switch_uuid,
+                                  const Uuid& dsp_port_uuid,
+                                  uint8_t bridge_id,
+                                  const Uuid& device_uuid) const override;
+
+
 private:
 
     /*!
@@ -63,15 +87,6 @@ private:
      * @return True if device is of recognized type. False if it's unknown device
      */
     bool is_recognized_device() const override { return false; };
-
-
-    /*!
-     * @brief Full discovery of the device endpoint_uuid
-     * @param[in] fabric_uuid Uuid of the parent fabric
-     * @param[in] device_uuid Uuid of the PCIe device
-     * @return Discovered entity
-     */
-    agent_framework::model::Endpoint discover_endpoint(const Uuid& fabric_uuid, const Uuid&) const override;
 
 
     /*!
@@ -104,6 +119,16 @@ private:
      * @param device_uuid UUID of the device to synchronize with database
      */
     void sync_device_properties_with_db(const Uuid& device_uuid) const override;
+
+
+    /*!
+     * @brief Add drive or processor to model based on sysfs data (if not added earlier during oob discovery)
+     * @param[in] dsp_port_uuid Uuid of the Downstream Port
+     * @param[in] serial_number serial number which will be used to stabilize discovered PCIe device UUID
+     * @return stabilized discovered PCIe device UUID
+     */
+    Uuid add_from_sysfs(const Uuid& dsp_port_uuid,
+                        const std::string& serial_number) const override;
 };
 
 }

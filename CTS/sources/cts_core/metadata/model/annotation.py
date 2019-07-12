@@ -25,6 +25,8 @@
 import collections
 import copy
 
+from bs4 import Tag
+
 from cts_core.metadata.comparator import Comparator
 
 TERM = "term"
@@ -38,6 +40,7 @@ class Annotation:
     DYNAMIC_PROPERTY_PATTERNS = "Redfish.DynamicPropertyPatterns"
     PATTERN = "Pattern"
     TYPE = "Type"
+    REDFISH_URIS = "Redfish.Uris"
 
     def __init__(self, annotation_soup):
         """
@@ -45,6 +48,7 @@ class Annotation:
 
         """
         self.term = None
+        self.redfish_uris = []
         self.qualifier = None
         self.value = None
         self.value_type = None
@@ -54,12 +58,22 @@ class Annotation:
             annotations_attributes_list = copy.deepcopy(annotation_soup.attrs)
             self.term = annotations_attributes_list.pop(TERM, None)
             self.qualifier = annotations_attributes_list.pop(QUALIFIER, None)
-            if self.term == Annotation.DYNAMIC_PROPERTY_PATTERNS:
+
+            if self.term == Annotation.REDFISH_URIS:
+                self._parse_redfish_uris_patters(annotation_soup)
+            elif self.term == Annotation.DYNAMIC_PROPERTY_PATTERNS:
                 self.parse_dynamic_property_patterns(annotation_soup)
             else:
                 self.value_type, self.value = annotations_attributes_list.items()[0]
         except IndexError:
             pass
+
+    def _parse_redfish_uris_patters(self, annotation_soup):
+        for redfish_uris_tag in [redfish_uris_tag for redfish_uris_tag in annotation_soup.contents
+                                 if isinstance(redfish_uris_tag, Tag)]:
+            for content_element in [content_element.contents[0] for content_element in redfish_uris_tag.contents
+                                    if isinstance(content_element, Tag)]:
+                self.redfish_uris.append(content_element)
 
     def parse_dynamic_property_patterns(self, annotation_soup):
         self.dynamic_property_patterns = []

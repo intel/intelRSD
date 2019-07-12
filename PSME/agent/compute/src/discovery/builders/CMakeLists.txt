@@ -30,6 +30,7 @@ set(SOURCES
     thermal_zone_builder.cpp
     pcie_device_builder.cpp
     pcie_function_builder.cpp
+    log_service_builder.cpp
 
     platform_specific/purley/purley_chassis_builder.cpp
     platform_specific/purley/purley_system_builder.cpp

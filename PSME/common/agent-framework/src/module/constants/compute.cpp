@@ -62,20 +62,14 @@ constexpr const char System::PERFORMANCE_CONFIGURATIONS[];
 
 constexpr char Fpga::TYPE[];
 constexpr char Fpga::MODEL[];
-constexpr char Fpga::MANUFACTURER[];
-constexpr char Fpga::BIT_STREAM_VERSION[];
-constexpr char Fpga::HSSI_CONFIGURATION[];
-constexpr char Fpga::HSSI_SIDEBAND[];
 constexpr char Fpga::HOST_INTERFACE[];
 constexpr char Fpga::EXTERNAL_INTERFACES[];
-constexpr char Fpga::SIDEBAND_INTERFACE[];
 constexpr char Fpga::PCIE_VIRTUAL_FUNCTIONS[];
-constexpr char Fpga::RECONFIGURATION_SLOTS[];
-constexpr char Fpga::RECONFIGURATION_SLOTS_DETAILS[];
 constexpr char Fpga::PROGRAMMABLE_FROM_HOST[];
-constexpr char Fpga::FW_ID[];
-constexpr char Fpga::FW_MANUFACTURER[];
-constexpr char Fpga::FW_VERSION[];
+constexpr char Fpga::RECONFIGURATION_SLOTS[];
+constexpr char Fpga::FIRMWARE_ID[];
+constexpr char Fpga::FIRMWARE_MANUFACTURER[];
+constexpr char Fpga::FIRMWARE_VERSION[];
 constexpr char Fpga::ERASED[];
 constexpr char Fpga::SECURELY_ERASE[];
 
@@ -140,6 +134,7 @@ constexpr const char Processor::CAPABILITIES[];
 constexpr const char Processor::THERMAL_DESIGN_POWER_WATT[];
 constexpr const char Processor::FPGA[];
 constexpr const char Processor::OEM[];
+constexpr const char Processor::COLLECTIONS[];
 
 constexpr const char StorageController::CONTROLLER[];
 constexpr const char StorageController::STATUS[];

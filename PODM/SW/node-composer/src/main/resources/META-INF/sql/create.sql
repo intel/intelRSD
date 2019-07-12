@@ -317,9 +317,16 @@ create table memory (
 	primary key (id)
 );
 
+create table network_adapter (
+	id int8 not null,
+	chassis_id int8,
+	primary key (id)
+);
+
 create table network_device_function (
 	chap_username text,
 	id int8 not null,
+	network_adapter_id int8,
 	network_interface_id int8,
 	primary key (id)
 );
@@ -692,6 +699,15 @@ alter table memory
 
 alter table memory
 	add constraint FK_imr6buoy6xv7iok8k16u7auxi foreign key (id)references discoverable_entity;
+
+alter table network_adapter
+	add constraint FK_e2yq31uq7849j3erdytoyoynu foreign key (chassis_id)references chassis;
+
+alter table network_adapter
+	add constraint FK_ael091qr0akma3s7ceulcru6h foreign key (id)references discoverable_entity;
+
+alter table network_device_function
+	add constraint FK_o1ur5jntl84knvcudja7v3w99 foreign key (network_adapter_id)references network_adapter;
 
 alter table network_device_function
 	add constraint FK_jchhhhbmfa9rly6mf7nrw5tf9 foreign key (network_interface_id)references network_interface;

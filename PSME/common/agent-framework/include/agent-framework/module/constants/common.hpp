@@ -208,6 +208,8 @@ public:
 class NetworkInterface {
 public:
     static constexpr const char INTERFACE[] = "interface";
+    static constexpr const char NAME[] = "name";
+    static constexpr const char DESCRIPTION[] = "description";
     static constexpr const char STATUS[] = "status";
     static constexpr const char FRAME_SIZE[] = "frameSize";
     static constexpr const char SPEED[] = "speedMbps";
@@ -469,6 +471,39 @@ public:
     static constexpr const char PROVIDING_DRIVES[] = "providingDrives";
     static constexpr const char PROVIDING_VOLUMES[] = "providingVolumes";
     static constexpr const char PROVIDING_POOLS[] = "providingPools";
+};
+
+/*!
+ * @brief Class consisting of literals for LogService
+ */
+class LogService {
+public:
+    static constexpr const char SERVICE[] = "service";
+    static constexpr const char DATETIME[] = "dateTime";
+    static constexpr const char ENTRY_TYPE[] = "entryType";
+    static constexpr const char OVERWRITE_POLICY[] = "overWritePolicy";
+    static constexpr const char SERVICE_ENABLED[] = "serviceEnabled";
+    static constexpr const char STATUS[] = "status";
+    static constexpr const char MAX_NUMBER_OF_RECORDS[] = "maxNumberOfRecords";
+};
+
+/*!
+ * @brief Class consisting of literals for LogEntry
+ */
+class LogEntry {
+public:
+    static constexpr const char LOG_ENTRY[] = "entry";
+    static constexpr const char CREATED[] = "created";
+    static constexpr const char ENTRY_CODE[] = "entryCode";
+    static constexpr const char ENTRY_TYPE[] = "entryType";
+    static constexpr const char EVENT_ID[] = "eventId";
+    static constexpr const char EVENT_TIMESTAMP[] = "eventTimestamp";
+    static constexpr const char EVENT_TYPE[] = "eventType";
+    static constexpr const char SEVERITY[] = "severity";
+    static constexpr const char SENSOR_TYPE[] = "sensorType";
+    static constexpr const char SENSOR_NUMBER[] = "sensorNumber";
+    static constexpr const char STATUS[] = "status";
+    static constexpr const char RECORD_ID[] = "recordId";
 };
 
 }

@@ -35,10 +35,9 @@
   </edmx:Reference>
 
   <edmx:DataServices>
-    <!--todo: should we define unversioned base types for these?-->
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Capacity">
-
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <ComplexType Name="Capacity" Abstract="true">
         <Annotation Term="OData.AdditionalProperties" Bool="false"/>
         <Annotation Term="OData.Description" String="This is the schema definition for the Capacity of a device. It represents the properties for capacity for any data store."/>
@@ -59,7 +58,7 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Capacity.v1_0_0">
-
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <ComplexType Name="Capacity" BaseType="Capacity.Capacity">
         <Annotation Term="OData.Description" String="This is the schema definition for the Capacity of a device. It represents the properties for capacity for any data store."/>
         <Annotation Term="OData.LongDescription" String="This composition may be used to represent storage capacity.  The sum of the values in Data, Metadata, and Snapshot shall be equal to the total capacity for the data store."/>
@@ -142,14 +141,16 @@
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Capacity.v1_0_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.Description" String="This version was created to show annotations in the previous namespace were updated."/>
-      <ComplexType Name="Capacity" BaseType="Capacity.v1_0_0.Capacity"/>
+      <EntityType Name="CapacitySource" BaseType="Capacity.v1_0_0.CapacitySource"/>
 
     </Schema>
 
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Capacity.v1_0_2">
-      <Annotation Term="OData.Description" String="This version was created to show CapacitySources is promoted to from a ComplexType to an EntityType for compatibility with OData v4.0."/>
-      <EntityType Name="CapacitySource" BaseType="Capacity.v1_0_0.CapacitySource">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to show CapacitySources is promoted from a ComplexType to an EntityType for compatibility with OData v4.0."/>
+      <EntityType Name="CapacitySource" BaseType="Capacity.v1_0_1.CapacitySource">
         <Annotation Term="OData.Description" String="A description of the type and source of storage."/>
         <Annotation
           Term="OData.LongDescription"
@@ -157,7 +158,14 @@
       </EntityType>
     </Schema>
 
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Capacity.v1_0_3">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="CapacitySource" BaseType="Capacity.v1_0_2.CapacitySource"/>
+    </Schema>
+
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Capacity.v1_1_0">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
       <Annotation Term="OData.Description" String="This version was created to add ProvidingMemoryChunks and ProvidingMemory as contributing types to CapacitySource. Move ComplexTypes to unversioned namespace. Change references to unversioned."/>
       <EntityType Name="CapacitySource" BaseType="Capacity.v1_0_2.CapacitySource">
         <NavigationProperty Name="ProvidingMemoryChunks" Type="MemoryChunksCollection.MemoryChunksCollection" ContainsTarget="true">
@@ -171,6 +179,12 @@
           <Annotation Term="OData.AutoExpandReferences"/>
         </NavigationProperty>
       </EntityType>
+    </Schema>
+
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Capacity.v1_1_1">
+      <Annotation Term="Redfish.OwningEntity" String="SNIA"/>
+      <Annotation Term="OData.Description" String="This version was created to force the regeneration of JSON Schema so that OData properties are marked as required, and integer properties are marked as integer rather than number."/>
+      <EntityType Name="CapacitySource" BaseType="Capacity.v1_1_0.CapacitySource"/>
     </Schema>
 
   </edmx:DataServices>

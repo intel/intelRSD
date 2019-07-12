@@ -44,7 +44,7 @@ class SosAction(Action):
         The SOS process collects the information needed for easier debugging
         :return:
         """
-        print "Using SOS CTS in version %s" % (ColorPrinter.format_text(BuildInformation.BUILD_VERSION, bold=True))
+        print "Using SOS CTS in version %s" % (ColorPrinter.format_text(BuildInformation.get_version(), bold=True))
         SOS_SCRIPT_PATH = ""
         SOS_SCRIPT_NAME = "cts-sos.sh"
 

@@ -39,6 +39,8 @@ struct PartitionData final {
     PartitionType type{};
     /*! Name of the partition */
     std::string name{};
+    /*! Unique identifier of this partition */
+    std::string uuid{};
 };
 
 /*!

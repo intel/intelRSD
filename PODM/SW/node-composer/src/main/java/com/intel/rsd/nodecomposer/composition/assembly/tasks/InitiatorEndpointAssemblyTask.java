@@ -17,21 +17,27 @@
 package com.intel.rsd.nodecomposer.composition.assembly.tasks;
 
 import com.hazelcast.spring.context.SpringAware;
+import com.intel.rsd.nodecomposer.business.BusinessApiException;
 import com.intel.rsd.nodecomposer.business.redfish.services.EndpointService;
 import com.intel.rsd.nodecomposer.business.services.redfish.odataid.ODataId;
 import com.intel.rsd.nodecomposer.persistence.dao.GenericDao;
 import com.intel.rsd.nodecomposer.persistence.redfish.ComposedNode;
+import com.intel.rsd.nodecomposer.persistence.redfish.Endpoint;
 import com.intel.rsd.nodecomposer.persistence.redfish.Fabric;
 import com.intel.rsd.nodecomposer.utils.measures.TimeMeasured;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.io.Serializable;
+import java.util.function.Consumer;
 
+import static com.intel.rsd.nodecomposer.utils.Contracts.requiresNonNull;
 import static javax.transaction.Transactional.TxType.REQUIRES_NEW;
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 
@@ -44,17 +50,45 @@ public class InitiatorEndpointAssemblyTask extends NodeTask implements Serializa
 
     @Autowired
     private transient GenericDao genericDao;
+
     @Autowired
     private transient EndpointService endpointService;
+
+    private transient Consumer<Endpoint> initiatorEndpointAttacher;
+
     @Setter
     private ODataId fabricOdataId;
+
+    @PostConstruct
+    public void init() {
+        this.initiatorEndpointAttacher = endpoint -> {
+            val node = genericDao.find(ComposedNode.class, composedNodeODataId);
+            val system = node.getComputerSystem();
+            requiresNonNull(system, "computerSystem");
+
+            endpoint.setAllocated(true);
+            system.addEndpoint(endpoint);
+            endpoint.getConnectedEntities().forEach(system::addEntityConnection);
+        };
+    }
 
     @Override
     @Transactional(REQUIRES_NEW)
     @TimeMeasured(tag = "[AssemblyTask]")
     public void run() {
         Fabric fabric = genericDao.find(Fabric.class, fabricOdataId);
-        endpointService.createInitiatorEndpoint(getComposedNode(), fabric);
+        try {
+            val node = getComposedNode();
+            val system = node.getComputerSystem();
+
+            val initiatorEndpointOdataId = endpointService.createInitiatorEndpoint(
+                fabricOdataId, fabric.getFabricType(), system.getUuid(), system.getPcieConnectionIds()
+            );
+
+            endpointService.discoverEndpoint(fabricOdataId, initiatorEndpointOdataId, initiatorEndpointAttacher);
+        } catch (BusinessApiException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public ComposedNode getComposedNode() {

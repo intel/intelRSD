@@ -49,8 +49,8 @@ final class RetryInvoker {
                 if ((!isServiceUnavailableTheRootCause(e) && !isConnectionExceptionTheRootCause(e)) || maximumAttemptsReached(currentAttempt)) {
                     throw e;
                 }
-                log.info("Retrying (service unavailable: {}, connection exception: {}, maximumAttemptsReached: {}) operation due to:",
-                    isServiceUnavailableTheRootCause(e), isConnectionExceptionTheRootCause(e), maximumAttemptsReached(currentAttempt), e);
+                log.info("Retrying (service unavailable: {}, connection exception: {}, maximumAttemptsReached: {}) operation due to: {}",
+                    isServiceUnavailableTheRootCause(e), isConnectionExceptionTheRootCause(e), maximumAttemptsReached(currentAttempt), e.getMessage());
 
                 sleep(currentAttempt);
                 lastException = e;

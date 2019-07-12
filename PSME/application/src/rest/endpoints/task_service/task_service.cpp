@@ -42,7 +42,7 @@ json::Json make_prototype() {
     r[TaskService::DATETIME] = "";
     r[TaskService::COMPLETED_TASK_OVERWRITE_POLICY] = "Manual";
     r[TaskService::LIFE_CYCLE_EVENT_ON_TASK_STATE_CHANGE] = true;
-    r[TaskService::SERVICE_ENABLED] = true;
+    r[Common::SERVICE_ENABLED] = true;
     r[TaskService::TASKS] = json::Json::value_t::object;
     r[TaskService::TASKS][Common::ODATA_ID] = "/redfish/v1/TaskService/Tasks";
 

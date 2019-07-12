@@ -16,18 +16,14 @@
 
 package com.intel.rsd.resourcemanager.runner.events;
 
-import com.intel.rsd.resourcemanager.layers.Response;
 import com.intel.rsd.resourcemanager.runner.events.configuration.EventsConfiguration;
 import com.intel.rsd.resourcemanager.runner.events.configuration.EventsConfiguration.Receiver.DynamicProvider;
 import com.intel.rsd.resourcemanager.runner.events.configuration.EventsConfiguration.Receiver.DynamicProviderMapping;
-import com.intel.rsd.resourcemanager.runner.requiredlayer.RestClient;
-import com.intel.rsd.resourcemanager.runner.requiredlayer.ServiceAccessException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -39,18 +35,17 @@ import java.util.List;
 import static com.intel.rsd.resourcemanager.runner.events.configuration.EventsConfiguration.Receiver.ReceiverType.Dynamic;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static org.springframework.http.HttpMethod.GET;
 
 @ConditionalOnProperty(name = "events.receiver.type", havingValue = "Dynamic")
 @Component
 @Slf4j
 public class DynamicSubscriptionDestinationProvider implements SubscriptionDestinationProvider {
-    private final RestClient restClient;
+    private final RestCallRouteVerifier routeVerifier;
     private final DynamicProvider dynamicProviderConfig;
 
     @Autowired
-    public DynamicSubscriptionDestinationProvider(RestClient restClient, EventsConfiguration eventsConfiguration) {
-        this.restClient = restClient;
+    public DynamicSubscriptionDestinationProvider(RestCallRouteVerifier routeVerifier, EventsConfiguration eventsConfiguration) {
+        this.routeVerifier = routeVerifier;
         this.dynamicProviderConfig = eventsConfiguration.getReceiver().getDynamic();
         log.info("Starting Receiver with {} configuration: {}", Dynamic, eventsConfiguration.getReceiver());
     }
@@ -62,16 +57,8 @@ public class DynamicSubscriptionDestinationProvider implements SubscriptionDesti
 
         for (String targetIpAddress : targetIpAddresses) {
             val uriToCall = createServiceRootUri(targetIpAddress);
-            try {
-                Response response = restClient.call(uriToCall, GET, new HttpHeaders(), null);
-                if (response.getHttpStatus().is2xxSuccessful()) {
-                    return createUriForHost(targetIpAddress, "");
-                } else {
-                    String responseBody = response.getBody() != null ? response.getBody().asText() : null;
-                    log.warn("{} returned non 2xx status code: {} with body: {}", uriToCall, response.getHttpStatus().value(), responseBody);
-                }
-            } catch (ServiceAccessException e) {
-                log.warn("{} is unavailable due to {}", uriToCall, e.getMessage());
+            if (routeVerifier.isReachable(uriToCall)) {
+                return createUriForHost(targetIpAddress, "");
             }
         }
 

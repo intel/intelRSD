@@ -21,6 +21,7 @@
 
 
 #include "device.hpp"
+#include "opae/cxx/core/properties.h"
 
 
 
@@ -63,6 +64,10 @@ class DeviceReader {
 
 public:
 
+    using Devices = std::vector<Device>;
+    using Properties = std::vector<opae::fpga::types::properties::ptr_t>;
+
+
     /*! Default constructor. */
     DeviceReader() = default;
 
@@ -71,34 +76,34 @@ public:
     virtual ~DeviceReader() = default;
 
 
-    /*!
-     * @brief Get discovered devices
-     * @return vector of discovered devices
-     * */
-    const std::vector<Device>& get_devices() {
-        return m_devices;
-    }
-
-
 protected:
-    /*!
-     * @brief Reads all OPAE devices, logs if discovery of any particular device failed.
-     * @throws runtime_error if it was unable to get tokens for discovery of devices
-     * @return reference to DeviceReader object
-     */
-    virtual DeviceReader& read_devices() = 0;
-
 
     /*!
-     * @brief Reads OPAE device for given BDF, logs if discovery of any particular device failed.
-     * @param pcie_device_nums pcie device address
+     * @brief Get all OPAE devices, logs if discovery of any particular device failed.
      * @throws runtime_error if it was unable to get tokens for discovery of devices
-     * @return reference to DeviceReader object
+     * @return vector of discovered devices
      */
-    virtual DeviceReader& read_devices(const PcieDeviceAddress& pcie_device_nums) = 0;
+    virtual Devices get_devices() = 0;
 
 
-    std::vector<Device> m_devices{};
+    /*!
+     * @brief Get OPAE devices for given BDF, logs if discovery of any particular device failed.
+     * @param pcie_device_nums PCIe device address
+     * @throws runtime_error if it was unable to get tokens for discovery of devices
+     * @return vector of discovered devices
+     */
+    virtual Devices get_devices(const PcieDeviceAddress& pcie_device_nums) = 0;
+
+
+    /*!
+     * @brief Get OPAE devices for given BDF and object type, logs if discovery of any particular device failed.
+     * @param pcie_device_address PCIe device address
+     * @param obj_type type of objects which will be read
+     * @throws runtime_error if it was unable to get tokens for discovery of devices
+     * @return vector of discovered devices
+     */
+    virtual Devices get_devices(const PcieDeviceAddress& pcie_device_address,
+                                fpga_objtype obj_type) = 0;
 };
 
 }

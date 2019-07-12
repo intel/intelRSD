@@ -16,7 +16,10 @@
 
 package com.intel.rsd.nodecomposer.utils;
 
-import net.sf.corn.cps.ClassFilter;
+import lombok.SneakyThrows;
+import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.scanners.TypeAnnotationsScanner;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -29,26 +32,29 @@ import java.util.stream.Stream;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
-import static net.sf.corn.cps.CPScanner.scanClasses;
 
 public final class ClassGatherer {
     private ClassGatherer() {
     }
 
+    @SneakyThrows
     public static Set<Class<?>> getAllClassesByPackage(String packageName) {
-        return new HashSet<>(scanClasses(new ClassFilter().packageName(packageName)));
+        Set<Class<?>> classes = new HashSet<>();
+        for (String singleClassName : new Reflections(packageName, new SubTypesScanner(false)).getAllTypes()) {
+            classes.add(Class.forName(singleClassName));
+        }
+        return classes;
     }
 
     public static Set<Class<?>> getAllClassesByPackageAndAnnotation(String packageName, Class<? extends Annotation> annotation) {
-        return new HashSet<>(scanClasses(new ClassFilter()
-            .packageName(packageName)
-            .annotation(annotation)));
+        return new Reflections(packageName, new SubTypesScanner(false), new TypeAnnotationsScanner())
+            .getTypesAnnotatedWith(annotation);
     }
 
+    @SuppressWarnings({"unchecked"})
     public static Set<Class<?>> getAllClassesByPackageAndSuperTypeWithTheirInnerClasses(String packageName, Class<?> superClass) {
-        return scanClasses(new ClassFilter()
-            .packageName(packageName)
-            .superClass(superClass))
+        return new Reflections(packageName, new SubTypesScanner(false))
+            .getSubTypesOf((Class<Object>) superClass)
             .stream()
             .flatMap(clazz -> Stream.concat(Stream.of(clazz), getDeclaredClassesRecursively(clazz, new HashSet<>()).stream()))
             .collect(toSet());
@@ -65,7 +71,7 @@ public final class ClassGatherer {
         return foundClasses;
     }
 
-    public static Class<?> extractTypeOfField(Field field) {
+    private static Class<?> extractTypeOfField(Field field) {
         if (field.getGenericType() instanceof ParameterizedType) {
             return (Class<?>) extractTypeFromParameterizedType(field.getGenericType());
         }

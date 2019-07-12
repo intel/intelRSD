@@ -16,43 +16,18 @@
 
 package com.intel.rsd.resourcemanager.layers.merger.response;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.intel.rsd.redfish.RedfishError;
 import com.intel.rsd.resourcemanager.layers.Response;
 import lombok.experimental.UtilityClass;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.val;
 
-import java.util.Arrays;
-
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static com.intel.rsd.json.JsonUtils.objectToJsonNode;
+import static org.springframework.http.ResponseEntity.status;
 
 @UtilityClass
 final class ErrorResponseFactory {
-    private static final JsonNodeFactory FACTORY = JsonNodeFactory.instance;
-
-    public static Response createNotFoundResponse() {
-        return createErrorResponse("Base.1.0.InvalidEndpoint", "Invalid endpoint", NOT_FOUND);
-    }
-
-    public static Response createErrorResponse(String code, String message, HttpStatus status, String... extendedInfoMessages) {
-        return new Response(createError(code, message, status, extendedInfoMessages));
-    }
-
-    static ResponseEntity<JsonNode> createError(String code, String message, HttpStatus status, String[] extendedInfoMessages) {
-        ObjectNode errorBody = FACTORY.objectNode();
-        ArrayNode extendedInfos = FACTORY.arrayNode();
-        Arrays.stream(extendedInfoMessages)
-            .map(s -> FACTORY.objectNode().put("Message", s).put("MessageId", "Base.1.0.ExternalServiceError"))
-            .forEach(extendedInfos::add);
-        JsonNode errorCode = FACTORY.objectNode()
-            .put("code", code)
-            .put("message", message)
-            .set("@Message.ExtendedInfo", extendedInfos);
-
-        errorBody.set("error", errorCode);
-        return ResponseEntity.status(status).body(errorBody);
+    public static Response createErrorResponse(RedfishError redfishError) {
+        val responseEntity = status(redfishError.getHttpStatus()).body(objectToJsonNode(redfishError));
+        return new Response(responseEntity);
     }
 }
