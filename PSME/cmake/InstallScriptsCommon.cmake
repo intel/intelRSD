@@ -421,7 +421,7 @@ function(find_package_local PACKAGE MODULE)
 
     set(incldirs ${${PACKAGE}__INCLUDE_DIRS} ${${PACKAGE}__INCLUDEDIR})
     message(STATUS "includes: ${incldirs}")
-    if (NOT librarires)
+    if (NOT libraries)
 	message(STATUS "libraries: package doesn't deliver any libraries")
         find_package_handle_standard_args(${UPPER} DEFAULT_MSG
             incldirs
